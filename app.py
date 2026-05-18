@@ -87,16 +87,16 @@ ACTIVE_CARDS_FULL = [
 
 # ===================== MINH: CARD ENGINE – REACTION CARDS =====================
 REACTION_CARDS = [
-    {"id":"R1","name":"Lock‑up Extension","trigger":"on_bot_withdraw","desc":"Giảm bán tháo khi bot rút","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
-    {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","desc":"Giảm 50% delta xấu","cost_percent":3,"effect":{"halve_negative_delta":1}},
-    {"id":"R3","name":"Whale Whisperer","trigger":"on_whale_trust<30","desc":"Tăng trust của Whale","cost_percent":5,"effect":{"whale_trust":10}},
-    {"id":"R4","name":"Damage Control","trigger":"on_transparency<30","desc":"Tăng transparency, giảm Hype","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
-    {"id":"R5","name":"Liquidity Injection","trigger":"on_circuit_breaker","desc":"Rút ngắn circuit breaker","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
-    {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk>70","desc":"Giảm rủi ro pháp lý","cost_percent":4,"effect":{"reg_risk":-20}},
-    {"id":"R7","name":"Security Patch","trigger":"on_security<30","desc":"Tăng security","cost_percent":3,"effect":{"security":15}},
-    {"id":"R8","name":"FOMO Suppression","trigger":"on_hype>80","desc":"Giảm Hype, tăng transparency","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
-    {"id":"R9","name":"Investor Assurance","trigger":"on_trust_any_bot<20","desc":"Tăng trust cho bot đó","cost_percent":2,"effect":{"trust_single":15}},
-    {"id":"R10","name":"Runway Boost","trigger":"on_runway<3","desc":"Thêm 3 tháng runway","cost_percent":10,"effect":{"runway":3}},
+    {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","condition":{"event":"bot_withdraw"},"desc":"Slow withdrawals when investors start leaving.","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
+    {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","condition":{"event":"market_bad"},"desc":"Respond quickly to bad market news.","cost_percent":3,"effect":{"halve_negative_delta":1}},
+    {"id":"R3","name":"Major Investor Briefing","trigger":"on_whale_trust_low","condition":{"metric":"whale_trust","operator":"<","value":30},"desc":"Rebuild confidence with major investors.","cost_percent":5,"effect":{"trust_whale":10}},
+    {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","condition":{"metric":"transparency","operator":"<","value":30},"desc":"Explain problems and restore transparency.","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
+    {"id":"R5","name":"Liquidity Support Plan","trigger":"on_circuit_breaker","condition":{"metric":"circuit_breaker_active","operator":"==","value":True},"desc":"Reduce the impact of a liquidity freeze.","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
+    {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","condition":{"metric":"reg_risk","operator":">","value":70},"desc":"Handle urgent legal or compliance risk.","cost_percent":4,"effect":{"reg_risk":-20}},
+    {"id":"R7","name":"Security Patch","trigger":"on_security_low","condition":{"metric":"security","operator":"<","value":30},"desc":"Fix urgent security weaknesses.","cost_percent":3,"effect":{"security":15}},
+    {"id":"R8","name":"Expectation Management","trigger":"on_hype_high","condition":{"metric":"hype","operator":">","value":80},"desc":"Control unrealistic public expectations.","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
+    {"id":"R9","name":"Investor Assurance","trigger":"on_trust_low","condition":{"metric":"min_bot_trust","operator":"<","value":20},"desc":"Reassure worried investors.","cost_percent":2,"effect":{"trust_all":5}},
+    {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","condition":{"metric":"runway","operator":"<","value":3},"desc":"Extend survival time during cash pressure.","cost_percent":10,"effect":{"runway":3}},
 ]
 
 # ===================== JIN: AI BOT GENERATION =====================
