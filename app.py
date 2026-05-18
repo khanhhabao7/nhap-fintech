@@ -8,28 +8,24 @@ app.secret_key = 'startup-game-secret'
 
 # ===================== DỮ LIỆU CỐ ĐỊNH =====================
 SCENARIOS = [
-    # Market (6)
     {"id":1,"name":"Tin tốt nhẹ","cat":"Market","delta":{"price":0.05,"cogs":0,"hype":10,"sentiment":5,"transparency":0,"reg_risk":0}},
     {"id":2,"name":"Tin tốt vừa","cat":"Market","delta":{"price":0.1,"cogs":-0.05,"hype":20,"sentiment":10,"transparency":0,"reg_risk":0}},
     {"id":3,"name":"Tin xấu nhẹ","cat":"Market","delta":{"price":-0.05,"cogs":0.03,"hype":-10,"sentiment":-5,"transparency":0,"reg_risk":0}},
     {"id":4,"name":"Tin xấu vừa","cat":"Market","delta":{"price":-0.1,"cogs":0.05,"hype":-20,"sentiment":-15,"transparency":-5,"reg_risk":5}},
     {"id":5,"name":"Khủng hoảng nhẹ","cat":"Market","delta":{"price":-0.15,"cogs":0.1,"hype":-30,"sentiment":-20,"transparency":-10,"reg_risk":10}},
     {"id":6,"name":"Khủng hoảng nặng","cat":"Market","delta":{"price":-0.25,"cogs":0.15,"hype":-40,"sentiment":-30,"transparency":-20,"reg_risk":20}},
-    # Internal (6)
     {"id":7,"name":"Máy móc hỏng nhẹ","cat":"Internal","delta":{"cogs":0.05,"hype":-5,"transparency":-5,"trust_all":-5,"runway":-1}},
     {"id":8,"name":"Lỗi sản xuất vừa","cat":"Internal","delta":{"cogs":0.1,"hype":-10,"transparency":-10,"trust_all":-10,"runway":-2}},
     {"id":9,"name":"Rò rỉ dữ liệu","cat":"Internal","delta":{"cogs":0,"hype":-15,"transparency":-20,"trust_all":-15,"runway":0}},
     {"id":10,"name":"Nhân sự chủ chốt nghỉ","cat":"Internal","delta":{"cogs":0.03,"hype":-10,"transparency":-5,"trust_all":-5,"runway":0}},
     {"id":11,"name":"Được giải thưởng","cat":"Internal","delta":{"cogs":-0.05,"hype":15,"transparency":10,"trust_all":10,"runway":0}},
     {"id":12,"name":"Audit nội bộ tốt","cat":"Internal","delta":{"cogs":0,"hype":5,"transparency":15,"trust_all":10,"runway":0}},
-    # External (6)
     {"id":13,"name":"Đối thủ giảm giá","cat":"External","delta":{"price":-0.05,"marketing_eff":-0.1,"hype":-5,"transparency":0}},
     {"id":14,"name":"Đối thủ ra sản phẩm mới","cat":"External","delta":{"price":-0.1,"marketing_eff":-0.2,"hype":-15,"transparency":-5}},
     {"id":15,"name":"Hợp tác chiến lược","cat":"External","delta":{"price":0.05,"marketing_eff":0.15,"hype":15,"transparency":5}},
     {"id":16,"name":"Bị kiện bản quyền","cat":"External","delta":{"price":-0.08,"marketing_eff":-0.15,"hype":-20,"transparency":-10}},
     {"id":17,"name":"Được cấp bằng sáng chế","cat":"External","delta":{"price":0.1,"marketing_eff":0.1,"hype":10,"transparency":5}},
     {"id":18,"name":"Tin đồn thâu tóm","cat":"External","delta":{"price":0.15,"marketing_eff":0.05,"hype":25,"transparency":-5}},
-    # Regulatory (6)
     {"id":19,"name":"Thanh tra đột xuất","cat":"Regulatory","delta":{"reg_risk":25,"transparency":-10,"trust_all":-10,"legal_cost_percent":5}},
     {"id":20,"name":"Được cấp phép sandbox","cat":"Regulatory","delta":{"reg_risk":-30,"transparency":15,"trust_all":15,"legal_cost_percent":-3}},
     {"id":21,"name":"Thay đổi luật có lợi","cat":"Regulatory","delta":{"reg_risk":-15,"transparency":5,"trust_all":5,"legal_cost_percent":0}},
@@ -38,7 +34,6 @@ SCENARIOS = [
     {"id":24,"name":"Chứng nhận quốc tế","cat":"Regulatory","delta":{"reg_risk":-10,"transparency":10,"trust_all":10,"legal_cost_percent":-2}},
 ]
 
-# Active cards (giữ nguyên như cũ, không tokenomic)
 ACTIVE_CARDS_FULL = [
     {"id":"A1","name":"Marketing Blitz","cost":2,"type":"red","desc":"Tăng Hype, giảm Transparency","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
     {"id":"A2","name":"Viral Campaign","cost":3,"type":"red","desc":"Tăng Hype mạnh","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
@@ -89,7 +84,6 @@ REACTION_CARDS = [
     {"id":"R10","name":"Runway Boost","trigger":"on_runway<3","desc":"Thêm 3 tháng runway","cost_percent":10,"effect":{"runway":3}},
 ]
 
-# Tạo 200 bot với weights đã điều chỉnh
 random.seed(42)
 BOTS = []
 for i in range(1, 201):
@@ -127,7 +121,6 @@ def calculate_metrics(proj):
     scal_score = clamp(10 + 20 * (1 - math.exp(-3 * growth / 0.5)), 10, 30) if growth > 0 else 10
     intrinsic = unit_econ + burn_score + scal_score
 
-    # ROI động
     total_invested = proj.get("total_invested", 0)
     revenue_year = proj["units_m6"] * 12 * price_real
     ps_ratio = 5.0
@@ -145,7 +138,6 @@ def calculate_metrics(proj):
         raw_roi = 0
     roi_norm = min(100, 20 * math.log10(raw_roi + 1))
 
-    # Valuation sanity
     mult = estimated_valuation / revenue_year if revenue_year > 0 else 1000
     if mult < 1: val_score = 30 - (1-mult)/1*30
     elif mult <= 3: val_score = 80 + (mult-1)/2*20
@@ -153,7 +145,6 @@ def calculate_metrics(proj):
     else: val_score = max(0, 40 - (mult-5)/2*40)
     val_score = clamp(val_score, 0, 100)
 
-    # Bỏ tokenomic
     base_reg = 20 if proj.get("has_license", False) else 80
     if proj.get("legal_cost_spent", 0) >= 0.05 * proj["target_funding"]: base_reg += 20
     reg_risk = clamp(base_reg - proj["transparency"] / 10, 0, 100)
@@ -203,12 +194,10 @@ def final_score(proj, phases_used, metrics):
     trans_score = (proj["transparency"] / 100) * 20
     raw = funding_score + speed_score + roi_score + trans_score
     perf_phase = raw / phases_used if phases_used > 0 else 0
-    # scale_factor vẫn lấy từ proj (được set theo scale)
     return perf_phase * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
 
 # ===================== VALIDATION =====================
 def validate_project(proj):
-    # 1. Kiểm tra các trường bắt buộc
     required = ['price', 'fee_ecom', 'fee_retail', 'fee_direct', 'material', 'packaging', 'labor',
                 'defect_rate', 'units_m1', 'units_m3', 'units_m6', 'fixed_cost', 'marketing_cost',
                 'owner_equity', 'loan', 'interest_rate', 'equity_offered', 'target_funding', 'scale']
@@ -218,8 +207,6 @@ def validate_project(proj):
         if isinstance(proj[field], (int, float)) and proj[field] < 0:
             return False, f"{field} cannot be negative"
 
-    # 2. Ràng buộc từng trường (dựa trên bảng constraints)
-    # Scale và target funding
     scale = proj['scale']
     target = proj['target_funding']
     if scale == 'Small':
@@ -240,7 +227,6 @@ def validate_project(proj):
     else:
         return False, "Scale must be Small, Medium, or Large"
 
-    # Price & channels
     if not (10 <= proj['price'] <= 1000):
         return False, "Retail price must be between 10 and 1000 USD"
     if not (0 <= proj['fee_ecom'] <= 100):
@@ -253,7 +239,6 @@ def validate_project(proj):
     if total_fees > 100:
         return False, "Total channel fees cannot exceed 100%"
 
-    # COGS
     if not (0.1 <= proj['material'] <= 100):
         return False, "Direct materials must be 0.1 – 100 USD"
     if not (0.1 <= proj['packaging'] <= 100):
@@ -263,20 +248,17 @@ def validate_project(proj):
     if not (0 <= proj['defect_rate'] <= 10):
         return False, "Defect allowance must be 0 – 10%"
 
-    # Production forecast
     for m in ['units_m1', 'units_m3', 'units_m6']:
         if not (0 <= proj[m] <= 100000):
             return False, f"{m} must be between 0 and 100,000"
     if not (proj['units_m6'] >= proj['units_m3'] >= proj['units_m1']):
         return False, "Units must be non-decreasing: m6 >= m3 >= m1"
 
-    # Monthly operating costs
     if not (1000 <= proj['fixed_cost'] <= 100000):
         return False, "Fixed operating cost must be 1,000 – 100,000 USD/month"
     if not (0 <= proj['marketing_cost'] <= 100000):
         return False, "Marketing cost must be 0 – 100,000 USD/month"
 
-    # Capital structure
     if not (0 <= proj['owner_equity'] <= 300000):
         return False, "Owner equity must be 0 – 300,000 USD"
     if not (0 <= proj['loan'] <= 300000):
@@ -286,7 +268,6 @@ def validate_project(proj):
     if not (0.1 <= proj['equity_offered'] <= 99.9):
         return False, "Equity offered must be 0.1 – 99.9%"
 
-    # 3. Business sanity checks
     net_price = proj['price'] * (1 - total_fees / 100.0)
     cogs = (proj['material'] + proj['packaging'] + proj['labor']) * (1 + proj['defect_rate'] / 100.0)
     if net_price <= cogs:
@@ -296,18 +277,6 @@ def validate_project(proj):
     ps_ratio = annual_revenue / target if target > 0 else 0
     if ps_ratio < 0.3:
         return False, f"Projected annual revenue (${annual_revenue:,.0f}) is too low for target funding (${target:,.0f}). P/S ratio = {ps_ratio:.2f} (minimum 0.3)"
-
-    monthly_burn = proj['fixed_cost'] + proj['marketing_cost'] + (proj['loan'] * proj['interest_rate'] / 100 / 12)
-    initial_cash = proj['owner_equity'] + proj['loan']
-    runway = initial_cash / monthly_burn if monthly_burn > 0 else 999
-    if runway < 3:
-        # Cảnh báo nhưng không chặn
-        pass
-
-    owner_ratio = initial_cash / target if target > 0 else 0
-    if owner_ratio < 0.05:
-        # Cảnh báo
-        pass
 
     return True, "OK"
 
@@ -319,7 +288,6 @@ def get_bots_for_phase(phase, total_bots=200):
     count = int(total_bots * ratio)
     return BOTS[:count]
 
-# ===================== FLASK ROUTES =====================
 @app.route('/')
 def index():
     return render_template('host.html')
@@ -374,11 +342,9 @@ def submit_project():
     room = rooms[room_id]
     if player_index >= len(room['players']) or room['players'][player_index] is not None:
         return jsonify({'error': 'Slot taken'}), 400
-    # Validation
     valid, msg = validate_project(project_data)
     if not valid:
         return jsonify({'error': msg}), 400
-    # Khởi tạo project
     project_data['trust_scores'] = {bot['id']: 50 for bot in BOTS}
     project_data['status'] = 'active'
     project_data['funding_progress'] = 0
@@ -601,7 +567,6 @@ def use_reaction():
     if rc['id'] not in available_ids:
         return jsonify({'error': 'Reaction not available now'}), 400
     eff = rc['effect']
-    # Apply effects
     if 'transparency' in eff:
         proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
     if 'hype' in eff:
@@ -624,7 +589,6 @@ def use_reaction():
         proj['trust_scores'][min_bid] = clamp(proj['trust_scores'][min_bid] + eff['trust_single'], 0, 100)
     if 'sell_pressure_reduce' in eff:
         proj['sell_pressure_reduce'] = eff['sell_pressure_reduce']
-    # Deduct cost
     proj['available_cash'] -= (rc['cost_percent'] / 100) * proj['target_funding']
     proj['reaction_hand'].pop(reaction_index)
     room['player_triggers'][player_index]['available_reactions'] = [
@@ -650,7 +614,6 @@ def run_phase():
     for i in range(room['num_players']):
         room['player_triggers'][i] = {'available_reactions': []}
 
-    # Xử lý scenario và thẻ active
     for idx, proj in enumerate(players):
         if not proj or proj.get('current_phase', 0) >= proj['max_phase']:
             continue
@@ -681,7 +644,6 @@ def run_phase():
         if 'reg_risk' in d:
             proj['legal_cost_spent'] += (d['reg_risk'] / 100) * proj['target_funding']
 
-        # Active cards
         if idx in room['pending_cards']:
             card = room['pending_cards'][idx]
             if card:
@@ -707,7 +669,6 @@ def run_phase():
                     proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
                 logs.append(f"  → Dự án {idx+1} chơi thẻ {card['name']}")
 
-        # Reaction triggers
         triggers = []
         for rc in proj.get('reaction_hand', []):
             trigger = rc['trigger']
@@ -736,7 +697,6 @@ def run_phase():
             room['player_triggers'][idx]['available_reactions'] = triggers
             logs.append(f"  → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
 
-        # Update progress
         m = calculate_metrics(proj)
         proj['funding_progress'] = m['funding_progress']
         proj['current_phase'] += 1
@@ -745,7 +705,6 @@ def run_phase():
             logs.append(f"  → Dự án {idx+1} kết thúc (đã qua {proj['max_phase']} phases).")
         logs.append(f"  → Funding sau phase: {proj['funding_progress']*100:.1f}%")
 
-    # Xử lý bot (chỉ bot active theo phase)
     active_bots = get_bots_for_phase(phase)
     logs.append(f"Phase {phase}: Có {len(active_bots)} bot hoạt động")
     bot_alloc = room['bot_alloc']
@@ -769,7 +728,6 @@ def run_phase():
                     hist.pop(0)
                 A[(bot['id'], idx)] = final_attr
 
-    # Rút vốn
     for bot in active_bots:
         best_idx = max(range(len(players)), key=lambda i: A.get((bot['id'], i), -1e9))
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
@@ -806,7 +764,6 @@ def run_phase():
                     players[idx]['funding_progress'] = 0
                     logs.append(f"💀 Dự án {idx+1} PHÁ SẢN!")
 
-    # Đầu tư softmax
     for bot in active_bots:
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
         idle = alloc_entry['idle']
@@ -838,7 +795,6 @@ def run_phase():
                     logs.append(f"💸 Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
         alloc_entry['idle'] = remaining
 
-    # Dọn dẹp
     room['pending_cards'] = {}
     room['player_ready'] = [False] * room['num_players']
     room['phase'] += 1
