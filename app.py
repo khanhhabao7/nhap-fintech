@@ -6,14 +6,15 @@ import uuid
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
 
-# ===================== DỮ LIỆU CỐ ĐỊNH =====================
+# ===================== MINH: CONTENT & SCENARIO DESIGN =====================
+# Các sự kiện (scenario) thuộc 5 loại: Market, Internal, External, Regulatory
 SCENARIOS = [
     # Market (6)
-    {"id":1,"name":"Tin tích cực từ thị trường gọi vốn","cat":"Market","delta":{"price":0.05,"cogs":0,"hype":10,"sentiment":5,"transparency":0,"reg_risk":0}},
+    {"id":1,"name":"Tin tốt nhẹ","cat":"Market","delta":{"price":0.05,"cogs":0,"hype":10,"sentiment":5,"transparency":0,"reg_risk":0}},
     {"id":2,"name":"Tin tốt vừa","cat":"Market","delta":{"price":0.1,"cogs":-0.05,"hype":20,"sentiment":10,"transparency":0,"reg_risk":0}},
     {"id":3,"name":"Tin xấu nhẹ","cat":"Market","delta":{"price":-0.05,"cogs":0.03,"hype":-10,"sentiment":-5,"transparency":0,"reg_risk":0}},
     {"id":4,"name":"Tin xấu vừa","cat":"Market","delta":{"price":-0.1,"cogs":0.05,"hype":-20,"sentiment":-15,"transparency":-5,"reg_risk":5}},
-    {"id":5,"name":"Thị trường gọi vốn chững lại","cat":"Market","delta":{"price":-0.15,"cogs":0.1,"hype":-30,"sentiment":-20,"transparency":-10,"reg_risk":10}},
+    {"id":5,"name":"Khủng hoảng nhẹ","cat":"Market","delta":{"price":-0.15,"cogs":0.1,"hype":-30,"sentiment":-20,"transparency":-10,"reg_risk":10}},
     {"id":6,"name":"Khủng hoảng nặng","cat":"Market","delta":{"price":-0.25,"cogs":0.15,"hype":-40,"sentiment":-30,"transparency":-20,"reg_risk":20}},
     # Internal (6)
     {"id":7,"name":"Máy móc hỏng nhẹ","cat":"Internal","delta":{"cogs":0.05,"hype":-5,"transparency":-5,"trust_all":-5,"runway":-1}},
@@ -36,24 +37,17 @@ SCENARIOS = [
     {"id":22,"name":"Thay đổi luật bất lợi","cat":"Regulatory","delta":{"reg_risk":25,"transparency":-10,"trust_all":-10,"legal_cost_percent":5}},
     {"id":23,"name":"Kiểm toán thuế","cat":"Regulatory","delta":{"reg_risk":10,"transparency":-5,"trust_all":-5,"legal_cost_percent":2}},
     {"id":24,"name":"Chứng nhận quốc tế","cat":"Regulatory","delta":{"reg_risk":-10,"transparency":10,"trust_all":10,"legal_cost_percent":-2}},
-    # Security (6)
-    {"id":25,"name":"Lỗ hổng nhỏ","cat":"Security","delta":{"security":-10,"transparency":-5,"trust_all":-5,"hype":-5}},
-    {"id":26,"name":"Hack smart contract","cat":"Security","delta":{"security":-30,"transparency":-20,"trust_all":-20,"hype":-15}},
-    {"id":27,"name":"Mất private key","cat":"Security","delta":{"security":-20,"transparency":-15,"trust_all":-15,"hype":-10}},
-    {"id":28,"name":"Audit bảo mật pass","cat":"Security","delta":{"security":20,"transparency":10,"trust_all":10,"hype":5}},
-    {"id":29,"name":"Multi‑sig được kích hoạt","cat":"Security","delta":{"security":10,"transparency":5,"trust_all":5,"hype":0}},
-    {"id":30,"name":"Bug bounty thành công","cat":"Security","delta":{"security":15,"transparency":5,"trust_all":5,"hype":5}},
 ]
 
+# ===================== MINH: CARD ENGINE – ACTIVE CARDS =====================
+# Đã loại bỏ tokenomic effects
 ACTIVE_CARDS_FULL = [
     {"id":"A1","name":"Marketing Blitz","cost":2,"type":"red","desc":"Tăng Hype, giảm Transparency","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
     {"id":"A2","name":"Viral Campaign","cost":3,"type":"red","desc":"Tăng Hype mạnh","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
     {"id":"A3","name":"Flash Sale","cost":2,"type":"red","desc":"Giảm giá tạm thời, tăng Hype","effect":{"price_percent":-15,"hype":15}},
     {"id":"A4","name":"Influencer Deal","cost":2,"type":"red","desc":"Tăng Hype và Visibility","effect":{"hype":20,"visibility":15,"cost_percent":2}},
-    {"id":"A5","name":"Airdrop","cost":3,"type":"red","desc":"Tăng Hype và Utility","effect":{"hype":30,"utility":5,"cost_percent":4}},
     {"id":"A6","name":"FOMO Campaign","cost":2,"type":"red","desc":"Tăng Hype, thêm funding","effect":{"hype":20,"funding_boost_percent":5}},
     {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"red","desc":"Tăng Hype, giảm nhẹ minh bạch","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
-    {"id":"A8","name":"Token Burn Announce","cost":3,"type":"red","desc":"Tăng Hype, Utility, Transparency","effect":{"hype":15,"utility":10,"transparency":5}},
     {"id":"A9","name":"Limited Offer","cost":1,"type":"red","desc":"Tăng Hype, Visibility nhẹ","effect":{"hype":10,"visibility":5}},
     {"id":"A10","name":"Shill Army","cost":2,"type":"red","desc":"Tăng Hype cao, giảm minh bạch","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
     {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"red","desc":"Giảm giá, tăng funding","effect":{"price_percent":-10,"funding_boost_percent":10}},
@@ -66,30 +60,25 @@ ACTIVE_CARDS_FULL = [
     {"id":"D4","name":"Vesting Pledge","cost":1,"type":"green","desc":"Tăng minh bạch, trust","effect":{"transparency":10,"trust_all":5}},
     {"id":"D5","name":"Emergency Fund","cost":2,"type":"green","desc":"Tăng runway","effect":{"runway":2,"cost_percent":5}},
     {"id":"D6","name":"Open Book","cost":2,"type":"green","desc":"Tăng minh bạch mạnh","effect":{"transparency":20,"cost_percent":2}},
-    {"id":"D7","name":"Bug Bounty Program","cost":1,"type":"green","desc":"Tăng security, minh bạch","effect":{"security":10,"transparency":5}},
     {"id":"D8","name":"Legal Shield","cost":2,"type":"green","desc":"Giảm rủi ro pháp lý","effect":{"reg_risk":-15,"cost_percent":3}},
     {"id":"D9","name":"Slow & Steady","cost":1,"type":"green","desc":"Tăng minh bạch, Hype nhẹ","effect":{"transparency":5,"hype":2}},
     {"id":"D10","name":"Crisis Management","cost":2,"type":"green","desc":"Giảm 50% delta tiêu cực","effect":{"halve_negative_delta":1}},
     {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"green","desc":"Giảm COGS, tăng minh bạch","effect":{"cogs_percent":-5,"transparency":5}},
     {"id":"D12","name":"Investor Call","cost":1,"type":"green","desc":"Tăng trust tất cả bot","effect":{"trust_all":10,"cost_percent":1}},
     {"id":"D13","name":"Transparency Report","cost":2,"type":"green","desc":"Tăng minh bạch, giảm Hype","effect":{"transparency":15,"hype":-5}},
-    {"id":"D14","name":"Multi‑sig Enable","cost":1,"type":"green","desc":"Tăng security, minh bạch","effect":{"security":15,"transparency":5}},
     {"id":"T1","name":"Whale Discount","cost":3,"type":"purple","desc":"Tăng funding, giảm trust Whale","effect":{"funding_boost_percent":15,"trust_whale":-10,"cost_percent":2}},
-    {"id":"T2","name":"Token Buyback","cost":2,"type":"purple","desc":"Giảm funding, tăng trust, utility","effect":{"funding_boost_percent":-10,"trust_all":15,"utility":10,"cost_percent":10}},
-    {"id":"T3","name":"Secondary Offering","cost":3,"type":"purple","desc":"Tăng funding, giảm trust, dilution","effect":{"funding_boost_percent":20,"trust_all":-15,"dilution":10}},
+    {"id":"T3","name":"Secondary Offering","cost":3,"type":"purple","desc":"Tăng funding, giảm trust","effect":{"funding_boost_percent":20,"trust_all":-15}},
     {"id":"T4","name":"DAO Vote","cost":2,"type":"purple","desc":"Tăng minh bạch, trust","effect":{"transparency":5,"trust_all":5}},
-    {"id":"T5","name":"Staking Launch","cost":2,"type":"purple","desc":"Tăng utility, giảm velocity","effect":{"utility":15,"velocity":-0.2}},
     {"id":"T6","name":"Treasury Diversify","cost":2,"type":"purple","desc":"Giảm rủi ro, tăng trust","effect":{"reg_risk":-10,"trust_all":10}},
-    {"id":"T7","name":"Token Split","cost":2,"type":"purple","desc":"Tăng funding, Hype, dilution","effect":{"funding_boost_percent":5,"hype":10,"dilution":5}},
+    {"id":"T7","name":"Token Split","cost":2,"type":"purple","desc":"Tăng funding, Hype","effect":{"funding_boost_percent":5,"hype":10}},
     {"id":"T8","name":"Governance Proposal","cost":1,"type":"purple","desc":"Tăng minh bạch, trust","effect":{"transparency":5,"trust_all":5}},
     {"id":"T9","name":"Vesting Extension","cost":2,"type":"purple","desc":"Tăng trust, minh bạch","effect":{"trust_all":20,"transparency":10,"cost_percent":2}},
-    {"id":"T10","name":"Liquidity Mining","cost":3,"type":"purple","desc":"Tăng utility, giảm velocity","effect":{"utility":20,"velocity":-0.3,"cost_percent":5}},
     {"id":"T11","name":"Strategic Partnership","cost":2,"type":"purple","desc":"Tăng trust, giảm rủi ro","effect":{"trust_all":15,"reg_risk":-5,"cost_percent":3}},
-    {"id":"T12","name":"Burn Mechanism","cost":2,"type":"purple","desc":"Tăng utility, Hype","effect":{"utility":15,"hype":10,"cost_percent":2}},
     {"id":"T13","name":"Airdrop to Holders","cost":2,"type":"purple","desc":"Tăng trust, Hype","effect":{"trust_all":10,"hype":15,"cost_percent":4}},
-    {"id":"T14","name":"Equity Swap","cost":3,"type":"purple","desc":"Tăng funding mạnh, giảm trust, dilution cao","effect":{"funding_boost_percent":30,"trust_all":-20,"dilution":20}},
+    {"id":"T14","name":"Equity Swap","cost":3,"type":"purple","desc":"Tăng funding mạnh, giảm trust","effect":{"funding_boost_percent":30,"trust_all":-20}},
 ]
 
+# ===================== MINH: CARD ENGINE – REACTION CARDS =====================
 REACTION_CARDS = [
     {"id":"R1","name":"Lock‑up Extension","trigger":"on_bot_withdraw","desc":"Giảm bán tháo khi bot rút","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
     {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","desc":"Giảm 50% delta xấu","cost_percent":3,"effect":{"halve_negative_delta":1}},
@@ -103,31 +92,32 @@ REACTION_CARDS = [
     {"id":"R10","name":"Runway Boost","trigger":"on_runway<3","desc":"Thêm 3 tháng runway","cost_percent":10,"effect":{"runway":3}},
 ]
 
-# 200 bot (sinh ngẫu nhiên) - dùng seed cố định để đồng bộ
+# ===================== JIN: AI BOT GENERATION =====================
 random.seed(42)
 BOTS = []
 for i in range(1, 201):
     bot_type = random.choices(["FOMO","Value Hunter","Whale","Random"], weights=[50,30,10,10])[0]
     wealth_class = random.choices(["small","medium","large"], weights=[40,40,20])[0]
     wealth = {"small":random.randint(10000,50000), "medium":random.randint(100000,500000), "large":random.randint(500000,2000000)}[wealth_class]
-    hype_sens = round(random.uniform(1.2,1.8),2)
+    hype_sens = round(random.uniform(1.5, 2.5), 2)   # tăng độ nhạy hype
     trans_sens = round(random.uniform(0.5,1.2),2)
     decay = round(random.uniform(0.1,0.3),2)
     if bot_type == "FOMO":
-        weights = {"intrinsic":0.1,"valuation":0.1,"roi_norm":0.1,"scalability":0.05,"transparency":0.05,"hype":0.28,"visibility":0.09,"funding_prog":0.09,"liquidity":0.14}
+        weights = {"intrinsic":0.1,"valuation":0.1,"roi_norm":0.1,"scalability":0.05,"transparency":0.05,"hype":0.5,"visibility":0.09,"funding_prog":0.09,"liquidity":0.02}
     elif bot_type == "Value Hunter":
-        weights = {"intrinsic":0.27,"valuation":0.2,"roi_norm":0.15,"scalability":0.03,"transparency":0.14,"funding_prog":0.05,"liquidity":0.07}
+        weights = {"intrinsic":0.27,"valuation":0.2,"roi_norm":0.15,"scalability":0.03,"transparency":0.14,"hype":0.1,"funding_prog":0.05,"liquidity":0.06}
     elif bot_type == "Whale":
-        weights = {"intrinsic":0.17,"valuation":0.2,"roi_norm":0.15,"scalability":0.03,"transparency":0.18,"funding_prog":0.05,"liquidity":0.07}
+        weights = {"intrinsic":0.17,"valuation":0.2,"roi_norm":0.15,"scalability":0.03,"transparency":0.18,"hype":0.15,"funding_prog":0.05,"liquidity":0.07}
     else:
-        weights = {"intrinsic":0.1,"valuation":0.1,"roi_norm":0.1,"scalability":0.05,"transparency":0.05,"hype":0.08,"visibility":0.05,"funding_prog":0.09,"liquidity":0.18}
+        weights = {"intrinsic":0.1,"valuation":0.1,"roi_norm":0.1,"scalability":0.05,"transparency":0.05,"hype":0.2,"visibility":0.05,"funding_prog":0.09,"liquidity":0.18}
     BOTS.append({"id":i,"type":bot_type,"wealth_class":wealth_class,"wealth":wealth,"hype_sens":hype_sens,"trans_sens":trans_sens,"memory_decay_rate":decay,"weights":weights})
 
-# ===================== HÀM TÍNH TOÁN =====================
+# ===================== PHÚC: METRICS & SCORE SYSTEM =====================
 def clamp(x, lo, hi):
     return max(lo, min(hi, x))
 
 def calculate_metrics(proj):
+    # Tính toán các chỉ số cốt lõi: gross margin, burn rate, growth, intrinsic
     ch_fees = (proj["fee_ecom"] + proj["fee_retail"] + proj["fee_direct"]) / 100.0
     price_real = proj["price"] * (1 - ch_fees)
     cogs_unit = proj["material"] + proj["packaging"] + proj["shipping"] + proj["defect_rate"]*(proj["material"]+proj["packaging"]+proj["shipping"])
@@ -139,39 +129,66 @@ def calculate_metrics(proj):
     burn_score = clamp(10 + 20*(1 - math.exp(-4*(0.3-burn_rate)/0.25)), 10, 30) if burn_rate<0.3 else 10
     scal_score = clamp(10 + 20*(1 - math.exp(-3*growth/0.5)), 10, 30) if growth>0 else 10
     intrinsic = unit_econ + burn_score + scal_score
-    equity = proj["equity_offered"]/100
-    post_money = proj["target_funding"]/equity if equity>0 else 1e12
+
+    # ROI động dựa trên doanh thu và P/S ratio
+    total_invested = proj.get("total_invested", 0)
     revenue_year = proj["units_m6"] * 12 * price_real
-    mult = post_money/revenue_year if revenue_year>0 else 1000
-    if mult < 1: val_score = 30 - (1-mult)/1*30
-    elif mult <= 3: val_score = 80 + (mult-1)/2*20
-    elif mult <= 5: val_score = 80 - (mult-3)/2*40
-    else: val_score = max(0, 40 - (mult-5)/2*40)
+    ps_ratio = 5.0
+    hype = proj.get("hype", 50)
+    if hype > 70:
+        ps_ratio += 2
+    elif hype < 30:
+        ps_ratio -= 1
+    if growth > 0.5:
+        ps_ratio += 1.5
+    elif growth < -0.2:
+        ps_ratio -= 1
+    ps_ratio = max(1.5, min(15, ps_ratio))
+    estimated_valuation = revenue_year * ps_ratio
+    if total_invested > 0:
+        raw_roi = ((estimated_valuation - total_invested) / total_invested) * 100
+        raw_roi = max(0, raw_roi)
+    else:
+        raw_roi = 0
+    roi_norm = min(100, 20 * math.log10(raw_roi + 1))
+
+    # Valuation sanity (dùng estimated_valuation)
+    mult = estimated_valuation / revenue_year if revenue_year > 0 else 1000
+    if mult < 1:
+        val_score = 30 - (1-mult)/1*30
+    elif mult <= 3:
+        val_score = 80 + (mult-1)/2*20
+    elif mult <= 5:
+        val_score = 80 - (mult-3)/2*40
+    else:
+        val_score = max(0, 40 - (mult-5)/2*40)
     val_score = clamp(val_score, 0, 100)
-    raw_roi = ((post_money - proj["target_funding"])/proj["target_funding"])*100 if proj["target_funding"]>0 else 0
-    if raw_roi<0: raw_roi=0
-    roi_norm = min(100, 20*math.log10(raw_roi+1))
-    base_reg = 20 if proj.get("has_license",False) else 80
-    if proj.get("legal_cost_spent",0) >= 0.05*proj["target_funding"]: base_reg += 20
-    reg_risk = clamp(base_reg - proj["transparency"]/10, 0, 100)
-    sec = 50 + (30 if proj.get("has_audit",False) else 0)+(20 if proj.get("multisig",False) else 0)-10*proj.get("count_hack_events",0)
-    sec = clamp(sec,0,100)
-    util = 50
-    for u in proj.get("utility_list",[]):
-        if u in ["governance","staking","burn","discount"]: util+=10
-    util = clamp(util,0,100)
-    avail_cash = proj.get("available_cash", proj["owner_equity"]+proj["loan"])
-    runway = math.floor(avail_cash / monthly_burn) if monthly_burn>0 else 999
-    total_invested = proj.get("total_invested",0)
-    total_supply = proj.get("total_supply_token",0)
-    vel = proj.get("velocity",1.0)
-    liquidity = 100 if total_supply==0 else min(100, (total_invested/(total_supply*vel))*100)
+
+    # Bỏ tokenomic, chỉ giữ reg_risk
+    base_reg = 20 if proj.get("has_license", False) else 80
+    if proj.get("legal_cost_spent", 0) >= 0.05 * proj["target_funding"]:
+        base_reg += 20
+    reg_risk = clamp(base_reg - proj["transparency"] / 10, 0, 100)
+
+    avail_cash = proj.get("available_cash", proj["owner_equity"] + proj["loan"])
+    runway = math.floor(avail_cash / monthly_burn) if monthly_burn > 0 else 999
+    liquidity = 100  # tạm thời set 100, không dùng tokenomic
+
     return {
-        "intrinsic":intrinsic, "valuation_sanity":val_score, "roi_norm":roi_norm,
-        "growth":growth, "monthly_burn":monthly_burn, "available_cash":avail_cash,
-        "runway":runway, "liquidity":liquidity, "funding_progress":proj.get("funding_progress",0)
+        "intrinsic": intrinsic,
+        "valuation_sanity": val_score,
+        "roi_norm": roi_norm,
+        "growth": growth,
+        "monthly_burn": monthly_burn,
+        "available_cash": avail_cash,
+        "runway": runway,
+        "liquidity": liquidity,
+        "funding_progress": proj.get("funding_progress", 0),
+        "estimated_valuation": estimated_valuation,
+        "raw_roi": raw_roi
     }
 
+# ===================== JIN: ATTRACTIVENESS & MEMORY DECAY =====================
 def attractiveness(project, bot, metrics):
     raw = 0
     total_w = 0
@@ -182,7 +199,7 @@ def attractiveness(project, bot, metrics):
         elif key=="scalability": val = clamp(metrics["growth"]*100,0,100)
         elif key=="transparency": val = project["transparency"]
         elif key=="hype": val = project["hype"]
-        elif key=="visibility": val = project["visibility"]
+        elif key=="visibility": val = project.get("visibility", 50)
         elif key=="funding_prog": val = metrics["funding_progress"]*100
         elif key=="liquidity": val = metrics["liquidity"]
         else: continue
@@ -197,6 +214,7 @@ def attractiveness(project, bot, metrics):
     noise = random.uniform(-5,5) if bot["type"]!="Random" else random.uniform(-10,10)
     return raw_A * (trust/100) + noise
 
+# ===================== PHÚC: FINAL SCORE (CÓ THỂ ĐIỀU CHỈNH) =====================
 def final_score(proj, phases_used, metrics):
     if proj["funding_progress"] < 0.5:
         return 0
@@ -206,11 +224,19 @@ def final_score(proj, phases_used, metrics):
     trans_score = (proj["transparency"]/100)*20
     raw = funding_score + speed_score + roi_score + trans_score
     perf_phase = raw / phases_used if phases_used>0 else 0
-    return perf_phase * proj["scale_factor"] * (1 + proj["funding_progress"])
+    return perf_phase * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
 
-# ===================== QUẢN LÝ PHÒNG =====================
+# ===================== JIN: BOT PHASE MANAGEMENT =====================
+def get_bots_for_phase(phase, total_bots=200):
+    ratio = min(1.0, phase * 0.2)
+    count = int(total_bots * ratio)
+    return BOTS[:count]
+
+# ===================== PHÚC: GAME CORE & FLOW SYSTEM =====================
+# Quản lý phòng và trạng thái game
 rooms = {}
 
+# ===================== KHANH: API & ROUTING =====================
 @app.route('/')
 def index():
     return render_template('host.html')
@@ -230,13 +256,11 @@ def play_page(room_id, player_index):
 def create_room():
     data = request.json
     num_players = data.get('num_players', 4)
-    if num_players < 2 or num_players > 10:
-        num_players = 4
+    if not isinstance(num_players, int) or num_players < 2 or num_players > 10:
+        return jsonify({'error': 'Số người chơi phải từ 2 đến 10'}), 400
     room_id = str(uuid.uuid4())[:8]
     base_url = request.host_url.rstrip('/')
-    join_links = []
-    for i in range(num_players):
-        join_links.append(f"{base_url}/play/{room_id}/{i}")
+    join_links = [f"{base_url}/play/{room_id}/{i}" for i in range(num_players)]
     rooms[room_id] = {
         'num_players': num_players,
         'players': [None] * num_players,
@@ -251,7 +275,8 @@ def create_room():
         'mulligan_used': [False] * num_players,
         'reaction_hand': [None] * num_players,
         'game_ended': False,
-        'player_triggers': [{} for _ in range(num_players)]
+        'player_triggers': [{} for _ in range(num_players)],
+        'bot_memory': {bot['id']: {'attractiveness_history': [[] for _ in range(num_players)]} for bot in BOTS}
     }
     return jsonify({'room_id': room_id, 'join_links': join_links})
 
@@ -266,16 +291,18 @@ def submit_project():
     room = rooms[room_id]
     if player_index >= len(room['players']) or room['players'][player_index] is not None:
         return jsonify({'error': 'Slot taken'}), 400
+    # Khởi tạo project (bỏ tokenomic)
     project_data['trust_scores'] = {bot['id']: 50 for bot in BOTS}
     project_data['status'] = 'active'
     project_data['funding_progress'] = 0
     project_data['total_invested'] = 0
     project_data['available_cash'] = project_data['owner_equity'] + project_data['loan']
     project_data['legal_cost_spent'] = 0
-    project_data['velocity'] = 1.0
-    project_data['utility_list'] = project_data.get('utility_list', [])
     project_data['current_phase'] = 0
-    project_data['max_phase'] = project_data['max_phase']
+    project_data['max_phase'] = project_data.get('max_phase', 5)
+    project_data['hype'] = project_data.get('hype', 50)
+    project_data['transparency'] = project_data.get('transparency', 50)
+    project_data['visibility'] = project_data.get('visibility', 50)
     room['players'][player_index] = project_data
     room['player_ready'][player_index] = True
     if all(p is not None for p in room['players']):
@@ -304,10 +331,7 @@ def submit_deck():
     if all(room['player_ready']):
         max_phase = max(p['max_phase'] for p in room['players'])
         room['max_phase'] = max_phase
-        bot_alloc = []
-        for bot in BOTS:
-            per = [0] * room['num_players']
-            bot_alloc.append({'bot_id': bot['id'], 'perProject': per, 'idle': bot['wealth']})
+        bot_alloc = [{'bot_id': bot['id'], 'perProject': [0] * room['num_players'], 'idle': bot['wealth']} for bot in BOTS]
         room['bot_alloc'] = bot_alloc
         room['phase'] = 1
         room['status'] = 'playing'
@@ -333,21 +357,20 @@ def host_state():
         if proj:
             ended = proj.get('current_phase', 0) >= proj['max_phase']
             if ended:
+                metrics = calculate_metrics(proj)
+                score = final_score(proj, proj['max_phase'], metrics)
                 proj_status = 'ended'
             else:
-                proj_status = proj.get('status', 'active')
-            metrics = calculate_metrics(proj)
-            if ended:
-                score = final_score(proj, proj['max_phase'], metrics)
-            else:
+                metrics = calculate_metrics(proj)
                 score = 0
+                proj_status = proj.get('status', 'active')
             rankings.append({
                 'name': f"Player {i+1}",
                 'funding': proj['funding_progress'],
                 'hype': proj['hype'],
                 'transparency': proj['transparency'],
                 'score': score,
-                'scale': proj['scale'],
+                'scale': proj.get('scale', 1),
                 'status': proj_status,
                 'current_phase': proj.get('current_phase', 0),
                 'max_phase': proj['max_phase']
@@ -474,6 +497,7 @@ def player_ready_phase():
     room['player_ready'][player_index] = True
     return jsonify({'ok': True})
 
+# ===================== JIN: REACTION ENGINE =====================
 @app.route('/api/use_reaction', methods=['POST'])
 def use_reaction():
     data = request.json
@@ -493,25 +517,29 @@ def use_reaction():
     if rc['id'] not in available_ids:
         return jsonify({'error': 'Reaction not available now'}), 400
     eff = rc['effect']
-    if 'transparency' in eff: proj['transparency'] += eff['transparency']
-    if 'hype' in eff: proj['hype'] += eff['hype']
+    # Áp dụng các effect
+    if 'transparency' in eff:
+        proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
+    if 'hype' in eff:
+        proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
     if 'runway' in eff:
         m = calculate_metrics(proj)
         proj['available_cash'] += eff['runway'] * m['monthly_burn']
     if 'reg_risk' in eff:
-        proj['legal_cost_spent'] -= (eff['reg_risk']/100) * proj['target_funding'] if eff['reg_risk']<0 else 0
-    if 'security' in eff:
-        proj['security'] = max(0, proj.get('security',50) + eff['security'])
+        proj['legal_cost_spent'] -= (eff['reg_risk']/100) * proj['target_funding'] if eff['reg_risk'] < 0 else 0
     if 'trust_all' in eff:
         for bid in proj['trust_scores']:
             proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + eff['trust_all'], 0, 100)
     if 'whale_trust' in eff:
-        for bid, bot in enumerate(BOTS):
+        for bot in BOTS:
             if bot['type'] == 'Whale':
-                proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + eff['whale_trust'], 0, 100)
+                proj['trust_scores'][bot['id']] = clamp(proj['trust_scores'].get(bot['id'], 50) + eff['whale_trust'], 0, 100)
     if 'trust_single' in eff:
         min_bid = min(proj['trust_scores'], key=proj['trust_scores'].get)
         proj['trust_scores'][min_bid] = clamp(proj['trust_scores'][min_bid] + eff['trust_single'], 0, 100)
+    if 'sell_pressure_reduce' in eff:
+        proj['sell_pressure_reduce'] = eff['sell_pressure_reduce']
+    # Trừ chi phí
     proj['available_cash'] -= (rc['cost_percent']/100) * proj['target_funding']
     proj['reaction_hand'].pop(reaction_index)
     room['player_triggers'][player_index]['available_reactions'] = [
@@ -519,6 +547,7 @@ def use_reaction():
     ]
     return jsonify({'ok': True})
 
+# ===================== PHÚC: GAME CORE – RUN PHASE (FLOW) =====================
 @app.route('/api/run_phase', methods=['POST'])
 def run_phase():
     data = request.json
@@ -534,24 +563,29 @@ def run_phase():
     phase = room['phase']
     players = room['players']
     logs = []
+    # Reset triggers
     for i in range(room['num_players']):
         room['player_triggers'][i] = {'available_reactions': []}
     
-    # 1. Xử lý scenario và thẻ active
+    # ===================== MINH: XỬ LÝ SCENARIO & ACTIVE CARDS =====================
     for idx, proj in enumerate(players):
         if not proj or proj.get('current_phase', 0) >= proj['max_phase']:
             continue
+        # Chọn scenario ngẫu nhiên
         scenario = random.choice(SCENARIOS)
         proj['last_scenario'] = scenario['name']
         logs.append(f"Dự án {idx+1}: {scenario['name']}")
         d = scenario['delta']
-        if 'price' in d: proj['price'] *= (1 + d['price'])
+        if 'price' in d:
+            proj['price'] *= (1 + d['price'])
         if 'cogs' in d:
             proj['material'] *= (1 + d['cogs'])
             proj['packaging'] *= (1 + d['cogs'])
             proj['shipping'] *= (1 + d['cogs'])
-        if 'hype' in d: proj['hype'] = clamp(proj['hype'] + d['hype'], 0, 100)
-        if 'transparency' in d: proj['transparency'] = clamp(proj['transparency'] + d['transparency'], 0, 100)
+        if 'hype' in d:
+            proj['hype'] = clamp(proj['hype'] + d['hype'], 0, 100)
+        if 'transparency' in d:
+            proj['transparency'] = clamp(proj['transparency'] + d['transparency'], 0, 100)
         if 'trust_all' in d:
             for bid in proj['trust_scores']:
                 proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + d['trust_all'], 0, 100)
@@ -564,14 +598,18 @@ def run_phase():
             proj['available_cash'] -= cost
         if 'reg_risk' in d:
             proj['legal_cost_spent'] += (d['reg_risk']/100) * proj['target_funding']
+        
         # Áp dụng thẻ active
         if idx in room['pending_cards']:
             card = room['pending_cards'][idx]
             if card:
                 eff = card['effect']
-                if 'hype' in eff: proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
-                if 'transparency' in eff: proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
-                if 'price_percent' in eff: proj['price'] *= (1 + eff['price_percent']/100)
+                if 'hype' in eff:
+                    proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
+                if 'transparency' in eff:
+                    proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
+                if 'price_percent' in eff:
+                    proj['price'] *= (1 + eff['price_percent']/100)
                 if 'cogs_percent' in eff:
                     proj['material'] *= (1 + eff['cogs_percent']/100)
                     proj['packaging'] *= (1 + eff['cogs_percent']/100)
@@ -583,23 +621,17 @@ def run_phase():
                     proj['funding_progress'] = min(1.0, proj['total_invested']/proj['target_funding'])
                 if 'cost_percent' in eff:
                     proj['available_cash'] -= (eff['cost_percent']/100) * proj['target_funding']
-                if 'security' in eff:
-                    proj['security'] = clamp(proj.get('security',50) + eff['security'], 0, 100)
-                if 'utility' in eff:
-                    proj['utility'] = clamp(proj.get('utility',50) + eff['utility'], 0, 100)
                 if 'visibility' in eff:
-                    proj['visibility'] = clamp(proj.get('visibility',50) + eff['visibility'], 0, 100)
-                if 'velocity' in eff:
-                    proj['velocity'] = max(0.1, proj.get('velocity',1.0) + eff['velocity'])
+                    proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
                 logs.append(f"  → Dự án {idx+1} chơi thẻ {card['name']}")
-        # Xác định reaction triggers
+        # ===================== MINH: XÁC ĐỊNH REACTION TRIGGERS =====================
         triggers = []
         for rc in proj.get('reaction_hand', []):
             trigger = rc['trigger']
             if trigger == 'on_scenario_market_bad' and scenario['cat'] == 'Market' and any(k in scenario['name'] for k in ['xấu','Khủng hoảng']):
                 triggers.append(rc)
             elif trigger == 'on_whale_trust<30':
-                whale_trust = [proj['trust_scores'][bid] for bid, bot in enumerate(BOTS) if bot['type']=='Whale']
+                whale_trust = [proj['trust_scores'].get(bot['id'], 50) for bot in BOTS if bot['type']=='Whale']
                 if whale_trust and sum(whale_trust)/len(whale_trust) < 30:
                     triggers.append(rc)
             elif trigger == 'on_transparency<30' and proj['transparency'] < 30:
@@ -608,21 +640,20 @@ def run_phase():
                 reg = (proj['legal_cost_spent'] / proj['target_funding']) * 100 if proj['target_funding']>0 else 0
                 if reg > 70:
                     triggers.append(rc)
-            elif trigger == 'on_security<30' and proj.get('security',50) < 30:
-                triggers.append(rc)
             elif trigger == 'on_hype>80' and proj['hype'] > 80:
                 triggers.append(rc)
             elif trigger == 'on_trust_any_bot<20':
                 if any(t < 20 for t in proj['trust_scores'].values()):
                     triggers.append(rc)
             elif trigger == 'on_runway<3':
-                metrics = calculate_metrics(proj)
-                if metrics['runway'] < 3:
+                m = calculate_metrics(proj)
+                if m['runway'] < 3:
                     triggers.append(rc)
         if triggers:
             room['player_triggers'][idx]['available_reactions'] = triggers
             logs.append(f"  → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
         
+        # Cập nhật tiến độ
         metrics = calculate_metrics(proj)
         proj['funding_progress'] = metrics['funding_progress']
         proj['current_phase'] += 1
@@ -631,68 +662,85 @@ def run_phase():
             logs.append(f"  → Dự án {idx+1} kết thúc (đã qua {proj['max_phase']} phases).")
         logs.append(f"  → Funding sau phase: {proj['funding_progress']*100:.1f}%")
     
-    # 2. Xử lý bot rút vốn và đầu tư
+    # ===================== JIN: AI BOT XỬ LÝ ĐẦU TƯ VÀ RÚT VỐN =====================
+    active_bots = get_bots_for_phase(phase)
+    logs.append(f"Phase {phase}: Có {len(active_bots)} bot hoạt động")
     bot_alloc = room['bot_alloc']
     A = {}
-    for bot in BOTS:
+    for bot in active_bots:
         for idx, proj in enumerate(players):
             if not proj or proj.get('status') != 'active' or proj['funding_progress'] >= 1 or proj.get('current_phase',0) >= proj['max_phase']:
                 A[(bot['id'], idx)] = -1e9
             else:
                 metrics = calculate_metrics(proj)
-                A[(bot['id'], idx)] = attractiveness(proj, bot, metrics)
+                hist = room['bot_memory'][bot['id']]['attractiveness_history'][idx]
+                current_attr = attractiveness(proj, bot, metrics)
+                if hist:
+                    weighted_avg = sum((i+1)*val for i, val in enumerate(hist)) / sum(range(1, len(hist)+1))
+                    decay = bot['memory_decay_rate']
+                    final_attr = (1-decay)*current_attr + decay*weighted_avg
+                else:
+                    final_attr = current_attr
+                hist.append(current_attr)
+                if len(hist) > 5:
+                    hist.pop(0)
+                A[(bot['id'], idx)] = final_attr
+    
     # Rút vốn
-    for bot in BOTS:
-        best_idx = max(range(len(players)), key=lambda i: A[(bot['id'], i)])
+    for bot in active_bots:
+        best_idx = max(range(len(players)), key=lambda i: A.get((bot['id'], i), -1e9))
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
         for idx in range(len(players)):
             invested = alloc_entry['perProject'][idx]
-            if invested == 0: continue
-            if players[idx].get('status') != 'active' or players[idx].get('current_phase',0) >= players[idx]['max_phase']:
+            if invested == 0:
                 continue
-            diff = A[(bot['id'], best_idx)] - A[(bot['id'], idx)]
-            if diff > 15: withdraw_ratio = 1.0
-            elif diff > 5: withdraw_ratio = 0.3
-            else: withdraw_ratio = 0.0
-            if withdraw_ratio > 0:
-                desired = invested * withdraw_ratio
-                max_ratio = min(0.6, 0.2 + (phase-1)*0.05)
-                max_withdraw = invested * max_ratio
-                if desired > max_withdraw:
-                    extra = desired - max_withdraw
-                    actual = max_withdraw + extra*0.5
-                else:
-                    actual = desired
+            if players[idx].get('status') != 'active' or players[idx].get('current_phase',0) >= players[idx]['max_phase']:
+                if invested > 0:
+                    players[idx]['available_cash'] -= invested
+                    alloc_entry['idle'] += invested
+                    alloc_entry['perProject'][idx] = 0
+                    logs.append(f"🐋 Bot {bot['type']} rút toàn bộ {invested:.0f} từ dự án {idx+1} (kết thúc)")
+                continue
+            diff = A.get((bot['id'], best_idx), -1e9) - A.get((bot['id'], idx), -1e9)
+            if diff > 15:
+                withdraw_ratio = 1.0
+            elif diff > 5:
+                withdraw_ratio = 0.3
+            else:
+                withdraw_ratio = 0.0
+            max_ratio = min(0.6, 0.2 + (phase-1)*0.05)
+            desired = invested * withdraw_ratio
+            max_withdraw = invested * max_ratio
+            actual = min(desired, max_withdraw)
+            if actual > 0:
                 if actual <= players[idx]['available_cash']:
                     players[idx]['available_cash'] -= actual
                     alloc_entry['perProject'][idx] -= actual
                     alloc_entry['idle'] += actual
                     logs.append(f"🐋 Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
-                    # Kích hoạt reaction on_bot_withdraw
-                    for pidx, proj in enumerate(players):
-                        for rc in proj.get('reaction_hand', []):
-                            if rc['trigger'] == 'on_bot_withdraw':
-                                if rc not in room['player_triggers'][pidx]['available_reactions']:
-                                    room['player_triggers'][pidx]['available_reactions'].append(rc)
                 else:
                     players[idx]['status'] = 'bankrupt'
                     players[idx]['funding_progress'] = 0
                     logs.append(f"💀 Dự án {idx+1} PHÁ SẢN!")
+    
     # Đầu tư softmax
-    for bot in BOTS:
+    for bot in active_bots:
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
         idle = alloc_entry['idle']
-        if idle <= 0: continue
+        if idle <= 0:
+            continue
         candidates = [i for i,p in enumerate(players) if p and p['status']=='active' and p['funding_progress']<1 and p.get('current_phase',0) < p['max_phase']]
-        if not candidates: continue
-        attrs = [A[(bot['id'], i)] for i in candidates]
+        if not candidates:
+            continue
+        attrs = [A.get((bot['id'], i), -1e9) for i in candidates]
         min_a = min(attrs)
-        shifted = [max(0, a-min_a+0.01) for a in attrs]
+        shifted = [max(0, a - min_a + 0.01) for a in attrs]
         sum_exp = sum(math.exp(a/20) for a in shifted)
         probs = [math.exp(a/20)/sum_exp for a in shifted]
         remaining = idle
         for _ in range(5):
-            if remaining <= 0: break
+            if remaining <= 0:
+                break
             for j, idx in enumerate(candidates):
                 invest = remaining * probs[j]
                 cap = min(invest, players[idx]['target_funding']*0.25 - players[idx]['total_invested'])
@@ -707,6 +755,7 @@ def run_phase():
                     logs.append(f"💸 Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
         alloc_entry['idle'] = remaining
     
+    # Dọn dẹp sau phase
     room['pending_cards'] = {}
     room['player_ready'] = [False] * room['num_players']
     room['phase'] += 1
@@ -731,6 +780,7 @@ def run_phase():
         'game_ended': game_ended
     })
 
+# ===================== MINH: CARD LISTS API =====================
 @app.route('/api/card_lists', methods=['GET'])
 def card_lists():
     return jsonify({
@@ -742,3 +792,4 @@ if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
