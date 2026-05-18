@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Startup Game - Điều khiển dự án</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #0b1120; color: #eef2ff; padding: 20px; margin: 0; }
+        .container { max-width: 1000px; margin: auto; }
+        .panel { background: #1e293b; border-radius: 24px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        button { background: #ec4899; border: none; padding: 8px 16px; border-radius: 30px; font-weight: bold; cursor: pointer; margin: 5px; transition: 0.2s; color: white; }
+        button:hover { background: #be185d; transform: scale(1.02); }
+        .card-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; max-height: 320px; overflow-y: auto; padding: 5px; }
+        .card { border-radius: 20px; padding: 8px 12px; cursor: pointer; transition: 0.1s; background: #334155; width: 180px; flex-shrink: 0; }
+        .card.red { background: #7f1a1a; border-left: 4px solid #ef4444; }
+        .card.green { background: #14532d; border-left: 4px solid #22c55e; }
+        .card.purple { background: #4c1d95; border-left: 4px solid #a855f7; }
+        .card.selected { background: #ec4899; color: #0f172a; border-left-color: white; }
+        .card .desc { font-size: 0.65rem; color: #cbd5e1; margin-top: 4px; }
+        .info-bar { background: #0f172a; border-radius: 20px; padding: 10px; display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .metrics { background: #0f172a; border-radius: 16px; padding: 12px; margin-top: 15px; font-size: 0.8rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 8px; }
+        .investors { background: #0f172a; border-radius: 16px; padding: 12px; margin-top: 15px; max-height: 200px; overflow-y: auto; }
+        .flex { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .scenario-banner { background: #ec4899; color: #0f172a; border-radius: 16px; padding: 12px; margin-bottom: 20px; font-weight: bold; text-align: center; font-size: 1rem; }
+        .reaction-trigger { background: #8b5cf6; border-radius: 12px; padding: 10px; margin: 10px 0; }
+        .endgame { background: #ec4899; border-radius: 16px; padding: 16px; text-align: center; }
+        .trigger-card { background: #4c1d95; border-radius: 12px; padding: 8px; margin: 5px; display: inline-block; cursor: pointer; transition: 0.1s; }
+        .trigger-card:hover { background: #6d28d9; transform: scale(1.02); }
+        input, select { background: #0f172a; border: 1px solid #334155; padding: 6px 10px; border-radius: 12px; color: white; }
+        label { font-weight: 500; }
+        .message { margin-top: 10px; padding: 8px; border-radius: 12px; }
+        .success { background: #166534; color: #bbf7d0; }
+        .error { background: #7f1a1a; color: #fecaca; }
+        .warning { background: #854d0e; color: #fef08a; }
+    </style>
+    <script>
+        var roomId = "{{ room_id }}";
+        var playerIndex = {{ player_index }};
+        var maxPlayers = {{ max_players }};
+    </script>
+</head>
+<body>
+<div class="container">
+    <div id="projectFormPanel" class="panel">
+        <h2>📝 NHẬP DỰ ÁN</h2>
+        <div class="info-bar"><span>🏠 Phòng: <strong id="roomIdDisplay"></strong></span><span>🎮 Bạn là: <strong id="playerIdxDisplay"></strong></span></div>
+        <form id="projectForm">
+            <div class="grid-2">
+                <div><label>Scale</label>
+                    <select id="scale" required>
+                        <option value="Small">Small (5 phases, target 30k-80k USD)</option>
+                        <option value="Medium" selected>Medium (7 phases, target 100k-200k USD)</option>
+                        <option value="Large">Large (9 phases, target 250k-500k USD)</option>
+                    </select>
+                </div>
+                <div><label>Target funding (USD)</label><input type="number" id="targetFunding" step="1000" required></div>
+                <div><label>Retail price (USD)</label><input type="number" id="price" value="35" step="1" min="10" max="1000" required></div>
+                <div><label>E‑commerce fee (%)</label><input type="number" id="feeEcom" value="10" step="1" min="0" max="100" required></div>
+                <div><label>Retail fee (%)</label><input type="number" id="feeRetail" value="5" step="1" min="0" max="100" required></div>
+                <div><label>Direct channel fee (%)</label><input type="number" id="feeDirect" value="0" step="1" min="0" max="100" required></div>
+                <div><label>Direct materials (USD)</label><input type="number" id="material" value="12" step="0.5" min="0.1" max="100" required></div>
+                <div><label>Direct packaging (USD)</label><input type="number" id="packaging" value="3" step="0.5" min="0.1" max="100" required></div>
+                <div><label>Direct labor (USD)</label><input type="number" id="labor" value="4" step="0.5" min="0.1" max="100" required></div>
+                <div><label>Defect allowance (%)</label><input type="number" id="defectRate" value="6" step="1" min="0" max="10" required></div>
+                <div><label>Month 1 units</label><input type="number" id="unitsM1" value="800" step="100" min="0" max="100000" required></div>
+                <div><label>Month 3 units</label><input type="number" id="unitsM3" value="2000" step="100" min="0" max="100000" required></div>
+                <div><label>Month 6 units</label><input type="number" id="unitsM6" value="5000" step="100" min="0" max="100000" required></div>
+                <div><label>Fixed operating cost (USD/month)</label><input type="number" id="fixedCost" value="12000" step="1000" min="1000" max="100000" required></div>
+                <div><label>Marketing cost (USD/month)</label><input type="number" id="marketingCost" value="7000" step="1000" min="0" max="100000" required></div>
+                <div><label>Owner equity (USD)</label><input type="number" id="ownerEquity" value="50000" step="5000" min="0" max="300000" required></div>
+                <div><label>Bank loan (USD)</label><input type="number" id="loan" value="30000" step="5000" min="0" max="300000" required></div>
+                <div><label>Loan interest rate (%/year)</label><input type="number" id="interestRate" value="8" step="1" min="5" max="100" required></div>
+                <div><label>Equity offered (%)</label><input type="number" id="equityOffered" value="15" step="1" min="0.1" max="99.9" required></div>
+            </div>
+            <button type="submit">🚀 GỬI DỰ ÁN</button>
+            <div id="formError" class="message" style="display:none;"></div>
+        </form>
+    </div>
+
+    <div id="deckPanel" style="display:none;" class="panel">
+        <h2>🃏 CHỌN DECK (22 ACTIVE + 3 REACTION)</h2>
+        <p>🔴 Đỏ: Tấn công (tăng Hype) &nbsp; 🟢 Xanh: Phòng thủ (tăng Transparency) &nbsp; 🟣 Tím: Tài chính (tăng Funding/Trust)</p>
+        <div id="activeList" class="card-list"></div>
+        <div id="reactionList" class="card-list"></div>
+        <button id="submitDeckBtn">✅ XÁC NHẬN DECK</button>
+    </div>
+
+    <div id="gamePanel" style="display:none;" class="panel">
+        <h2>🎮 PHASE <span id="phaseNum"></span> / <span id="maxPhasePlayer"></span></h2>
+        <div id="scenarioDisplay" class="scenario-banner">📢 Đợi sự kiện...</div>
+        <div class="info-bar"><span>💰 Funding: <strong id="funding"></strong></span><span>💵 Tiền mặt: <strong id="cash"></strong></span><span>⚡ Năng lượng: <strong id="energy"></strong></span></div>
+        <div id="metrics" class="metrics">Đang tải...</div>
+        <h3>🎴 THỜI TAY (chọn thẻ để đánh)</h3>
+        <div id="hand" class="card-list"></div>
+        <div class="flex">
+            <button id="playCardBtn">▶ ĐÁNH THẺ</button>
+            <button id="mulliganBtn">🔄 MULLIGAN (tốn 1 energy, -2 transparency)</button>
+            <button id="readyBtn">✅ SẴN SÀNG CHO PHASE</button>
+        </div>
+        <div id="reactionTriggers"></div>
+        <h3>🐋 NHÀ ĐẦU TƯ ĐANG ỦNG HỘ</h3>
+        <div id="investors" class="investors"></div>
+        <div id="message" class="message"></div>
+    </div>
+
+    <div id="endgamePanel" style="display:none;" class="panel endgame">
+        <h2>🏆 GAME KẾT THÚC</h2>
+        <p>Điểm của bạn: <strong id="finalScoreEnd">0</strong></p>
+        <p>Funding đạt: <strong id="finalFundingEnd">0</strong>%</p>
+        <button onclick="location.reload()">🔄 CHƠI LẠI</button>
+    </div>
+</div>
+
+<script>
+    // DOM elements
+    const roomIdElem = document.getElementById('roomIdDisplay');
+    const playerIdxElem = document.getElementById('playerIdxDisplay');
+    roomIdElem.innerText = roomId;
+    playerIdxElem.innerText = playerIndex + 1;
+
+    // Update target funding range based on scale
+    const scaleSelect = document.getElementById('scale');
+    const targetInput = document.getElementById('targetFunding');
+    function updateTargetRange() {
+        const scale = scaleSelect.value;
+        let min = 0, max = 0, defaultVal = 0;
+        if (scale === 'Small') { min = 30000; max = 80000; defaultVal = 50000; }
+        else if (scale === 'Medium') { min = 100000; max = 200000; defaultVal = 150000; }
+        else { min = 250000; max = 500000; defaultVal = 300000; }
+        targetInput.min = min;
+        targetInput.max = max;
+        targetInput.placeholder = `${min} – ${max}`;
+        if (!targetInput.value || targetInput.value < min || targetInput.value > max) {
+            targetInput.value = defaultVal;
+        }
+    }
+    scaleSelect.addEventListener('change', updateTargetRange);
+    updateTargetRange();
+
+    // Frontend validation before submit
+    function validateForm() {
+        const errors = [];
+        const scale = scaleSelect.value;
+        const target = parseFloat(targetInput.value);
+        const price = parseFloat(document.getElementById('price').value);
+        const feeEcom = parseFloat(document.getElementById('feeEcom').value);
+        const feeRetail = parseFloat(document.getElementById('feeRetail').value);
+        const feeDirect = parseFloat(document.getElementById('feeDirect').value);
+        const material = parseFloat(document.getElementById('material').value);
+        const packaging = parseFloat(document.getElementById('packaging').value);
+        const labor = parseFloat(document.getElementById('labor').value);
+        const defectRate = parseFloat(document.getElementById('defectRate').value);
+        const m1 = parseFloat(document.getElementById('unitsM1').value);
+        const m3 = parseFloat(document.getElementById('unitsM3').value);
+        const m6 = parseFloat(document.getElementById('unitsM6').value);
+        const fixedCost = parseFloat(document.getElementById('fixedCost').value);
+        const marketingCost = parseFloat(document.getElementById('marketingCost').value);
+        const ownerEquity = parseFloat(document.getElementById('ownerEquity').value);
+        const loan = parseFloat(document.getElementById('loan').value);
+        const interestRate = parseFloat(document.getElementById('interestRate').value);
+        const equityOffered = parseFloat(document.getElementById('equityOffered').value);
+
+        // Scale & target
+        if (scale === 'Small' && (target < 30000 || target > 80000)) errors.push('Target funding for Small must be 30,000 – 80,000 USD');
+        if (scale === 'Medium' && (target < 100000 || target > 200000)) errors.push('Target funding for Medium must be 100,000 – 200,000 USD');
+        if (scale === 'Large' && (target < 250000 || target > 500000)) errors.push('Target funding for Large must be 250,000 – 500,000 USD');
+        if (price < 10 || price > 1000) errors.push('Retail price must be 10 – 1000 USD');
+        const totalFees = feeEcom + feeRetail + feeDirect;
+        if (totalFees > 100) errors.push('Total channel fees cannot exceed 100%');
+        if (material < 0.1 || material > 100) errors.push('Direct materials must be 0.1 – 100 USD');
+        if (packaging < 0.1 || packaging > 100) errors.push('Direct packaging must be 0.1 – 100 USD');
+        if (labor < 0.1 || labor > 100) errors.push('Direct labor must be 0.1 – 100 USD');
+        if (defectRate < 0 || defectRate > 10) errors.push('Defect allowance must be 0 – 10%');
+        if (m1 < 0 || m1 > 100000) errors.push('Month 1 units must be 0 – 100,000');
+        if (m3 < 0 || m3 > 100000) errors.push('Month 3 units must be 0 – 100,000');
+        if (m6 < 0 || m6 > 100000) errors.push('Month 6 units must be 0 – 100,000');
+        if (m6 < m3 || m3 < m1) errors.push('Units must be non-decreasing: m6 >= m3 >= m1');
+        if (fixedCost < 1000 || fixedCost > 100000) errors.push('Fixed operating cost must be 1,000 – 100,000 USD/month');
+        if (marketingCost < 0 || marketingCost > 100000) errors.push('Marketing cost must be 0 – 100,000 USD/month');
+        if (ownerEquity < 0 || ownerEquity > 300000) errors.push('Owner equity must be 0 – 300,000 USD');
+        if (loan < 0 || loan > 300000) errors.push('Bank loan must be 0 – 300,000 USD');
+        if (interestRate < 5 || interestRate > 100) errors.push('Loan interest rate must be 5 – 100%');
+        if (equityOffered < 0.1 || equityOffered > 99.9) errors.push('Equity offered must be 0.1 – 99.9%');
+
+        // Business sanity
+        const netPrice = price * (1 - totalFees/100);
+        const cogs = (material + packaging + labor) * (1 + defectRate/100);
+        if (netPrice <= cogs) errors.push(`Net price after fees (${netPrice.toFixed(2)}) must be greater than COGS (${cogs.toFixed(2)})`);
+        const annualRevenue = m6 * 12 * netPrice;
+        const psRatio = annualRevenue / target;
+        if (psRatio < 0.3) errors.push(`Projected annual revenue (${annualRevenue.toFixed(0)} USD) is too low for target funding (${target} USD). P/S ratio = ${psRatio.toFixed(2)} (minimum 0.3)`);
+
+        if (errors.length) {
+            const errorDiv = document.getElementById('formError');
+            errorDiv.innerHTML = '<div class="error">❌ ' + errors.join('<br>') + '</div>';
+            errorDiv.style.display = 'block';
+            return false;
+        }
+        document.getElementById('formError').style.display = 'none';
+        return true;
+    }
+
+    let selectedCardIdx = null;
+    let gameInterval = null;
+    let allActiveCards = [];
+    let allReactionCards = [];
+    let selectedActive = new Set();
+    let selectedReaction = new Set();
+
+    async function loadCards() {
+        try {
+            const res = await fetch('/api/card_lists');
+            if (!res.ok) throw new Error('Không thể tải danh sách thẻ');
+            const data = await res.json();
+            allActiveCards = data.active;
+            allReactionCards = data.reaction;
+            renderDeckSelection();
+        } catch (err) {
+            console.error(err);
+            alert('Lỗi tải thẻ: ' + err.message);
+        }
+    }
+
+    function renderDeckSelection() {
+        let activeHtml = '';
+        allActiveCards.forEach((card, idx) => {
+            activeHtml += `<div class="card ${card.type}" data-active-idx="${idx}">
+                            <strong>${card.name}</strong> (cost ${card.cost})<br>
+                            <div class="desc">${card.desc}</div>
+                           </div>`;
+        });
+        document.getElementById('activeList').innerHTML = activeHtml;
+        let reactionHtml = '';
+        allReactionCards.forEach((card, idx) => {
+            reactionHtml += `<div class="card" data-reaction-idx="${idx}">
+                                ${card.name}<br>
+                                <div class="desc">${card.desc || card.trigger}</div>
+                             </div>`;
+        });
+        document.getElementById('reactionList').innerHTML = reactionHtml;
+        document.getElementById('deckPanel').style.display = 'block';
+
+        document.querySelectorAll('#activeList .card').forEach(card => {
+            card.onclick = () => {
+                let idx = parseInt(card.dataset.activeIdx);
+                if (selectedActive.has(idx)) {
+                    selectedActive.delete(idx);
+                    card.style.background = '';
+                    card.style.color = '';
+                } else {
+                    if (selectedActive.size < 22) {
+                        selectedActive.add(idx);
+                        card.style.background = '#ec4899';
+                        card.style.color = '#0f172a';
+                    } else {
+                        alert('Chỉ được chọn 22 lá Active');
+                    }
+                }
+            };
+        });
+        document.querySelectorAll('#reactionList .card').forEach(card => {
+            card.onclick = () => {
+                let idx = parseInt(card.dataset.reactionIdx);
+                if (selectedReaction.has(idx)) {
+                    selectedReaction.delete(idx);
+                    card.style.background = '';
+                } else {
+                    if (selectedReaction.size < 3) {
+                        selectedReaction.add(idx);
+                        card.style.background = '#ec4899';
+                    } else {
+                        alert('Tối đa 3 Reaction');
+                    }
+                }
+            };
+        });
+
+        document.getElementById('submitDeckBtn').onclick = async () => {
+            if (selectedActive.size !== 22) {
+                alert('Cần chọn đúng 22 lá Active');
+                return;
+            }
+            const activeIndices = Array.from(selectedActive);
+            const reactionIndices = Array.from(selectedReaction);
+            try {
+                const res = await fetch('/api/submit_deck', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        room_id: roomId,
+                        player_index: playerIndex,
+                        active_indices: activeIndices,
+                        reaction_indices: reactionIndices
+                    })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    document.getElementById('deckPanel').style.display = 'none';
+                    startGamePolling();
+                } else {
+                    alert('Lỗi: ' + data.error);
+                }
+            } catch (err) {
+                alert('Lỗi kết nối: ' + err.message);
+            }
+        };
+    }
+
+    function startGamePolling() {
+        if (gameInterval) clearInterval(gameInterval);
+        gameInterval = setInterval(async () => {
+            try {
+                const state = await fetch(`/api/player_state?room_id=${roomId}&player_index=${playerIndex}`).then(r=>r.json());
+                if (state.game_ended) {
+                    clearInterval(gameInterval);
+                    document.getElementById('gamePanel').style.display = 'none';
+                    document.getElementById('endgamePanel').style.display = 'block';
+                    document.getElementById('finalScoreEnd').innerText = (state.final_score || 0).toFixed(2);
+                    document.getElementById('finalFundingEnd').innerText = (state.funding_progress * 100).toFixed(1);
+                    return;
+                }
+                if (state.status === 'playing') {
+                    document.getElementById('gamePanel').style.display = 'block';
+                    document.getElementById('phaseNum').innerText = state.phase;
+                    document.getElementById('maxPhasePlayer').innerText = state.max_phase;
+                    document.getElementById('funding').innerText = (state.funding_progress * 100).toFixed(1) + '%';
+                    document.getElementById('cash').innerText = Math.floor(state.available_cash).toLocaleString();
+                    document.getElementById('energy').innerText = state.energy_left;
+                    if (state.last_scenario) {
+                        document.getElementById('scenarioDisplay').innerHTML = `📢 ${state.last_scenario}`;
+                    }
+                    let metricsHtml = `
+                        <div>📈 Intrinsic: ${state.metrics.intrinsic?.toFixed(1) || 0}</div>
+                        <div>📉 Valuation Sanity: ${state.metrics.valuation_sanity?.toFixed(1) || 0}</div>
+                        <div>💰 ROI (norm): ${state.metrics.roi_norm?.toFixed(1) || 0}</div>
+                        <div>💵 Raw ROI: ${state.metrics.raw_roi?.toFixed(0) || 0}%</div>
+                        <div>🏦 Est. Valuation: ${(state.metrics.estimated_valuation / 1000).toFixed(0)}k USD</div>
+                        <div>🔥 Hype: ${state.hype} | 🔍 Trans: ${state.transparency}</div>
+                        <div>🛫 Runway: ${state.metrics.runway} tháng</div>
+                    `;
+                    document.getElementById('metrics').innerHTML = metricsHtml;
+                    let handHtml = '';
+                    if (state.hand && state.hand.length) {
+                        state.hand.forEach((card, idx) => {
+                            handHtml += `<div class="card ${card.type}" data-cardidx="${idx}">
+                                            <strong>${card.name}</strong> (cost ${card.cost})<br>
+                                            <div class="desc">${card.desc}</div>
+                                         </div>`;
+                        });
+                    } else {
+                        handHtml = '<div>Chưa có thẻ, hãy đợi phase tiếp theo</div>';
+                    }
+                    document.getElementById('hand').innerHTML = handHtml;
+                    document.querySelectorAll('#hand .card').forEach(el => {
+                        if (el.dataset.cardidx !== undefined) {
+                            el.onclick = () => {
+                                document.querySelectorAll('#hand .card').forEach(c => c.classList.remove('selected'));
+                                el.classList.add('selected');
+                                selectedCardIdx = parseInt(el.dataset.cardidx);
+                            };
+                        }
+                    });
+
+                    let invHtml = '';
+                    if (state.investors && state.investors.length) {
+                        state.investors.forEach(bot => {
+                            invHtml += `<div>🐋 ${bot.type} - ${bot.amount.toLocaleString()} USD</div>`;
+                        });
+                    } else {
+                        invHtml = '<div>Chưa có nhà đầu tư nào</div>';
+                    }
+                    document.getElementById('investors').innerHTML = invHtml;
+
+                    if (state.triggers && state.triggers.length > 0) {
+                        let triggersHtml = '<div class="reaction-trigger"><strong>⚡ REACTION CÓ THỂ KÍCH HOẠT:</strong><br>';
+                        state.triggers.forEach((card, idx) => {
+                            triggersHtml += `<div class="trigger-card" data-reaction-index="${idx}">
+                                                ${card.name}<br><small>${card.desc || card.trigger}</small>
+                                             </div>`;
+                        });
+                        triggersHtml += '</div>';
+                        document.getElementById('reactionTriggers').innerHTML = triggersHtml;
+
+                        document.querySelectorAll('.trigger-card').forEach(el => {
+                            el.onclick = async () => {
+                                const reactionIndex = parseInt(el.dataset.reactionIndex);
+                                const res = await fetch('/api/use_reaction', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        room_id: roomId,
+                                        player_index: playerIndex,
+                                        reaction_index: reactionIndex
+                                    })
+                                });
+                                const data = await res.json();
+                                if (data.ok) {
+                                    alert('Đã sử dụng reaction!');
+                                    location.reload();
+                                } else {
+                                    alert('Lỗi: ' + data.error);
+                                }
+                            };
+                        });
+                    } else {
+                        document.getElementById('reactionTriggers').innerHTML = '';
+                    }
+                }
+            } catch (err) {
+                console.error('Polling error:', err);
+            }
+        }, 3000);
+    }
+
+    document.getElementById('projectForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
+
+        const scale = scaleSelect.value;
+        const targetFunding = parseFloat(targetInput.value);
+        let scaleFactor = 1.0, maxPhase = 7;
+        if (scale === 'Small') { scaleFactor = 0.8; maxPhase = 5; }
+        else if (scale === 'Medium') { scaleFactor = 1.0; maxPhase = 7; }
+        else { scaleFactor = 1.5; maxPhase = 9; }
+
+        const project = {
+            scale: scale,
+            scale_factor: scaleFactor,
+            max_phase: maxPhase,
+            target_funding: targetFunding,
+            price: parseFloat(document.getElementById('price').value),
+            fee_ecom: parseFloat(document.getElementById('feeEcom').value),
+            fee_retail: parseFloat(document.getElementById('feeRetail').value),
+            fee_direct: parseFloat(document.getElementById('feeDirect').value),
+            material: parseFloat(document.getElementById('material').value),
+            packaging: parseFloat(document.getElementById('packaging').value),
+            labor: parseFloat(document.getElementById('labor').value),
+            defect_rate: parseFloat(document.getElementById('defectRate').value),
+            units_m1: parseInt(document.getElementById('unitsM1').value),
+            units_m3: parseInt(document.getElementById('unitsM3').value),
+            units_m6: parseInt(document.getElementById('unitsM6').value),
+            fixed_cost: parseFloat(document.getElementById('fixedCost').value),
+            marketing_cost: parseFloat(document.getElementById('marketingCost').value),
+            owner_equity: parseFloat(document.getElementById('ownerEquity').value),
+            loan: parseFloat(document.getElementById('loan').value),
+            interest_rate: parseFloat(document.getElementById('interestRate').value),
+            equity_offered: parseFloat(document.getElementById('equityOffered').value),
+            transparency: 50,
+            hype: 50,
+            visibility: 50,
+            has_license: false
+        };
+
+        try {
+            const res = await fetch('/api/submit_project', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ room_id: roomId, player_index: playerIndex, project: project })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('projectFormPanel').style.display = 'none';
+                await loadCards();
+            } else {
+                alert('Lỗi: ' + (data.error || 'Không gửi được'));
+            }
+        } catch (err) {
+            alert('Lỗi kết nối: ' + err.message);
+        }
+    });
+
+    document.getElementById('playCardBtn').onclick = async () => {
+        if (selectedCardIdx === null) { alert('Chọn thẻ trước'); return; }
+        try {
+            const res = await fetch('/api/play_card', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ room_id: roomId, player_index: playerIndex, card_index: selectedCardIdx })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('message').innerHTML = '<div class="success">✅ Đã đánh thẻ!</div>';
+                selectedCardIdx = null;
+                setTimeout(() => document.getElementById('message').innerHTML = '', 2000);
+            } else {
+                document.getElementById('message').innerHTML = `<div class="error">❌ Lỗi: ${data.error}</div>`;
+            }
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
+    };
+
+    document.getElementById('mulliganBtn').onclick = async () => {
+        try {
+            const res = await fetch('/api/mulligan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ room_id: roomId, player_index: playerIndex })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('message').innerHTML = '<div class="success">🃏 Đã Mulligan!</div>';
+                setTimeout(() => document.getElementById('message').innerHTML = '', 2000);
+            } else {
+                document.getElementById('message').innerHTML = `<div class="error">❌ ${data.error}</div>`;
+            }
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
+    };
+
+    document.getElementById('readyBtn').onclick = async () => {
+        try {
+            const res = await fetch('/api/player_ready_phase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ room_id: roomId, player_index: playerIndex })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('message').innerHTML = '<div class="success">✅ Đã sẵn sàng, chờ host chạy phase.</div>';
+            } else {
+                document.getElementById('message').innerHTML = `<div class="error">❌ ${data.error}</div>`;
+            }
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
+        }
+    };
+</script>
+</body>
+</html>
