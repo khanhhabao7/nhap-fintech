@@ -153,7 +153,6 @@
                     document.getElementById('runPhaseBtn').style.display = 'none';
                     document.getElementById('waitingMsg').style.display = 'none';
                     if (state.game_ended && !document.getElementById('finalRanking').style.display === 'block') {
-                        // Hiển thị bảng xếp hạng cuối cùng
                         let rankings = state.rankings.filter(p => p.status !== 'not_joined');
                         rankings.sort((a,b) => b.score - a.score);
                         let finalHtml = '';
