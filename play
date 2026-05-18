@@ -33,7 +33,6 @@
         .message { margin-top: 10px; padding: 8px; border-radius: 12px; }
         .success { background: #166534; color: #bbf7d0; }
         .error { background: #7f1a1a; color: #fecaca; }
-        .warning { background: #854d0e; color: #fef08a; }
     </style>
     <script>
         var roomId = "{{ room_id }}";
@@ -49,34 +48,28 @@
         <form id="projectForm">
             <div class="grid-2">
                 <div><label>Scale</label>
-                    <select id="scale" required>
-                        <option value="Small">Small (5 phases, target 30k-80k USD)</option>
-                        <option value="Medium" selected>Medium (7 phases, target 100k-200k USD)</option>
-                        <option value="Large">Large (9 phases, target 250k-500k USD)</option>
+                    <select id="scale">
+                        <option value="Small">Small (5 phases)</option>
+                        <option value="Medium" selected>Medium (7 phases)</option>
+                        <option value="Large">Large (9 phases)</option>
                     </select>
                 </div>
-                <div><label>Target funding (USD)</label><input type="number" id="targetFunding" step="1000" required></div>
-                <div><label>Retail price (USD)</label><input type="number" id="price" value="35" step="1" min="10" max="1000" required></div>
-                <div><label>E‑commerce fee (%)</label><input type="number" id="feeEcom" value="10" step="1" min="0" max="100" required></div>
-                <div><label>Retail fee (%)</label><input type="number" id="feeRetail" value="5" step="1" min="0" max="100" required></div>
-                <div><label>Direct channel fee (%)</label><input type="number" id="feeDirect" value="0" step="1" min="0" max="100" required></div>
-                <div><label>Direct materials (USD)</label><input type="number" id="material" value="12" step="0.5" min="0.1" max="100" required></div>
-                <div><label>Direct packaging (USD)</label><input type="number" id="packaging" value="3" step="0.5" min="0.1" max="100" required></div>
-                <div><label>Direct labor (USD)</label><input type="number" id="labor" value="4" step="0.5" min="0.1" max="100" required></div>
-                <div><label>Defect allowance (%)</label><input type="number" id="defectRate" value="6" step="1" min="0" max="10" required></div>
-                <div><label>Month 1 units</label><input type="number" id="unitsM1" value="800" step="100" min="0" max="100000" required></div>
-                <div><label>Month 3 units</label><input type="number" id="unitsM3" value="2000" step="100" min="0" max="100000" required></div>
-                <div><label>Month 6 units</label><input type="number" id="unitsM6" value="5000" step="100" min="0" max="100000" required></div>
-                <div><label>Fixed operating cost (USD/month)</label><input type="number" id="fixedCost" value="12000" step="1000" min="1000" max="100000" required></div>
-                <div><label>Marketing cost (USD/month)</label><input type="number" id="marketingCost" value="7000" step="1000" min="0" max="100000" required></div>
-                <div><label>Owner equity (USD)</label><input type="number" id="ownerEquity" value="50000" step="5000" min="0" max="300000" required></div>
-                <div><label>Bank loan (USD)</label><input type="number" id="loan" value="30000" step="5000" min="0" max="300000" required></div>
-                <div><label>Loan interest rate (%/year)</label><input type="number" id="interestRate" value="8" step="1" min="5" max="100" required></div>
-                <div><label>Equity offered (%)</label><input type="number" id="equityOffered" value="15" step="1" min="0.1" max="99.9" required></div>
+                <div><label>Target funding (USD)</label>
+                    <input type="number" id="targetFunding" step="1000" value="150000">
+                </div>
+                <div><label>Giá bán lẻ (USD)</label><input type="number" id="price" value="35" step="1" min="10" max="1000"></div>
+                <div><label>Phí ecom, retail, direct (%)</label><input type="text" id="fees" value="10,15,5"></div>
+                <div><label>Nguyên liệu, bao bì, nhân công (USD)</label><input type="text" id="cogs" value="12,3,4"></div>
+                <div><label>Dự phòng lỗi (%)</label><input type="number" id="defect" value="6" step="1" min="0" max="10"></div>
+                <div><label>Sản lượng (tháng 1, tháng 3, tháng 6)</label><input type="text" id="units" value="800,2000,5000"></div>
+                <div><label>Chi phí cố định, marketing (USD/tháng)</label><input type="text" id="fixed" value="12000,7000"></div>
+                <div><label>Vốn tự góp, vay, lãi suất vay (%)</label><input type="text" id="capital" value="50000,30000,8"></div>
+                <div><label>% cổ phần mời chào</label><input type="number" id="equity" value="15" step="1" min="5" max="40"></div>
+                <!-- Đã bỏ token supply -->
             </div>
             <button type="submit">🚀 GỬI DỰ ÁN</button>
-            <div id="formError" class="message" style="display:none;"></div>
         </form>
+        <div id="validationError" class="error" style="display:none;"></div>
     </div>
 
     <div id="deckPanel" style="display:none;" class="panel">
@@ -114,93 +107,10 @@
 </div>
 
 <script>
-    // DOM elements
     const roomIdElem = document.getElementById('roomIdDisplay');
     const playerIdxElem = document.getElementById('playerIdxDisplay');
     roomIdElem.innerText = roomId;
     playerIdxElem.innerText = playerIndex + 1;
-
-    // Update target funding range based on scale
-    const scaleSelect = document.getElementById('scale');
-    const targetInput = document.getElementById('targetFunding');
-    function updateTargetRange() {
-        const scale = scaleSelect.value;
-        let min = 0, max = 0, defaultVal = 0;
-        if (scale === 'Small') { min = 30000; max = 80000; defaultVal = 50000; }
-        else if (scale === 'Medium') { min = 100000; max = 200000; defaultVal = 150000; }
-        else { min = 250000; max = 500000; defaultVal = 300000; }
-        targetInput.min = min;
-        targetInput.max = max;
-        targetInput.placeholder = `${min} – ${max}`;
-        if (!targetInput.value || targetInput.value < min || targetInput.value > max) {
-            targetInput.value = defaultVal;
-        }
-    }
-    scaleSelect.addEventListener('change', updateTargetRange);
-    updateTargetRange();
-
-    // Frontend validation before submit
-    function validateForm() {
-        const errors = [];
-        const scale = scaleSelect.value;
-        const target = parseFloat(targetInput.value);
-        const price = parseFloat(document.getElementById('price').value);
-        const feeEcom = parseFloat(document.getElementById('feeEcom').value);
-        const feeRetail = parseFloat(document.getElementById('feeRetail').value);
-        const feeDirect = parseFloat(document.getElementById('feeDirect').value);
-        const material = parseFloat(document.getElementById('material').value);
-        const packaging = parseFloat(document.getElementById('packaging').value);
-        const labor = parseFloat(document.getElementById('labor').value);
-        const defectRate = parseFloat(document.getElementById('defectRate').value);
-        const m1 = parseFloat(document.getElementById('unitsM1').value);
-        const m3 = parseFloat(document.getElementById('unitsM3').value);
-        const m6 = parseFloat(document.getElementById('unitsM6').value);
-        const fixedCost = parseFloat(document.getElementById('fixedCost').value);
-        const marketingCost = parseFloat(document.getElementById('marketingCost').value);
-        const ownerEquity = parseFloat(document.getElementById('ownerEquity').value);
-        const loan = parseFloat(document.getElementById('loan').value);
-        const interestRate = parseFloat(document.getElementById('interestRate').value);
-        const equityOffered = parseFloat(document.getElementById('equityOffered').value);
-
-        // Scale & target
-        if (scale === 'Small' && (target < 30000 || target > 80000)) errors.push('Target funding for Small must be 30,000 – 80,000 USD');
-        if (scale === 'Medium' && (target < 100000 || target > 200000)) errors.push('Target funding for Medium must be 100,000 – 200,000 USD');
-        if (scale === 'Large' && (target < 250000 || target > 500000)) errors.push('Target funding for Large must be 250,000 – 500,000 USD');
-        if (price < 10 || price > 1000) errors.push('Retail price must be 10 – 1000 USD');
-        const totalFees = feeEcom + feeRetail + feeDirect;
-        if (totalFees > 100) errors.push('Total channel fees cannot exceed 100%');
-        if (material < 0.1 || material > 100) errors.push('Direct materials must be 0.1 – 100 USD');
-        if (packaging < 0.1 || packaging > 100) errors.push('Direct packaging must be 0.1 – 100 USD');
-        if (labor < 0.1 || labor > 100) errors.push('Direct labor must be 0.1 – 100 USD');
-        if (defectRate < 0 || defectRate > 10) errors.push('Defect allowance must be 0 – 10%');
-        if (m1 < 0 || m1 > 100000) errors.push('Month 1 units must be 0 – 100,000');
-        if (m3 < 0 || m3 > 100000) errors.push('Month 3 units must be 0 – 100,000');
-        if (m6 < 0 || m6 > 100000) errors.push('Month 6 units must be 0 – 100,000');
-        if (m6 < m3 || m3 < m1) errors.push('Units must be non-decreasing: m6 >= m3 >= m1');
-        if (fixedCost < 1000 || fixedCost > 100000) errors.push('Fixed operating cost must be 1,000 – 100,000 USD/month');
-        if (marketingCost < 0 || marketingCost > 100000) errors.push('Marketing cost must be 0 – 100,000 USD/month');
-        if (ownerEquity < 0 || ownerEquity > 300000) errors.push('Owner equity must be 0 – 300,000 USD');
-        if (loan < 0 || loan > 300000) errors.push('Bank loan must be 0 – 300,000 USD');
-        if (interestRate < 5 || interestRate > 100) errors.push('Loan interest rate must be 5 – 100%');
-        if (equityOffered < 0.1 || equityOffered > 99.9) errors.push('Equity offered must be 0.1 – 99.9%');
-
-        // Business sanity
-        const netPrice = price * (1 - totalFees/100);
-        const cogs = (material + packaging + labor) * (1 + defectRate/100);
-        if (netPrice <= cogs) errors.push(`Net price after fees (${netPrice.toFixed(2)}) must be greater than COGS (${cogs.toFixed(2)})`);
-        const annualRevenue = m6 * 12 * netPrice;
-        const psRatio = annualRevenue / target;
-        if (psRatio < 0.3) errors.push(`Projected annual revenue (${annualRevenue.toFixed(0)} USD) is too low for target funding (${target} USD). P/S ratio = ${psRatio.toFixed(2)} (minimum 0.3)`);
-
-        if (errors.length) {
-            const errorDiv = document.getElementById('formError');
-            errorDiv.innerHTML = '<div class="error">❌ ' + errors.join('<br>') + '</div>';
-            errorDiv.style.display = 'block';
-            return false;
-        }
-        document.getElementById('formError').style.display = 'none';
-        return true;
-    }
 
     let selectedCardIdx = null;
     let gameInterval = null;
@@ -208,6 +118,33 @@
     let allReactionCards = [];
     let selectedActive = new Set();
     let selectedReaction = new Set();
+
+    // Helper: cập nhật target funding range theo scale
+    function updateTargetRange() {
+        const scale = document.getElementById('scale').value;
+        const targetInput = document.getElementById('targetFunding');
+        if (scale === 'Small') {
+            targetInput.min = 30000;
+            targetInput.max = 80000;
+            targetInput.placeholder = "30,000 – 80,000";
+            if (targetInput.value < 30000) targetInput.value = 50000;
+            if (targetInput.value > 80000) targetInput.value = 80000;
+        } else if (scale === 'Medium') {
+            targetInput.min = 100000;
+            targetInput.max = 200000;
+            targetInput.placeholder = "100,000 – 200,000";
+            if (targetInput.value < 100000) targetInput.value = 150000;
+            if (targetInput.value > 200000) targetInput.value = 200000;
+        } else { // Large
+            targetInput.min = 250000;
+            targetInput.max = 500000;
+            targetInput.placeholder = "250,000 – 500,000";
+            if (targetInput.value < 250000) targetInput.value = 300000;
+            if (targetInput.value > 500000) targetInput.value = 500000;
+        }
+    }
+    document.getElementById('scale').addEventListener('change', updateTargetRange);
+    updateTargetRange();
 
     async function loadCards() {
         try {
@@ -313,6 +250,7 @@
         gameInterval = setInterval(async () => {
             try {
                 const state = await fetch(`/api/player_state?room_id=${roomId}&player_index=${playerIndex}`).then(r=>r.json());
+                console.log('Player state:', state);
                 if (state.game_ended) {
                     clearInterval(gameInterval);
                     document.getElementById('gamePanel').style.display = 'none';
@@ -407,49 +345,73 @@
                     } else {
                         document.getElementById('reactionTriggers').innerHTML = '';
                     }
+                } else {
+                    if (state.status !== 'playing') {
+                        document.getElementById('gamePanel').style.display = 'none';
+                    }
                 }
             } catch (err) {
                 console.error('Polling error:', err);
+                document.getElementById('message').innerHTML = `<div class="error">Lỗi kết nối: ${err.message}</div>`;
             }
-        }, 3000);
+        }, 2000);
     }
 
     document.getElementById('projectForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!validateForm()) return;
-
-        const scale = scaleSelect.value;
-        const targetFunding = parseFloat(targetInput.value);
-        let scaleFactor = 1.0, maxPhase = 7;
-        if (scale === 'Small') { scaleFactor = 0.8; maxPhase = 5; }
-        else if (scale === 'Medium') { scaleFactor = 1.0; maxPhase = 7; }
-        else { scaleFactor = 1.5; maxPhase = 9; }
+        // Lấy các giá trị và kiểm tra cơ bản trước khi gửi
+        const targetFunding = parseFloat(document.getElementById('targetFunding').value);
+        const scale = document.getElementById('scale').value;
+        let minTarget, maxTarget;
+        if (scale === 'Small') { minTarget = 30000; maxTarget = 80000; }
+        else if (scale === 'Medium') { minTarget = 100000; maxTarget = 200000; }
+        else { minTarget = 250000; maxTarget = 500000; }
+        if (isNaN(targetFunding) || targetFunding < minTarget || targetFunding > maxTarget) {
+            alert(`Target funding phải nằm trong khoảng ${minTarget.toLocaleString()} – ${maxTarget.toLocaleString()} USD cho scale ${scale}`);
+            return;
+        }
+        const price = parseFloat(document.getElementById('price').value);
+        if (price < 10 || price > 1000) { alert('Giá bán lẻ phải từ 10 đến 1000 USD'); return; }
+        const fees = document.getElementById('fees').value.split(',').map(Number);
+        if (fees.some(isNaN) || fees.length < 3) { alert('Nhập đủ 3 loại phí kênh'); return; }
+        const totalFees = fees[0] + fees[1] + fees[2];
+        if (totalFees > 100) { alert('Tổng phí kênh không thể vượt quá 100%'); return; }
+        // COGS
+        const cogsVals = document.getElementById('cogs').value.split(',').map(Number);
+        if (cogsVals.some(isNaN) || cogsVals.length < 3) { alert('Nhập đủ 3 thành phần COGS'); return; }
+        const defect = parseFloat(document.getElementById('defect').value);
+        if (defect < 0 || defect > 10) { alert('Dự phòng lỗi từ 0-10%'); return; }
+        // Units
+        const units = document.getElementById('units').value.split(',').map(Number);
+        if (units.length < 3 || units.some(isNaN)) { alert('Nhập đủ 3 mốc sản lượng'); return; }
+        if (units[2] < units[1] || units[1] < units[0]) { alert('Sản lượng phải tăng dần: m6 ≥ m3 ≥ m1'); return; }
+        for (let u of units) { if (u < 0 || u > 100000) { alert('Sản lượng mỗi tháng từ 0-100,000'); return; } }
+        // Fixed & marketing
+        const fixed = document.getElementById('fixed').value.split(',').map(Number);
+        if (fixed.length < 2 || fixed.some(isNaN)) { alert('Nhập chi phí cố định và marketing'); return; }
+        if (fixed[0] < 1000 || fixed[0] > 100000) { alert('Chi phí cố định từ 1,000-100,000 USD/tháng'); return; }
+        if (fixed[1] < 0 || fixed[1] > 100000) { alert('Marketing từ 0-100,000 USD/tháng'); return; }
+        // Capital
+        const capital = document.getElementById('capital').value.split(',').map(Number);
+        if (capital.length < 3 || capital.some(isNaN)) { alert('Nhập vốn tự góp, vay, lãi suất'); return; }
+        if (capital[0] < 0 || capital[0] > 300000) { alert('Vốn tự góp từ 0-300,000 USD'); return; }
+        if (capital[1] < 0 || capital[1] > 300000) { alert('Vay từ 0-300,000 USD'); return; }
+        if (capital[2] < 5 || capital[2] > 100) { alert('Lãi suất vay từ 5-100%'); return; }
+        const equity = parseFloat(document.getElementById('equity').value);
+        if (equity < 5 || equity > 40) { alert('Cổ phần mời chào từ 5-40%'); return; }
 
         const project = {
             scale: scale,
-            scale_factor: scaleFactor,
-            max_phase: maxPhase,
             target_funding: targetFunding,
-            price: parseFloat(document.getElementById('price').value),
-            fee_ecom: parseFloat(document.getElementById('feeEcom').value),
-            fee_retail: parseFloat(document.getElementById('feeRetail').value),
-            fee_direct: parseFloat(document.getElementById('feeDirect').value),
-            material: parseFloat(document.getElementById('material').value),
-            packaging: parseFloat(document.getElementById('packaging').value),
-            labor: parseFloat(document.getElementById('labor').value),
-            defect_rate: parseFloat(document.getElementById('defectRate').value),
-            units_m1: parseInt(document.getElementById('unitsM1').value),
-            units_m3: parseInt(document.getElementById('unitsM3').value),
-            units_m6: parseInt(document.getElementById('unitsM6').value),
-            fixed_cost: parseFloat(document.getElementById('fixedCost').value),
-            marketing_cost: parseFloat(document.getElementById('marketingCost').value),
-            owner_equity: parseFloat(document.getElementById('ownerEquity').value),
-            loan: parseFloat(document.getElementById('loan').value),
-            interest_rate: parseFloat(document.getElementById('interestRate').value),
-            equity_offered: parseFloat(document.getElementById('equityOffered').value),
-            transparency: 50,
-            hype: 50,
-            visibility: 50,
+            price: price,
+            fee_ecom: fees[0], fee_retail: fees[1], fee_direct: fees[2],
+            material: cogsVals[0], packaging: cogsVals[1], labor: cogsVals[2],
+            defect_rate: defect,
+            units_m1: units[0], units_m3: units[1], units_m6: units[2],
+            fixed_cost: fixed[0], marketing_cost: fixed[1],
+            owner_equity: capital[0], loan: capital[1], interest_rate: capital[2],
+            equity_offered: equity,
+            transparency: 50, hype: 50, visibility: 50,
             has_license: false
         };
 
