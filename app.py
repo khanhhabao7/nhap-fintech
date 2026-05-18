@@ -7,7 +7,7 @@ app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
 
 # ===================== MINH: CONTENT & SCENARIO DESIGN =====================
-# Các sự kiện (scenario) thuộc 5 loại: Market, Internal, External, Regulatory
+# Các sự kiện (scenario) thuộc 4 loại: Market, Internal, External, Regulatory
 SCENARIOS = [
     # Market (6)
     {"id":1,"name":"Market Liquidity Improves","cat":"Market","delta":{"price":0.03,"cogs":0,"hype":10,"sentiment":8,"transparency":0,"reg_risk":0}},
@@ -46,8 +46,9 @@ ACTIVE_CARDS_FULL = [
     {"id":"A2","name":"Social Media Campaign","cost":3,"type":"red","desc":"Use social media to create strong public interest.","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
     {"id":"A3","name":"Flash Sale","cost":2,"type":"red","desc":"Offer a short-term discount to increase demand.","effect":{"price_percent":-15,"hype":15}},
     {"id":"A4","name":"Influencer Deal","cost":2,"type":"red","desc":"Use an influencer to increase hype and visibility.","effect":{"hype":20,"visibility":15,"cost_percent":2}},
-    {"id":"A6","name":"Free Trial Campaign","cost":2,"type":"red","desc":"Let customers try the product before paying.","effect":{"hype":20,"funding_boost_percent":5}},
-    {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"red","desc":"Create fundraising momentum among investors.","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
+    {"id":"A5","name":"Free Trial Campaign","cost":3,"type":"red","desc":"Let customers try the product before paying.","effect":{"hype":30,"utility":5,"cost_percent":4}},
+    {"id":"A6","name":"Investor Buzz Campaign","cost":2,"type":"red","desc":"Create fundraising momentum among investors.","effect":{"hype":20,"funding_boost_percent":5}},
+    {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"red","desc":"Use a famous person to boost public attention.","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
     {"id":"A8","name":"Customer Loyalty Program","cost":3,"type":"red","desc":"Reward repeat customers to keep them engaged.","effect":{"hype":15,"utility":10,"transparency":5}},
     {"id":"A9","name":"Limited Offer","cost":1,"type":"red","desc":"Create urgency with a short-time offer.","effect":{"hype":10,"visibility":5}},
     {"id":"A10","name":"Aggressive Promotion","cost":2,"type":"red","desc":"Push bold promotion to gain fast attention.","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
@@ -89,7 +90,7 @@ ACTIVE_CARDS_FULL = [
 REACTION_CARDS = [
     {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","condition":{"event":"bot_withdraw"},"desc":"Slow withdrawals when investors start leaving.","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
     {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","condition":{"event":"market_bad"},"desc":"Respond quickly to bad market news.","cost_percent":3,"effect":{"halve_negative_delta":1}},
-    {"id":"R3","name":"Major Investor Briefing","trigger":"on_whale_trust_low","condition":{"metric":"whale_trust","operator":"<","value":30},"desc":"Rebuild confidence with major investors.","cost_percent":5,"effect":{"trust_whale":10}},
+    {"id":"R3","name":"Major Investor Briefing","trigger":"on_whale_trust_low","condition":{"metric":"whale_trust","operator":"<","value":30},"desc":"Rebuild confidence with major investors.","cost_percent":5,"effect":{"whale_trust":10}},
     {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","condition":{"metric":"transparency","operator":"<","value":30},"desc":"Explain problems and restore transparency.","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
     {"id":"R5","name":"Liquidity Support Plan","trigger":"on_circuit_breaker","condition":{"metric":"circuit_breaker_active","operator":"==","value":True},"desc":"Reduce the impact of a liquidity freeze.","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
     {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","condition":{"metric":"reg_risk","operator":">","value":70},"desc":"Handle urgent legal or compliance risk.","cost_percent":4,"effect":{"reg_risk":-20}},
@@ -99,6 +100,62 @@ REACTION_CARDS = [
     {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","condition":{"metric":"runway","operator":"<","value":3},"desc":"Extend survival time during cash pressure.","cost_percent":10,"effect":{"runway":3}},
 ]
 
+def get_condition_value(project, metric):
+    if metric == "runway":
+        return calculate_metrics(project)["runway"]
+
+    if metric == "min_bot_trust":
+        return min(project.get("trust_scores", {0: 50}).values())
+
+    if metric == "whale_trust":
+        whale_scores = [
+            project["trust_scores"].get(bot["id"], 50)
+            for bot in BOTS
+            if bot["type"] == "Whale"
+        ]
+        return sum(whale_scores) / len(whale_scores) if whale_scores else 50
+
+    return project.get(metric)
+
+
+def check_condition(project, condition):
+    if not condition:
+        return True
+
+    if "event" in condition:
+        return condition["event"] in project.get("active_events", [])
+
+    metric = condition.get("metric")
+    operator = condition.get("operator")
+    target = condition.get("value")
+
+    current_value = get_condition_value(project, metric)
+
+    if current_value is None:
+        return False
+
+    if operator == "<":
+        return current_value < target
+    if operator == ">":
+        return current_value > target
+    if operator == "<=":
+        return current_value <= target
+    if operator == ">=":
+        return current_value >= target
+    if operator == "==":
+        return current_value == target
+
+    return False
+
+
+def get_available_reactions(project):
+    available = []
+
+    for card in project.get("reaction_hand", []):
+        if check_condition(project, card.get("condition")):
+            available.append(card)
+
+    return available
 # ===================== JIN: AI BOT GENERATION =====================
 random.seed(42)
 BOTS = []
