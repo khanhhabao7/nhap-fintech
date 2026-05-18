@@ -10,19 +10,19 @@ app.secret_key = 'startup-game-secret'
 # Các sự kiện (scenario) thuộc 5 loại: Market, Internal, External, Regulatory
 SCENARIOS = [
     # Market (6)
-    {"id":1,"name":"Tin tốt nhẹ","cat":"Market","delta":{"price":0.05,"cogs":0,"hype":10,"sentiment":5,"transparency":0,"reg_risk":0}},
-    {"id":2,"name":"Tin tốt vừa","cat":"Market","delta":{"price":0.1,"cogs":-0.05,"hype":20,"sentiment":10,"transparency":0,"reg_risk":0}},
-    {"id":3,"name":"Tin xấu nhẹ","cat":"Market","delta":{"price":-0.05,"cogs":0.03,"hype":-10,"sentiment":-5,"transparency":0,"reg_risk":0}},
-    {"id":4,"name":"Tin xấu vừa","cat":"Market","delta":{"price":-0.1,"cogs":0.05,"hype":-20,"sentiment":-15,"transparency":-5,"reg_risk":5}},
-    {"id":5,"name":"Khủng hoảng nhẹ","cat":"Market","delta":{"price":-0.15,"cogs":0.1,"hype":-30,"sentiment":-20,"transparency":-10,"reg_risk":10}},
-    {"id":6,"name":"Khủng hoảng nặng","cat":"Market","delta":{"price":-0.25,"cogs":0.15,"hype":-40,"sentiment":-30,"transparency":-20,"reg_risk":20}},
+    {"id":1,"name":"Market Liquidity Improves","cat":"Market","delta":{"price":0.03,"cogs":0,"hype":10,"sentiment":8,"transparency":0,"reg_risk":0}},
+    {"id":2,"name":"Investor Risk Appetite Rises","cat":"Market","delta":{"price":0.08,"cogs":-0.02,"hype":22,"sentiment":15,"transparency":0,"reg_risk":0}},
+    {"id":3,"name":"Capital Moves to Safer Assets","cat":"Market","delta":{"price":-0.05,"cogs":0.02,"hype":-12,"sentiment":-8,"transparency":0,"reg_risk":0}},
+    {"id":4,"name":"Interest Rates Increase","cat":"Market","delta":{"price":-0.08,"cogs":0.04,"hype":-18,"sentiment":-15,"transparency":-3,"reg_risk":3}},
+    {"id":5,"name":"Startup Funding Market Slows Down","cat":"Market","delta":{"price":-0.15,"cogs":0.05,"hype":-30,"sentiment":-25,"transparency":-8,"reg_risk":8}},
+    {"id":6,"name":"Capital Market Liquidity Crisis","cat":"Market","delta":{"price":-0.25,"cogs":0.1,"hype":-40,"sentiment":-35,"transparency":-15,"reg_risk":15}},
     # Internal (6)
-    {"id":7,"name":"Máy móc hỏng nhẹ","cat":"Internal","delta":{"cogs":0.05,"hype":-5,"transparency":-5,"trust_all":-5,"runway":-1}},
-    {"id":8,"name":"Lỗi sản xuất vừa","cat":"Internal","delta":{"cogs":0.1,"hype":-10,"transparency":-10,"trust_all":-10,"runway":-2}},
-    {"id":9,"name":"Rò rỉ dữ liệu","cat":"Internal","delta":{"cogs":0,"hype":-15,"transparency":-20,"trust_all":-15,"runway":0}},
-    {"id":10,"name":"Nhân sự chủ chốt nghỉ","cat":"Internal","delta":{"cogs":0.03,"hype":-10,"transparency":-5,"trust_all":-5,"runway":0}},
-    {"id":11,"name":"Được giải thưởng","cat":"Internal","delta":{"cogs":-0.05,"hype":15,"transparency":10,"trust_all":10,"runway":0}},
-    {"id":12,"name":"Audit nội bộ tốt","cat":"Internal","delta":{"cogs":0,"hype":5,"transparency":15,"trust_all":10,"runway":0}},
+    {"id":7,"name":"Operating Costs Exceed the Budget","cat":"Internal","delta":{"cogs":0.05,"hype":-5,"transparency":-5,"trust_all":-5,"runway":-1}},
+    {"id":8,"name":"Product Quality Issues Appear","cat":"Internal","delta":{"cogs":0.1,"hype":-10,"transparency":-10,"trust_all":-10,"runway":-2}},
+    {"id":9,"name":"Data leak","cat":"Internal","delta":{"cogs":0,"hype":-15,"transparency":-20,"trust_all":-15,"runway":0}},
+    {"id":10,"name":"Key Team Member Leaves","cat":"Internal","delta":{"cogs":0.03,"hype":-10,"transparency":-5,"trust_all":-5,"runway":0}},
+    {"id":11,"name":"Important Business Milestone Achieved","cat":"Internal","delta":{"cogs":-0.05,"hype":15,"transparency":10,"trust_all":10,"runway":0}},
+    {"id":12,"name":"Internal Control Improves","cat":"Internal","delta":{"cogs":0,"hype":5,"transparency":15,"trust_all":10,"runway":0}},
     # External (6)
     {"id":13,"name":"Đối thủ giảm giá","cat":"External","delta":{"price":-0.05,"marketing_eff":-0.1,"hype":-5,"transparency":0}},
     {"id":14,"name":"Đối thủ ra sản phẩm mới","cat":"External","delta":{"price":-0.1,"marketing_eff":-0.2,"hype":-15,"transparency":-5}},
