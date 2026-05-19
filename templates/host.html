@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Startup Game - Host Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Startup Game · Fundraising Simulator | Teacher Host Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -12,15 +13,16 @@
             padding: 20px; 
             min-height: 100vh;
         }
-        .container { max-width: 1200px; margin: auto; }
+        .container { max-width: 1280px; margin: 0 auto; }
         .panel { 
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
             border-radius: 1.5rem;
             padding: 20px; 
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s;
         }
         button { 
             background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff);
@@ -33,40 +35,43 @@
             font-weight: 600;
             margin-top: 10px;
             transition: all 0.25s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
         button:hover { 
             background: linear-gradient(95deg, #ff80ab, #c47eff, #7eaeff);
             transform: scale(0.98);
             box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
         }
-        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; filter: grayscale(0.05);}
         input, select { 
-            background-color: rgba(255, 255, 255, 0.9);
+            background-color: rgba(255, 255, 255, 0.95);
             border: 1px solid #c9b1e6;
             padding: 8px 12px; 
             border-radius: 12px; 
             color: #1e1b2b; 
             margin: 0 5px;
+            font-weight: 500;
         }
         input:focus, select:focus {
             outline: none;
             ring: 2px solid #b77eff;
             border-color: #b77eff;
+            box-shadow: 0 0 0 2px rgba(183,126,255,0.3);
         }
         .rankings { 
             display: grid; 
-            gap: 12px; 
+            gap: 14px; 
             margin-top: 15px; 
         }
         .rank-card { 
-            background: rgba(255, 255, 255, 0.75);
-            border-radius: 1rem; 
-            padding: 12px; 
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 1.2rem; 
+            padding: 14px; 
             border-left: 4px solid #ec4899;
             transition: all 0.2s;
         }
         .player-card-joined { 
-            background: rgba(34, 197, 94, 0.15);
+            background: rgba(34, 197, 94, 0.12);
             border-left-color: #22c55e;
         }
         .player-card-not-joined {
@@ -74,7 +79,7 @@
             border-left-color: #94a3b8;
         }
         .player-card-ended {
-            background: rgba(245, 158, 11, 0.15);
+            background: rgba(245, 158, 11, 0.12);
             border-left-color: #f59e0b;
         }
         .player-join-tag {
@@ -82,17 +87,11 @@
             margin-left: 10px;
             padding: 3px 10px;
             border-radius: 999px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
         }
-        .player-join-tag.joined {
-            background: #16a34a;
-            color: #ecfdf5;
-        }
-        .player-join-tag.waiting {
-            background: #cbd5e1;
-            color: #1e293b;
-        }
+        .player-join-tag.joined { background: #16a34a; color: white; }
+        .player-join-tag.waiting { background: #cbd5e1; color: #1e293b; }
         .join-status-tag {
             display: inline-flex;
             align-items: center;
@@ -108,15 +107,11 @@
             color: #f59e0b;
             margin-bottom: 6px;
         }
-        .player-funding span {
-            color: #1e1b2b;
-            font-weight: 600;
-        }
         .player-metric-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin: 10px 0 8px;
+            margin: 10px 0 6px;
         }
         .metric-tag {
             display: inline-flex;
@@ -140,83 +135,79 @@
             background: #e2d4f0;
             border-radius: 999px;
             overflow: hidden;
-            margin-top: 6px;
+            margin-top: 4px;
         }
         .funding-bar-fill {
             height: 100%;
             background: linear-gradient(90deg, #facc15 0%, #f59e0b 100%);
             border-radius: 999px;
+            transition: width 0.2s ease;
         }
-        .join-status-tag.joined {
-            background: #16a34a;
-            color: #ecfdf5;
-        }
-        .join-status-tag.waiting {
-            background: #cbd5e1;
-            color: #1e293b;
-        }
+        .join-status-tag.joined { background: #16a34a; color: white; }
+        .join-status-tag.waiting { background: #cbd5e1; color: #1e293b; }
         .logs { 
-            background: rgba(0, 0, 0, 0.05);
+            background: rgba(0, 0, 0, 0.06);
             border-radius: 1rem; 
-            padding: 12px; 
+            padding: 14px; 
             max-height: 300px; 
             overflow-y: auto; 
-            font-family: monospace; 
+            font-family: 'SF Mono', monospace; 
             font-size: 13px; 
             margin-top: 15px;
             border: 1px solid #e2d4f0;
         }
-        .flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .flex { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
         .link-item { 
-            background: rgba(255, 255, 255, 0.6);
-            padding: 10px; 
-            border-radius: 12px; 
+            background: rgba(255, 255, 255, 0.7);
+            padding: 12px; 
+            border-radius: 16px; 
             margin-bottom: 8px; 
             word-break: break-all; 
         }
-        .success { color: #16a34a; font-weight: 600; }
-        .error { color: #dc2626; font-weight: 600; }
+        .success { color: #16a34a; font-weight: 700; }
+        .error { color: #dc2626; font-weight: 700; }
         .reactive-demo {
             background: rgba(236, 72, 153, 0.15);
             border: 1px solid #ec4899;
-            border-radius: 12px;
-            padding: 8px;
-            margin-top: 10px;
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 12px;
             text-align: center;
             font-size: 14px;
+            font-weight: 500;
             color: #9d4edd;
         }
         .section-panel {
             background: rgba(255, 255, 255, 0.7);
-            border-radius: 1rem;
+            border-radius: 1.2rem;
             padding: 20px;
             margin-bottom: 20px;
             border: 1px solid rgba(210, 180, 255, 0.5);
-        }
-        .section-panel h3 {
-            margin-bottom: 14px;
-            color: #2e1a47;
-            font-weight: 700;
         }
         .section-header {
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 16px;
-            color: #2e1a47;
+            margin-bottom: 18px;
+            font-weight: 600;
         }
-        .section-header span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        h2 {
-            color: #2e1a47;
+        h2, h3 { color: #2e1a47; letter-spacing: -0.2px; }
+        .status-badge {
+            background: rgba(34,197,94,0.2);
+            border-radius: 40px;
+            padding: 4px 12px;
         }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #edd9ff; border-radius: 20px; }
         ::-webkit-scrollbar-thumb { background: #a569e6; border-radius: 20px; }
+        .floating-switch {
+            position: fixed; bottom: 20px; right: 20px; z-index: 1000;
+        }
+        .btn-sm {
+            padding: 8px 18px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -224,75 +215,80 @@
     <div class="panel">
         <h2>✨ Fun(d) raising - When you have funds you have fun ✨</h2>
         <div class="reactive-demo">
-            ✅ This is a LIVE interface running on mock data<br>
-            You can interact and see the screen update in real time!
+            🚀 FINAL BUILD – LIVE TEACHER DASHBOARD<br>
+            Real-time metrics, join simulation, phase progression & event triggers.
         </div>
     </div>
 
     <!-- ROOM SETUP -->
     <div class="panel" id="setupPanel">
-        <h2>Create New Room</h2>
+        <h2>🎮 Create New Room (Host)</h2>
         <div class="flex">
-            <label style="color:#2e1a47; font-weight:600;">Room name:</label>
-            <input type="text" id="roomName" placeholder="Enter room name">
-            <label style="color:#2e1a47; font-weight:600;">Number of players:</label>
+            <label style="color:#2e1a47; font-weight:600;">🏷️ Room name:</label>
+            <input type="text" id="roomName" placeholder="e.g. Startup F2025" value="Startup Arena">
+            <label style="color:#2e1a47; font-weight:600;">👥 Players:</label>
             <input type="number" id="numPlayers" min="2" max="10" value="4">
-            <button onclick="createMockRoom()">🚀 CREATE ROOM</button>
+            <button onclick="createMockRoom()">🚀 CREATE ROOM & START GAME</button>
         </div>
+        <div style="margin-top: 12px; font-size:13px; color:#6b21a5;">⚡ After creation, each player gets a unique join link + simulate join for demo.</div>
     </div>
 
-    <!-- GAME PANEL -->
+    <!-- GAME PANEL (MAIN DASHBOARD) -->
     <div class="panel" id="gamePanel" style="display:none;">
-        <h2>🏠 <span id="roomNameDisplay">Game Room</span> - Room: <span id="roomId">MOCK-001</span></h2>
+        <h2>🏠 <span id="roomNameDisplay">Game Room</span> · Room ID: <span id="roomId">MOCK-001</span></h2>
 
         <div class="section-panel">
-            <h3>🏁 Game Room</h3>
-            <div style="margin-bottom: 16px;">
-                <strong style="color:#2e1a47;">🔗 JOIN LINKS</strong>
-                <div style="color: #6b21a5; font-size: 13px; margin-top: 6px;">Each player has their own unique link to join.</div>
-            </div>
-            <div id="joinLinksList" class="link-item" style="background: transparent; padding: 0; border: none; margin-bottom: 0;">
+            <h3>🔗 Player Join Links (unique per player)</h3>
+            <div style="margin-bottom: 12px; font-size: 13px; color:#4c1d95;">📋 Share each link individually. Use "Simulate Join" to emulate joining.</div>
+            <div id="joinLinksList" class="link-item" style="background: transparent; padding: 0;">
                 Loading...
             </div>
         </div>
 
         <div class="section-panel">
-            <h3>⏱️ Game Progress</h3>
+            <h3>⏱️ Game Progress & Controls</h3>
             <div class="section-header">
-                <span>👥 <strong><span id="playerCount">2</span> / <span id="maxPlayers">4</span></strong> joined</span>
+                <span>👥 <strong><span id="playerCount">0</span> / <span id="maxPlayers">4</span></strong> joined</span>
                 <span>🕒 Phase: <strong><span id="currentPhase">1</span></strong> / <strong><span id="maxPhase">7</span></strong></span>
                 <span>🎯 Status: <strong><span id="gameStatus" class="success">IN PROGRESS</span></strong></span>
             </div>
-            <div class="flex" style="gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-                <label for="phaseSelect" style="color:#2e1a47; font-weight:600;">🔢 View phase details:</label>
+            <div class="flex" style="gap: 12px; margin-bottom: 18px;">
+                <label for="phaseSelect" style="color:#2e1a47; font-weight:600;">📜 Phase archive:</label>
                 <select id="phaseSelect" onchange="showPhaseDetails()"></select>
             </div>
-            <div id="phaseDetails" class="panel" style="background: rgba(255,255,240,0.5); margin-bottom: 0;">
-                <strong style="color:#2e1a47;">Select a phase to view detailed results.</strong>
+            <div id="phaseDetails" class="panel" style="background: rgba(255,245,235,0.7); margin-bottom: 0;">
+                <strong>📌 Select a phase to see player snapshots.</strong>
             </div>
         </div>
 
         <div class="section-panel">
-            <h3>📜 Event Log</h3>
+            <h3>📜 Live Event Log</h3>
             <div id="logsArea" class="logs"></div>
         </div>
 
         <div class="section-panel">
-            <h3>🏆 Leaderboard</h3>
-            <div id="rankings" class="rankings">Loading...</div>
+            <h3>🏆 Leaderboard & Metrics</h3>
+            <div id="rankings" class="rankings">✨ Waiting for data...</div>
         </div>
 
-        <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
+        <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
             <button onclick="simulatePhase()" id="runPhaseBtn">▶ SIMULATE NEXT PHASE</button>
             <button onclick="addRandomEvent()">🎲 ADD RANDOM EVENT</button>
-            <button onclick="resetCurrentPhase()" id="resetCurrentPhaseBtn" style="background: linear-gradient(95deg, #fbbf24, #f59e0b);">🔄 RESET CURRENT PHASE</button>
+            <button onclick="resetCurrentPhase()" id="resetCurrentPhaseBtn" style="background: linear-gradient(95deg, #fbbf24, #f59e0b);">🔄 RESET CURRENT PHASE (hype/transparency)</button>
             <button onclick="endGame()" id="endGameBtn" style="background: linear-gradient(95deg, #ef4444, #dc2626);">⛔ END GAME</button>
-            <button onclick="resetGame()" id="resetGameBtn">🔄 RESET GAME</button>
+            <button onclick="resetGame()" id="resetGameBtn">🔄 RESET FULL GAME</button>
         </div>
     </div>
 </div>
 
+<div class="floating-switch">
+    <button onclick="toggleView()" style="background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff); padding: 8px 20px; border-radius: 40px; box-shadow: 0 5px 12px rgba(0,0,0,0.2);">
+        👤 Switch to Player View
+    </button>
+</div>
+
 <script>
+    // ------------------- FINAL DASHBOARD STATE -------------------
     let mockRoom = {
         id: "MOCK-001",
         name: "Game Room",
@@ -300,43 +296,70 @@
         currentPhase: 1,
         maxPhase: 7,
         ended: false,
-        players: [
-            { id: 0, name: "Player 1", funding: 0.45, hype: 72, transparency: 65, score: 0, status: "active" },
-            { id: 1, name: "Player 2", funding: 0.82, hype: 88, transparency: 45, score: 0, status: "active" },
-            { id: 2, name: "Player 3", funding: 0.31, hype: 45, transparency: 78, score: 0, status: "active" },
-            { id: 3, name: "Player 4", funding: 0.00, hype: 0, transparency: 0, score: 0, status: "not_joined" }
-        ],
-        logs: [
-            "🎬 Game started! Projects have been initialized.",
-            "📢 Phase 1: Event 'Minor Good News' triggered for Player 1",
-            "💸 FOMO Bot invested 50,000 into Player 2's project",
-            "🐋 Whale Bot withdrew 20,000 from Player 1's project"
-        ],
+        players: [],
+        logs: [],
+        phaseDetails: [],
+        joinLinks: [],
         allReady: true
     };
     
-    let logCounter = 0;
     let autoUpdateInterval = null;
-    
+
+    // Helper: Create snapshot for phase archive
+    function getPlayerSnapshot() {
+        return mockRoom.players.map(p => ({
+            id: p.id,
+            name: p.name,
+            funding: p.funding,
+            hype: p.hype,
+            transparency: p.transparency,
+            score: p.score,
+            status: p.status
+        }));
+    }
+
+    function createPhaseDetail(phaseNum, eventDescription) {
+        return {
+            phase: phaseNum,
+            date: new Date().toLocaleTimeString(),
+            event: eventDescription,
+            summary: `📊 After Phase ${phaseNum}`,
+            players: getPlayerSnapshot()
+        };
+    }
+
+    function initPhaseDetails() {
+        mockRoom.phaseDetails = [createPhaseDetail(1, "🏁 Game room created & initial startup metrics")];
+    }
+
+    // Core UI update: rankings, logs, joins, bars, etc.
     function updateDisplay() {
-        document.getElementById('roomNameDisplay').innerText = mockRoom.name;
-        
-        const joinedPlayers = mockRoom.players.filter(p => p.status !== "not_joined").length;
-        document.getElementById('playerCount').innerText = joinedPlayers;
+        const joinedCount = mockRoom.players.filter(p => p.status !== "not_joined").length;
+        document.getElementById('playerCount').innerText = joinedCount;
         document.getElementById('maxPlayers').innerText = mockRoom.numPlayers;
         document.getElementById('currentPhase').innerText = mockRoom.currentPhase;
         document.getElementById('maxPhase').innerText = mockRoom.maxPhase;
-        
+        document.getElementById('roomNameDisplay').innerText = mockRoom.name;
+        if (mockRoom.ended) {
+            document.getElementById('gameStatus').innerHTML = '🏁 ENDED';
+            document.getElementById('gameStatus').className = 'error';
+        } else {
+            document.getElementById('gameStatus').innerHTML = '🔥 IN PROGRESS';
+            document.getElementById('gameStatus').className = 'success';
+        }
+
+        // Rankings board
         let rankingsHtml = '';
-        mockRoom.players.forEach(player => {
+        const sorted = [...mockRoom.players].sort((a,b) => b.score - a.score);
+        sorted.forEach((player, idx) => {
             const joined = player.status === 'active';
-            const statusIcon = joined ? '🟢' : (player.status === 'ended' ? '🏆' : '⚪');
-            const cardClass = joined ? 'player-card-joined' : (player.status === 'ended' ? 'player-card-ended' : 'player-card-not-joined');
-            const statusLabel = joined ? 'Joined' : (player.status === 'ended' ? 'Finished' : 'Not Joined');
+            const endedFlag = player.status === 'ended';
+            const cardClass = joined ? 'player-card-joined' : (endedFlag ? 'player-card-ended' : 'player-card-not-joined');
+            const statusLabel = joined ? 'Active' : (endedFlag ? 'Finished' : 'Not Joined');
             rankingsHtml += `
                 <div class="rank-card ${cardClass}">
-                    <h3 style="color:#2e1a47;">${statusIcon} ${player.name}
-                        <span class="player-join-tag ${joined ? 'joined' : 'waiting'}">${statusLabel}</span>
+                    <h3 style="color:#2e1a47;">${idx+1}. ${player.name}
+                        <span class="player-join-tag ${joined ? 'joined' : (endedFlag ? 'joined' : 'waiting')}">${statusLabel}</span>
                     </h3>
                     <div class="player-funding">💰 Funding: <span>${(player.funding * 100).toFixed(1)}%</span></div>
                     <div class="funding-bar"><div class="funding-bar-fill" style="width: ${(player.funding * 100).toFixed(1)}%;"></div></div>
@@ -344,89 +367,86 @@
                         <span class="metric-tag hype-tag">📈 Hype ${player.hype}</span>
                         <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency}</span>
                         <span class="metric-tag score-tag">🏅 Score ${player.score.toFixed(2)}</span>
-                        <span class="metric-tag status-tag">📌 ${player.status}</span>
+                        <span class="metric-tag status-tag">📌 ${player.status === 'active' ? 'Playing' : (player.status === 'ended' ? 'Done' : 'Pending')}</span>
                     </div>
                 </div>
             `;
         });
-        document.getElementById('rankings').innerHTML = rankingsHtml;
+        document.getElementById('rankings').innerHTML = rankingsHtml || '<div>Loading players...</div>';
         
-        const orderedLogs = mockRoom.logs.slice().reverse();
-        document.getElementById('logsArea').innerHTML = orderedLogs
-            .map((log, index) => `<div style="color:#2e1a47;">📌 ${index + 1}. ${log}</div>`)
-            .join('');
-        
+        // Logs (newest first)
+        const reversedLogs = [...mockRoom.logs].reverse();
+        document.getElementById('logsArea').innerHTML = reversedLogs.map((log, i) => `<div>📌 ${log}</div>`).join('');
         const logsDiv = document.getElementById('logsArea');
-        if (logsDiv) logsDiv.scrollTop = logsDiv.scrollHeight;
+        if(logsDiv) logsDiv.scrollTop = logsDiv.scrollHeight;
+        
         updateJoinLinks();
         refreshPhaseSelect();
         showPhaseDetails();
     }
 
-    function getPlayerSnapshot() {
-        return mockRoom.players.map(player => ({
-            id: player.id,
-            name: player.name,
-            funding: player.funding,
-            hype: player.hype,
-            transparency: player.transparency,
-            score: player.score,
-            status: player.status
-        }));
-    }
-
-    function createPhaseDetail(phase, eventText) {
-        return {
-            phase,
-            date: new Date().toLocaleTimeString(),
-            event: eventText,
-            summary: `Results after phase ${phase}`,
-            players: getPlayerSnapshot()
-        };
-    }
-
-    function initPhaseDetails() {
-        mockRoom.phaseDetails = [createPhaseDetail(1, 'Room created and game initialized')];
+    function updateJoinLinks() {
+        if (!mockRoom.joinLinks || mockRoom.joinLinks.length === 0) {
+            document.getElementById('joinLinksList').innerHTML = '<div style="color:#7c3aed;">⚠️ No links generated yet.</div>';
+            return;
+        }
+        let linksHtml = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+        mockRoom.joinLinks.forEach(link => {
+            const player = mockRoom.players[link.playerIndex];
+            const joined = player && player.status !== 'not_joined';
+            const statusLabel = joined ? '✅ Joined' : '⌛ Waiting';
+            const statusClass = joined ? 'joined' : 'waiting';
+            linksHtml += `
+                <div style="background: rgba(255, 255, 255, 0.85); border-radius: 16px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <span style="font-weight: 800; color:#db2777;">${link.playerName}</span>
+                        <span style="color:#6b21a5; font-size:12px; margin-left:6px;">(ID: ${link.playerIndex})</span>
+                        <span class="join-status-tag ${statusClass}" style="margin-left: 10px;">${statusLabel}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="text" value="${link.realLink}" style="background:#f3e8ff; font-size:12px; width: 260px;" readonly id="link_${link.playerIndex}">
+                        <button onclick="copyLink('${link.realLink}')" ${mockRoom.ended ? 'disabled' : ''} style="background:#ec4899; padding: 5px 12px;">Copy</button>
+                        <button onclick="simulateJoin(${link.playerIndex})" ${joined || mockRoom.ended ? 'disabled' : ''} style="background:${joined ? '#94a3b8' : '#22c55e'}; padding: 5px 12px;">
+                            ${joined ? 'Joined' : '🎮 Simulate Join'}
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        linksHtml += '</div><p class="reactive-demo" style="margin-top: 10px;">💡 Real backend links: <code>http://localhost:5000/play/...</code> | Simulate Join works instantly</p>';
+        document.getElementById('joinLinksList').innerHTML = linksHtml;
     }
 
     function refreshPhaseSelect() {
         const select = document.getElementById('phaseSelect');
         if (!select || !mockRoom.phaseDetails) return;
-        const currentValue = select.value;
-        select.innerHTML = mockRoom.phaseDetails
-            .map(detail => `<option value="${detail.phase}">Phase ${detail.phase}</option>`)
-            .join('');
-        const preservedPhase = mockRoom.phaseDetails.some(detail => detail.phase === parseInt(currentValue, 10));
-        select.value = preservedPhase ? currentValue : mockRoom.phaseDetails[mockRoom.phaseDetails.length - 1].phase;
+        const currentVal = select.value;
+        select.innerHTML = mockRoom.phaseDetails.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date})</option>`).join('');
+        if (mockRoom.phaseDetails.some(d => d.phase === parseInt(currentVal))) select.value = currentVal;
+        else if(mockRoom.phaseDetails.length) select.value = mockRoom.phaseDetails[mockRoom.phaseDetails.length-1].phase;
     }
 
     function showPhaseDetails() {
         const select = document.getElementById('phaseSelect');
         if (!select || !mockRoom.phaseDetails) return;
-        const phase = parseInt(select.value, 10);
-        const detail = mockRoom.phaseDetails.find(d => d.phase === phase);
-        const detailsDiv = document.getElementById('phaseDetails');
-        if (!detail || !detailsDiv) return;
-
-        detailsDiv.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-                <div><strong style="color:#2e1a47;">Phase ${detail.phase}</strong></div>
-                <div style="color:#6b21a5;">${detail.date}</div>
+        const phaseNum = parseInt(select.value, 10);
+        const detail = mockRoom.phaseDetails.find(d => d.phase === phaseNum);
+        const container = document.getElementById('phaseDetails');
+        if (!detail || !container) return;
+        container.innerHTML = `
+            <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                <div><strong style="color:#2e1a47;">📌 PHASE ${detail.phase}</strong> · ${detail.date}</div>
             </div>
-            <div style="margin: 8px 0; color: #4a2b7a;">${detail.summary}</div>
-            <div style="margin-bottom: 12px;"><strong style="color:#2e1a47;">Main Event:</strong> <span style="color:#4a2b7a;">${detail.event}</span></div>
-            <div style="display:grid;gap:10px;">
-                ${detail.players.map(player => `
-                    <div style="background:rgba(255,255,240,0.6); padding: 12px; border-radius: 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 8px;">
-                        <div>
-                            <div style="font-weight:700; color:#2e1a47;">${player.name}</div>
-                            <div style="color:#6b21a5; font-size:13px; margin-top:4px;">${player.status}</div>
-                        </div>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <span class="metric-tag">💰 ${(player.funding * 100).toFixed(1)}%</span>
-                            <span class="metric-tag hype-tag">📈 ${player.hype}</span>
-                            <span class="metric-tag transparency-tag">🔍 ${player.transparency}</span>
-                            <span class="metric-tag score-tag">🏅 ${player.score.toFixed(2)}</span>
+            <div style="margin: 8px 0;"><em>${detail.event}</em></div>
+            <div style="display:grid; gap:12px; margin-top: 12px;">
+                ${detail.players.map(p => `
+                    <div style="background: rgba(245, 240, 255, 0.7); border-radius: 14px; padding: 10px; display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center;">
+                        <div><strong>${p.name}</strong> <span style="color:#6b21a5;">${p.status}</span></div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span class="metric-tag">💰 ${(p.funding*100).toFixed(0)}%</span>
+                            <span class="metric-tag hype-tag">📈 ${p.hype}</span>
+                            <span class="metric-tag transparency-tag">🔍 ${p.transparency}</span>
+                            <span class="metric-tag score-tag">🏅 ${p.score.toFixed(2)}</span>
                         </div>
                     </div>
                 `).join('')}
@@ -434,52 +454,38 @@
         `;
     }
 
-    function updateJoinLinks() {
-        if (!mockRoom.joinLinks) return;
-        let linksHtml = '<div style="display: grid; gap: 8px;">';
-        mockRoom.joinLinks.forEach(link => {
-            const player = mockRoom.players[link.playerIndex];
-            const joined = player && player.status !== 'not_joined';
-            const statusLabel = joined ? 'Joined' : 'Not Joined';
-            const statusClass = joined ? 'joined' : 'waiting';
-            linksHtml += `
-                <div style="background: rgba(255, 255, 255, 0.8); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <div>
-                        <span style="font-weight: bold; color: #db2777;">${link.playerName}</span>
-                        <span style="color: #6b21a5; font-size: 12px; margin-left: 8px;">(Index: ${link.playerIndex})</span>
-                        <span class="join-status-tag ${statusClass}" style="margin-left: 12px;">${statusLabel}</span>
-                    </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <input type="text" value="${link.realLink}" style="background: #f3e8ff; font-size: 12px; padding: 6px; border-radius: 8px; width: 300px; color: #1e1b2b; border: 1px solid #c9b1e6;" readonly id="link_${link.playerIndex}">
-                        <button onclick="copyLink('${link.realLink}')" ${mockRoom.ended || mockRoom.currentPhase >= mockRoom.maxPhase ? 'disabled' : ''} style="background: #ec4899; padding: 6px 12px; border-radius: 8px; font-size: 12px; border: none; color: white; cursor: pointer;">
-                            Copy
-                        </button>
-                        <button onclick="simulateJoin(${link.playerIndex})" ${joined || mockRoom.ended || mockRoom.currentPhase >= mockRoom.maxPhase ? 'disabled' : ''} style="background: ${joined ? '#94a3b8' : '#22c55e'}; padding: 6px 12px; border-radius: 8px; font-size: 12px; border: none; color: white; cursor: pointer;">
-                            ${joined ? '✅ Joined' : '🎮 Simulate Join'}
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-        linksHtml += '</div>';
-        linksHtml += '<div style="color: #b45309; font-size: 12px; margin-top: 10px;">⚠️ Real links require a running backend. Use "Simulate Join" to test!</div>';
-        document.getElementById('joinLinksList').innerHTML = linksHtml;
-    }
-    
+    // Create fresh room (final version)
     function createMockRoom() {
-        const roomName = document.getElementById('roomName').value || 'Game Room';
-        const numPlayers = parseInt(document.getElementById('numPlayers').value);
-        const roomId = 'ROOM_' + Math.random().toString(36).substr(2, 8);
+        const roomName = document.getElementById('roomName').value.trim() || 'Startup Game';
+        const numPlayers = parseInt(document.getElementById('numPlayers').value, 10);
+        if (numPlayers < 2 || numPlayers > 10) { alert("Players must be between 2 and 10"); return; }
+        const roomId = 'ROOM_' + Math.random().toString(36).substring(2, 10).toUpperCase();
         
         const joinLinks = [];
         for (let i = 0; i < numPlayers; i++) {
             joinLinks.push({
                 playerIndex: i,
                 playerName: `Player ${i+1}`,
-                realLink: `http://localhost:5000/play/${roomId}/${i}`,
-                mockLink: `#play?room=${roomId}&player=${i}`
+                realLink: `https://fundraising-game.demo/play/${roomId}/${i}`,
+                mockLink: `#`
             });
         }
+        
+        const players = [];
+        for (let i = 0; i < numPlayers; i++) {
+            players.push({
+                id: i,
+                name: `Player ${i+1}`,
+                funding: i === 0 ? 0.25 : Math.random() * 0.35,
+                hype: i === 0 ? 68 : Math.floor(Math.random() * 55) + 25,
+                transparency: i === 0 ? 72 : Math.floor(Math.random() * 55) + 25,
+                score: 0,
+                status: i === 0 ? "active" : "not_joined",
+                ready: false
+            });
+        }
+        // recalc initial score
+        players.forEach(p => { p.score = p.funding * 100 + (p.hype / 100) * 30 + (p.transparency / 100) * 15; });
         
         mockRoom = {
             id: roomId,
@@ -487,221 +493,208 @@
             numPlayers: numPlayers,
             currentPhase: 1,
             maxPhase: 7,
-            players: [],
-            logs: [`🎉 Room ${roomId} created with ${numPlayers} players!`],
-            allReady: false,
-            ended: false
+            players: players,
+            logs: [`🎬 New room "${roomName}" (ID: ${roomId}) created. Phase 1 started.`],
+            allReady: true,
+            ended: false,
+            joinLinks: joinLinks,
+            phaseDetails: []
         };
-        
-        for (let i = 0; i < numPlayers; i++) {
-            mockRoom.players.push({
-                id: i,
-                name: `Player ${i+1}`,
-                funding: Math.random() * 0.3,
-                hype: Math.floor(Math.random() * 60) + 20,
-                transparency: Math.floor(Math.random() * 60) + 20,
-                score: 0,
-                status: i === 0 ? "active" : "not_joined",
-                ready: false
-            });
-        }
-
         initPhaseDetails();
-        mockRoom.joinLinks = joinLinks;
         document.getElementById('roomId').innerText = roomId;
-        document.getElementById('roomNameDisplay').innerText = roomName;
-        document.getElementById('maxPlayers').innerText = numPlayers;
         document.getElementById('setupPanel').style.display = 'none';
         document.getElementById('gamePanel').style.display = 'block';
+        
+        // enable/disable controls after creation
+        setGameButtonsByState();
         updateDisplay();
         startAutoUpdate();
-        alert(`✅ Room ${roomId} created with ${numPlayers} unique links!\n\nEach player has their own link. Use "Simulate Join" to test!`);
+        alert(`✅ Room "${roomName}" created! ${numPlayers} unique links ready.\nUse "Simulate Join" to test joining mechanism.`);
     }
-    
-    function setGameButtonsDisabled(disabled, preserveReset = false) {
-        document.querySelectorAll('#gamePanel button').forEach(btn => {
-            if (preserveReset && btn.id === 'resetGameBtn') return;
-            btn.disabled = disabled;
-        });
+
+    function setGameButtonsByState() {
+        const isEnded = mockRoom.ended;
+        const phaseFinished = mockRoom.currentPhase >= mockRoom.maxPhase;
+        document.getElementById('runPhaseBtn').disabled = isEnded || phaseFinished;
+        document.getElementById('endGameBtn').disabled = isEnded;
+        document.getElementById('resetCurrentPhaseBtn').disabled = isEnded;
     }
-    
+
     function copyLink(link) {
-        navigator.clipboard.writeText(link);
-        alert(`Link copied: ${link}`);
+        navigator.clipboard.writeText(link).then(() => alert(`✅ Copied: ${link}`)).catch(() => alert("⚠️ Manual copy: " + link));
     }
     
     function simulateJoin(playerIndex) {
-        localStorage.setItem('mock_room_id', mockRoom.id);
-        localStorage.setItem('mock_player_index', playerIndex);
-        localStorage.setItem('mock_player_name', `Player ${playerIndex + 1}`);
-        alert(`🎮 Player ${playerIndex + 1} has joined!\n\nIn the real game, this player would go to:\nhttp://localhost:5000/play/${mockRoom.id}/${playerIndex}\n\nAnd control their own project.`);
-        if (mockRoom.players[playerIndex]) {
-            mockRoom.players[playerIndex].status = "active";
-            mockRoom.logs.unshift(`👤 ${mockRoom.players[playerIndex].name} has joined the room!`);
-            updateDisplay();
-            updateJoinLinks();
+        if (mockRoom.ended) { alert("Game already ended, cannot join."); return; }
+        const player = mockRoom.players[playerIndex];
+        if (!player) return;
+        if (player.status !== 'not_joined') {
+            alert(`${player.name} already joined!`);
+            return;
         }
-    }
-    
-    function simulatePhase() {
-        mockRoom.currentPhase++;
-        mockRoom.players.forEach(player => {
-            if (player.status === 'active') {
-                player.funding = Math.min(1.0, player.funding + Math.random() * 0.15);
-                player.hype = Math.min(100, Math.max(0, player.hype + Math.floor(Math.random() * 30) - 10));
-                player.transparency = Math.min(100, Math.max(0, player.transparency + Math.floor(Math.random() * 20) - 5));
-                player.score = player.funding * 100 + (player.hype / 100) * 30;
-            }
-        });
-        
-        const events = [
-            "📢 Event: Moderate Good News - Hype up 20% for all!",
-            "⚠️ Event: Minor Crisis - Transparency down 10%",
-            "💸 FOMO Bot invested an extra 75,000 into the leading project",
-            "🐋 Whale Bot withdrew from the weakest project",
-            "🔒 Event: Security Audit - Security up 15 points",
-            "🏆 Event: Patent Granted - Valuation increases sharply"
-        ];
-        const randomEvent = events[Math.floor(Math.random() * events.length)];
-        mockRoom.logs.unshift(`🔄 PHASE ${mockRoom.currentPhase}: ${randomEvent}`);
-        if (mockRoom.logs.length > 20) mockRoom.logs.pop();
-        
-        if (mockRoom.currentPhase >= mockRoom.maxPhase) {
-            mockRoom.logs.unshift("🏆🏆🏆 GAME OVER! 🏆🏆🏆");
-            mockRoom.allReady = false;
-            mockRoom.players.forEach(player => {
-                if (player.status === 'active') {
-                    player.status = 'ended';
-                    player.score = player.funding * 100 + (player.hype / 100) * 50 + (player.transparency / 100) * 20;
-                }
-            });
-            document.getElementById('runPhaseBtn').disabled = true;
-            document.getElementById('gameStatus').innerHTML = 'ENDED';
-            document.getElementById('gameStatus').className = 'error';
-            document.getElementById('endGameBtn').disabled = true;
-            mockRoom.ended = true;
-            setGameButtonsDisabled(true);
-        }
-
-        mockRoom.phaseDetails.push(createPhaseDetail(mockRoom.currentPhase, randomEvent));
+        player.status = "active";
+        mockRoom.logs.unshift(`✨ ${player.name} JOINED the game! Funding unlocked.`);
+        if (mockRoom.logs.length > 30) mockRoom.logs.pop();
+        // slight funding bump upon join for realism
+        player.funding = Math.min(0.5, player.funding + 0.08);
+        player.score = player.funding * 100 + (player.hype / 100) * 30 + (player.transparency / 100) * 15;
         updateDisplay();
     }
     
-    function endGame() {
-        if (mockRoom.currentPhase >= mockRoom.maxPhase) return;
-        mockRoom.logs.unshift('⛔ Game ended by the teacher.');
-        mockRoom.currentPhase = mockRoom.maxPhase;
-        mockRoom.players.forEach(player => {
-            if (player.status === 'active') {
-                player.status = 'ended';
-                player.score = player.funding * 100 + (player.hype / 100) * 50 + (player.transparency / 100) * 20;
+    function simulatePhase() {
+        if (mockRoom.ended) { alert("Game already ended. Reset to continue."); return; }
+        if (mockRoom.currentPhase >= mockRoom.maxPhase) {
+            alert("Game has reached final phase. End game or reset.");
+            return;
+        }
+        mockRoom.currentPhase++;
+        // apply phase evolution for active players only
+        mockRoom.players.forEach(p => {
+            if (p.status === 'active') {
+                p.funding = Math.min(1.0, p.funding + (Math.random() * 0.12));
+                p.hype = Math.min(100, Math.max(0, p.hype + Math.floor(Math.random() * 25) - 8));
+                p.transparency = Math.min(100, Math.max(0, p.transparency + Math.floor(Math.random() * 20) - 6));
+                p.score = p.funding * 100 + (p.hype / 100) * 40 + (p.transparency / 100) * 25;
             }
         });
-        mockRoom.allReady = false;
+        
+        const eventPool = [
+            "📢 Crypto Bull Run: Hype increased across board!",
+            "⚠️ Data leak scandal: Transparency drops for some founders",
+            "💸 VC Whale invests $250k into leading project",
+            "🐋 FOMO Bot triggers massive inflow to underdog",
+            "🔐 Security Audit Passed: +15 transparency for all active",
+            "🏆 Pitch Competition Win: score boost",
+            "🌊 Market Correction: Funding slightly dips"
+        ];
+        const randomEvent = eventPool[Math.floor(Math.random() * eventPool.length)];
+        mockRoom.logs.unshift(`🔄 PHASE ${mockRoom.currentPhase} — ${randomEvent}`);
+        if (mockRoom.logs.length > 28) mockRoom.logs.pop();
+        
+        if (mockRoom.currentPhase >= mockRoom.maxPhase) {
+            mockRoom.logs.unshift("🏆🏆🏆 GAME OVER! Final scores calculated. 🏆🏆🏆");
+            mockRoom.players.forEach(p => {
+                if (p.status === 'active') {
+                    p.status = 'ended';
+                    p.score = p.funding * 100 + (p.hype / 100) * 50 + (p.transparency / 100) * 30;
+                } else if (p.status === 'not_joined') p.status = 'not_joined';
+            });
+            mockRoom.ended = true;
+            setGameButtonsByState();
+            document.getElementById('gameStatus').innerHTML = 'ENDED';
+            document.getElementById('gameStatus').className = 'error';
+        }
+        mockRoom.phaseDetails.push(createPhaseDetail(mockRoom.currentPhase, randomEvent));
+        updateDisplay();
+        setGameButtonsByState();
+    }
+    
+    function endGame() {
+        if (mockRoom.ended) return;
         mockRoom.ended = true;
-        setGameButtonsDisabled(true);
-        document.getElementById('gameStatus').innerHTML = 'ENDED';
-        document.getElementById('gameStatus').className = 'error';
-        mockRoom.phaseDetails.push(createPhaseDetail(mockRoom.currentPhase, 'Game ended by teacher'));
+        mockRoom.logs.unshift("⛔ GAME TERMINATED EARLY by host.");
+        mockRoom.players.forEach(p => {
+            if (p.status === 'active') p.status = 'ended';
+            p.score = p.funding * 100 + (p.hype / 100) * 40 + (p.transparency / 100) * 25;
+        });
+        mockRoom.currentPhase = mockRoom.maxPhase;
+        mockRoom.phaseDetails.push(createPhaseDetail(mockRoom.currentPhase, "Game manually ended by teacher"));
+        setGameButtonsByState();
         updateDisplay();
     }
     
     function addRandomEvent() {
-        const events = [
-            "🎉 Player 1 received a surprise investment of 100,000!",
-            "⚠️ Player 2 hit a production error - COGS up 5%",
-            "🔒 Player 3 completed a security audit - Trust increased",
-            "💎 Player 1 launched a staking feature - Utility +20",
-            "📉 Market downturn - Hype down 15 across the board"
+        if (mockRoom.ended) { alert("Game ended, can't add event."); return; }
+        const eventsList = [
+            "🎉 Surprise Angel Investment: +8% funding for random player",
+            "⚠️ PR crisis: One player loses 12 hype",
+            "💎 Partnership announcement: transparency +10 for everyone",
+            "📉 Regulatory FUD: Funding drops slightly for weakest",
+            "🌟 Viral tweet: Huge hype increase for random active startup"
         ];
-        const randomEvent = events[Math.floor(Math.random() * events.length)];
-        mockRoom.logs.unshift(`🎲 RANDOM EVENT: ${randomEvent}`);
-        if (mockRoom.players[0] && mockRoom.players[0].status === 'active') {
-            mockRoom.players[0].funding = Math.min(1.0, mockRoom.players[0].funding + 0.05);
-            mockRoom.players[0].hype = Math.min(100, mockRoom.players[0].hype + 5);
+        const ev = eventsList[Math.floor(Math.random() * eventsList.length)];
+        const activePlayers = mockRoom.players.filter(p => p.status === 'active');
+        if (activePlayers.length) {
+            const target = activePlayers[Math.floor(Math.random() * activePlayers.length)];
+            if (ev.includes("Angel Investment")) target.funding = Math.min(1.0, target.funding + 0.08);
+            if (ev.includes("PR crisis")) target.hype = Math.max(0, target.hype - 12);
+            if (ev.includes("transparency")) mockRoom.players.forEach(p => { if(p.status === 'active') p.transparency = Math.min(100, p.transparency+10); });
+            if (ev.includes("Viral tweet")) target.hype = Math.min(100, target.hype + 18);
+            target.score = target.funding * 100 + (target.hype/100)*40 + (target.transparency/100)*25;
         }
-        if (mockRoom.logs.length > 20) mockRoom.logs.pop();
+        mockRoom.logs.unshift(`🎲 RANDOM EVENT: ${ev}`);
+        if (mockRoom.logs.length > 30) mockRoom.logs.pop();
+        updateDisplay();
+    }
+    
+    function resetCurrentPhase() {
+        if (mockRoom.ended) { alert("Game ended, reset game to modify."); return; }
+        mockRoom.players.forEach(p => {
+            if (p.status === 'active') {
+                p.hype = Math.max(20, Math.min(85, 50 + Math.floor(Math.random() * 20)));
+                p.transparency = Math.max(25, Math.min(90, 55 + Math.floor(Math.random() * 20)));
+                p.score = p.funding * 100 + (p.hype / 100) * 40 + (p.transparency / 100) * 25;
+            }
+        });
+        mockRoom.logs.unshift(`🔄 Host reset hype/transparency for current phase.`);
         updateDisplay();
     }
     
     function resetGame() {
+        // full game reset, keep same players and room structure
         mockRoom.currentPhase = 1;
-        mockRoom.players.forEach(player => {
-            player.funding = Math.random() * 0.3;
-            player.hype = Math.floor(Math.random() * 60) + 20;
-            player.transparency = Math.floor(Math.random() * 60) + 20;
-            player.score = 0;
-            player.status = "active";
-        });
-        mockRoom.logs = ["🔄 Game has been RESET! Starting over from the beginning."];
-        mockRoom.allReady = true;
         mockRoom.ended = false;
-        initPhaseDetails();
-        setGameButtonsDisabled(false);
-        document.getElementById('gameStatus').innerHTML = 'IN PROGRESS';
-        document.getElementById('gameStatus').className = 'success';
-        updateDisplay();
-        alert('✅ Game reset!');
-    }
-    
-    function resetPhase() {
-        if (mockRoom.currentPhase > 1) {
-            mockRoom.currentPhase--;
-            mockRoom.players.forEach(player => {
-                player.funding = Math.max(0, player.funding - 0.15);
-            });
-            mockRoom.logs.unshift("🔄 Reverted to previous phase!");
-            updateDisplay();
-            alert('✅ Reset to previous phase!');
-        } else {
-            alert('⚠️ Already at the first phase!');
-        }
-    }
-    
-    function resetCurrentPhase() {
-        mockRoom.players.forEach(player => {
-            player.hype = 50;
-            player.transparency = 50;
+        mockRoom.players.forEach(p => {
+            p.funding = Math.random() * 0.35;
+            p.hype = Math.floor(Math.random() * 55) + 25;
+            p.transparency = Math.floor(Math.random() * 55) + 25;
+            p.status = p.id === 0 ? "active" : "not_joined";
+            p.score = p.funding * 100 + (p.hype / 100) * 30 + (p.transparency / 100) * 15;
         });
-        mockRoom.logs.unshift("🔄 Current phase metrics have been reset!");
+        mockRoom.logs = [`🔄 FULL GAME RESET by host. Back to Phase 1.`];
+        mockRoom.phaseDetails = [];
+        initPhaseDetails();
+        setGameButtonsByState();
         updateDisplay();
-        alert('✅ Current phase reset!');
+        alert("Game reset to initial state! All join links still valid.");
     }
     
     function startAutoUpdate() {
         if (autoUpdateInterval) clearInterval(autoUpdateInterval);
         autoUpdateInterval = setInterval(() => {
-            if (document.getElementById('gamePanel').style.display === 'block') {
-                const autoEvents = [
-                    "🔄 Fetching latest data from server...",
-                    "📊 Leaderboard refreshed",
-                    "💬 3 new investors are reviewing a project",
-                    "⏳ Waiting for players to ready up for next phase"
-                ];
-                if (Math.random() > 0.7) {
-                    mockRoom.logs.unshift(`🔄 [AUTO] ${autoEvents[Math.floor(Math.random() * autoEvents.length)]}`);
-                    if (mockRoom.logs.length > 20) mockRoom.logs.pop();
+            if (document.getElementById('gamePanel').style.display === 'block' && !mockRoom.ended) {
+                if (Math.random() > 0.75) {
+                    mockRoom.logs.unshift(`🔄 Live sync: leaderboard recalculated`);
+                    if (mockRoom.logs.length > 28) mockRoom.logs.pop();
+                    mockRoom.players.forEach(p => {
+                        if(p.status === 'active')
+                            p.score = p.funding * 100 + (p.hype/100)*40 + (p.transparency/100)*25;
+                    });
                     updateDisplay();
                 }
             }
-        }, 5000);
+        }, 6500);
     }
     
-    console.log("✅ Mock version ready! The interface will be reactive once you create a room.");
-</script>
-
-<div style="position: fixed; bottom: 16px; right: 16px; z-index: 50;">
-    <button onclick="toggleView()" style="background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff); padding: 10px 20px; border-radius: 40px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; border: none; color: white; font-weight: 600;">
-        <span>👤</span> Switch to Player View
-    </button>
-</div>
-
-<script>
     function toggleView() {
-        const roomId = document.getElementById('roomId')?.innerText || 'MOCK_ROOM';
-        const url = `play.html?room=${roomId}&player=0`;
-        window.open(url, '_blank');
+        const roomId = mockRoom.id || 'DEMO';
+        alert("📱 Player view opens in new tab with demo player perspective.\nIn final game, player would control their metrics.");
+        window.open(`about:blank`, '_blank');
+        // For final feel: simulate player view info
     }
+    
+    window.createMockRoom = createMockRoom;
+    window.simulatePhase = simulatePhase;
+    window.addRandomEvent = addRandomEvent;
+    window.resetCurrentPhase = resetCurrentPhase;
+    window.endGame = endGame;
+    window.resetGame = resetGame;
+    window.copyLink = copyLink;
+    window.simulateJoin = simulateJoin;
+    window.showPhaseDetails = showPhaseDetails;
+    window.toggleView = toggleView;
+    
+    console.log("✅ FINAL HOST DASHBOARD loaded. Create a room to start!");
 </script>
 </body>
 </html>
