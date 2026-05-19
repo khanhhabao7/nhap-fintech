@@ -675,7 +675,7 @@ def run_phase():
     if room['status'] != 'playing':
         return jsonify({'error': 'Game not active'}), 400
 
-    # Kiểm tra ready chỉ với những người chơi còn active
+    # Kiểm tra ready (chỉ những người còn active)
     active_players_ready = all(
         room['player_ready'][i] 
         for i in range(room['num_players']) 
@@ -693,7 +693,7 @@ def run_phase():
     for i in range(room['num_players']):
         room['player_triggers'][i] = {'available_reactions': []}
 
-    # ===================== 1. XỬ LÝ TỪNG DỰ ÁN =====================
+    # 1. Xử lý Scenario + Active Card + Reaction Trigger
     for idx, proj in enumerate(players):
         if not proj or proj.get('status') != 'active' or proj.get('current_phase', 0) >= proj.get('max_phase', 999):
             continue
@@ -756,7 +756,7 @@ def run_phase():
 
                 logs.append(f" → Dự án {idx+1} chơi thẻ {card['name']}")
 
-        # Reaction Trigger Detection
+        # Reaction Triggers
         triggers = []
         for rc in proj.get('reaction_hand', []):
             if rc['trigger'] == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
@@ -779,7 +779,7 @@ def run_phase():
             room['player_triggers'][idx]['available_reactions'] = triggers
             logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
 
-        # Cập nhật phase
+        # Cập nhật tiến độ phase
         metrics = calculate_metrics(proj)
         proj['funding_progress'] = metrics.get('funding_progress', 0)
         proj['current_phase'] += 1
@@ -788,24 +788,24 @@ def run_phase():
             proj['status'] = 'ended'
             logs.append(f" → Dự án {idx+1} đã kết thúc.")
 
-    # ===================== 2. XỬ LÝ BOT =====================
+    # Xử lý Bot
     process_phase(room, phase, players, logs)
 
-    # ===================== 3. CLEAN UP =====================
+    # Cleanup
     room['pending_cards'] = {}
     room['player_ready'] = [False] * room['num_players']
     room['logs'] = logs[-50:]
 
     room['phase'] += 1
 
-    # Phát bài mới cho phase tiếp theo
+    # Phát bài mới
     for idx, proj in enumerate(players):
         if proj and proj.get('status') == 'active' and proj.get('current_phase', 0) < proj.get('max_phase', 999):
             proj['current_hand'] = random.sample(proj['active_deck'], min(5, len(proj['active_deck'])))
             proj['energy_left'] = 3
             room['mulligan_used'][idx] = False
 
-    # Kiểm tra game ended
+    # Kiểm tra kết thúc game
     all_ended = all(p is None or p.get('current_phase', 0) >= p.get('max_phase', 999) for p in players)
     game_ended = (room['phase'] > room['max_phase']) or all_ended
 
@@ -819,7 +819,6 @@ def run_phase():
         'logs': logs,
         'game_ended': game_ended
     })
-    
 @app.route('/api/card_lists', methods=['GET'])
 def card_lists():
     """Trả về danh sách tất cả thẻ Active và Reaction cho người chơi chọn deck"""
