@@ -49,61 +49,122 @@ SCENARIOS = [
 ]
 
 # ===================== MINH: CARD ENGINE – ACTIVE CARDS =====================
+# Đã loại bỏ tokenomic effects
 ACTIVE_CARDS_FULL = [
-    # Hot Pink cards (Attack)
-    {"id":"A1","name":"Marketing Blitz","cost":2,"type":"hotpink","desc":"Tăng Hype 25, giảm Transparency 5","effect":{"hype":25,"transparency":-5}},
-    {"id":"A2","name":"Viral Campaign","cost":3,"type":"hotpink","desc":"Tăng Hype 40, giảm Transparency 10","effect":{"hype":40,"transparency":-10}},
-    {"id":"A3","name":"Flash Sale","cost":2,"type":"hotpink","desc":"Giảm giá 15%, tăng Hype 15","effect":{"price_percent":-15,"hype":15}},
-    {"id":"A4","name":"Influencer Deal","cost":2,"type":"hotpink","desc":"Tăng Hype 20, Visibility 15","effect":{"hype":20,"visibility":15}},
-    {"id":"A6","name":"FOMO Campaign","cost":2,"type":"hotpink","desc":"Tăng Hype 20, Funding 5%","effect":{"hype":20,"funding_boost_percent":5}},
-    {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"hotpink","desc":"Tăng Hype 25, giảm Transparency 3","effect":{"hype":25,"transparency":-3}},
-    {"id":"A9","name":"Limited Offer","cost":1,"type":"hotpink","desc":"Tăng Hype 10, Visibility 5","effect":{"hype":10,"visibility":5}},
-    {"id":"A10","name":"Shill Army","cost":2,"type":"hotpink","desc":"Tăng Hype 30, giảm Transparency 15","effect":{"hype":30,"transparency":-15}},
-    {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"hotpink","desc":"Giảm giá 10%, tăng Funding 10%","effect":{"price_percent":-10,"funding_boost_percent":10}},
-    {"id":"A12","name":"Media Blast","cost":2,"type":"hotpink","desc":"Tăng Hype 20, Visibility 10","effect":{"hype":20,"visibility":10}},
-    {"id":"A13","name":"Meme Marketing","cost":1,"type":"hotpink","desc":"Tăng Hype 15, giảm Transparency 2","effect":{"hype":15,"transparency":-2}},
-    {"id":"A14","name":"Aggressive Pricing","cost":2,"type":"hotpink","desc":"Giảm giá 20%, tăng Hype 10","effect":{"price_percent":-20,"hype":10}},
-    
-    # Baby Blue cards (Defense)
-    {"id":"D1","name":"Cost Cutting","cost":1,"type":"babyblue","desc":"Giảm COGS 3%, tăng Transparency 5","effect":{"cogs_percent":-3,"transparency":5}},
-    {"id":"D2","name":"Community Update","cost":1,"type":"babyblue","desc":"Tăng Hype 5, Transparency 3","effect":{"hype":5,"transparency":3}},
-    {"id":"D3","name":"Third Party Audit","cost":2,"type":"babyblue","desc":"Tăng Transparency 15, giảm rủi ro","effect":{"transparency":15,"reg_risk":-10}},
-    {"id":"D4","name":"Vesting Pledge","cost":1,"type":"babyblue","desc":"Tăng Transparency 10, Trust 5","effect":{"transparency":10,"trust_all":5}},
-    {"id":"D5","name":"Emergency Fund","cost":2,"type":"babyblue","desc":"Tăng Runway 2 tháng","effect":{"runway":2}},
-    {"id":"D6","name":"Open Book","cost":2,"type":"babyblue","desc":"Tăng Transparency 20","effect":{"transparency":20}},
-    {"id":"D8","name":"Legal Shield","cost":2,"type":"babyblue","desc":"Giảm rủi ro pháp lý 15","effect":{"reg_risk":-15}},
-    {"id":"D9","name":"Slow & Steady","cost":1,"type":"babyblue","desc":"Tăng Transparency 5, Hype 2","effect":{"transparency":5,"hype":2}},
-    {"id":"D10","name":"Crisis Management","cost":2,"type":"babyblue","desc":"Giảm 50% delta tiêu cực","effect":{"halve_negative_delta":1}},
-    {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"babyblue","desc":"Giảm COGS 5%, tăng Transparency 5","effect":{"cogs_percent":-5,"transparency":5}},
-    {"id":"D12","name":"Investor Call","cost":1,"type":"babyblue","desc":"Tăng Trust 10","effect":{"trust_all":10}},
-    {"id":"D13","name":"Transparency Report","cost":2,"type":"babyblue","desc":"Tăng Transparency 15, giảm Hype 5","effect":{"transparency":15,"hype":-5}},
-    
-    # Lavender cards (Tokenomics)
-    {"id":"T1","name":"Whale Discount","cost":3,"type":"lavender","desc":"Tăng Funding 15%, giảm trust Whale","effect":{"funding_boost_percent":15,"trust_whale":-10}},
-    {"id":"T3","name":"Secondary Offering","cost":3,"type":"lavender","desc":"Tăng Funding 20%, giảm trust","effect":{"funding_boost_percent":20,"trust_all":-15}},
-    {"id":"T4","name":"DAO Vote","cost":2,"type":"lavender","desc":"Tăng Transparency 5, Trust 5","effect":{"transparency":5,"trust_all":5}},
-    {"id":"T6","name":"Treasury Diversify","cost":2,"type":"lavender","desc":"Giảm rủi ro 10, tăng Trust 10","effect":{"reg_risk":-10,"trust_all":10}},
-    {"id":"T7","name":"Token Split","cost":2,"type":"lavender","desc":"Tăng Funding 5%, Hype 10","effect":{"funding_boost_percent":5,"hype":10}},
-    {"id":"T8","name":"Governance Proposal","cost":1,"type":"lavender","desc":"Tăng Transparency 5, Trust 5","effect":{"transparency":5,"trust_all":5}},
-    {"id":"T9","name":"Vesting Extension","cost":2,"type":"lavender","desc":"Tăng Trust 20, Transparency 10","effect":{"trust_all":20,"transparency":10}},
-    {"id":"T11","name":"Strategic Partnership","cost":2,"type":"lavender","desc":"Tăng Trust 15, giảm rủi ro","effect":{"trust_all":15,"reg_risk":-5}},
-    {"id":"T13","name":"Airdrop to Holders","cost":2,"type":"lavender","desc":"Tăng Trust 10, Hype 15","effect":{"trust_all":10,"hype":15}},
-    {"id":"T14","name":"Equity Swap","cost":3,"type":"lavender","desc":"Tăng Funding 30%, giảm trust","effect":{"funding_boost_percent":30,"trust_all":-20}}
+    {"id":"A1","name":"Marketing Blitz","cost":2,"type":"red","desc":"Run a large campaign to quickly attract attention.","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
+    {"id":"A2","name":"Social Media Campaign","cost":3,"type":"red","desc":"Use social media to create strong public interest.","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
+    {"id":"A3","name":"Flash Sale","cost":2,"type":"red","desc":"Offer a short-term discount to increase demand.","effect":{"price_percent":-15,"hype":15}},
+    {"id":"A4","name":"Influencer Deal","cost":2,"type":"red","desc":"Use an influencer to increase hype and visibility.","effect":{"hype":20,"visibility":15,"cost_percent":2}},
+    {"id":"A5","name":"Free Trial Campaign","cost":3,"type":"red","desc":"Let customers try the product before paying.","effect":{"hype":30,"utility":5,"cost_percent":4}},
+    {"id":"A6","name":"Investor Buzz Campaign","cost":2,"type":"red","desc":"Create fundraising momentum among investors.","effect":{"hype":20,"funding_boost_percent":5}},
+    {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"red","desc":"Use a famous person to boost public attention.","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
+    {"id":"A8","name":"Customer Loyalty Program","cost":3,"type":"red","desc":"Reward repeat customers to keep them engaged.","effect":{"hype":15,"utility":10,"transparency":5}},
+    {"id":"A9","name":"Limited Offer","cost":1,"type":"red","desc":"Create urgency with a short-time offer.","effect":{"hype":10,"visibility":5}},
+    {"id":"A10","name":"Aggressive Promotion","cost":2,"type":"red","desc":"Push bold promotion to gain fast attention.","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
+    {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"red","desc":"Use early discounts to bring in quick cash.","effect":{"price_percent":-10,"funding_boost_percent":10}},
+    {"id":"A12","name":"Media Coverage Push","cost":2,"type":"red","desc":"Get media attention for the project.","effect":{"hype":20,"visibility":10,"cost_percent":1}},
+    {"id":"A13","name":"Community Engagement Campaign","cost":1,"type":"red","desc":"Keep the community active and interested.","effect":{"hype":15,"transparency":-2}},
+    {"id":"A14","name":"Aggressive Pricing Strategy","cost":2,"type":"red","desc":"Lower prices to attract more customers.","effect":{"price_percent":-20,"hype":10}},
+    {"id":"D1","name":"Cost Cutting","cost":1,"type":"green","desc":"Reduce unnecessary operating costs.","effect":{"cogs_percent":-3,"transparency":5}},
+    {"id":"D2","name":"Community Update","cost":1,"type":"green","desc":"Update investors and customers on progress.","effect":{"hype":5,"transparency":3}},
+    {"id":"D3","name":"Third Party Audit","cost":2,"type":"green","desc":"Use an independent review to build credibility.","effect":{"transparency":15,"reg_risk":-10,"cost_percent":5}},
+    {"id":"D4","name":"Founder Commitment Pledge","cost":1,"type":"green","desc":"Show that founders are committed long term.","effect":{"transparency":10,"trust_all":5}},
+    {"id":"D5","name":"Emergency Fund","cost":2,"type":"green","desc":"Set aside reserve cash for unexpected problems.","effect":{"runway":2,"cost_percent":5}},
+    {"id":"D6","name":"Open Financial Report","cost":2,"type":"green","desc":"Share clearer financial information.","effect":{"transparency":20,"cost_percent":2}},
+    {"id":"D7","name":"Security Review Program","cost":1,"type":"green","desc":"Check system and data security risks.","effect":{"security":10,"transparency":5}},
+    {"id":"D8","name":"Legal Readiness Check","cost":2,"type":"green","desc":"Review legal and compliance documents.","effect":{"reg_risk":-15,"cost_percent":3}},
+    {"id":"D9","name":"Slow & Steady","cost":1,"type":"green","desc":"Choose controlled and realistic growth.","effect":{"transparency":5,"hype":2}},
+    {"id":"D10","name":"Crisis Management","cost":2,"type":"green","desc":"Reduce damage from a negative event.","effect":{"halve_negative_delta":1,"cost_percent":3}},
+    {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"green","desc":"Fix supplier or delivery cost problems.","effect":{"cogs_percent":-5,"transparency":5}},
+    {"id":"D12","name":"Investor Call","cost":1,"type":"green","desc":"Answer investor concerns directly.","effect":{"trust_all":10,"cost_percent":1}},
+    {"id":"D13","name":"Transparency Report","cost":2,"type":"green","desc":"Explain performance, risks, and issues clearly.","effect":{"transparency":15,"hype":-5}},
+    {"id":"D14","name":"Dual Approval Control","cost":1,"type":"green","desc":"Require two approvals for sensitive actions.","effect":{"security":15,"transparency":5}},
+    {"id":"C1","name":"Strategic Investor Discount","cost":3,"type":"purple","desc":"Offer better terms to close a major investment.","effect":{"funding_boost_percent":15,"trust_all":-8,"whale_trust":5,"cost_percent":2}},
+    {"id":"C2","name":"Investor Protection Reserve","cost":2,"type":"purple","desc":"Set aside funds to reassure investors.","effect":{"funding_boost_percent":-10,"trust_all":15,"utility":10,"cost_percent":10}},
+    {"id":"C3","name":"Secondary Offering","cost":3,"type":"purple","desc":"Raise more capital from new investors.","effect":{"funding_boost_percent":20,"trust_all":-15}},
+    {"id":"C4","name":"Stakeholder Governance Vote","cost":2,"type":"purple","desc":"Let stakeholders join an important decision.","effect":{"transparency":5,"trust_all":5}},
+    {"id":"C5","name":"Customer Retention Program","cost":2,"type":"purple","desc":"Encourage customers to keep using the product.","effect":{"utility":15,"velocity":-0.2}},
+    {"id":"C6","name":"Treasury Diversify","cost":2,"type":"purple","desc":"Reduce financial dependence on one source.","effect":{"reg_risk":-10,"trust_all":10}},
+    {"id":"C7","name":"Small Share Split","cost":2,"type":"purple","desc":"Allow smaller investors to participate.","effect":{"funding_boost_percent":5,"hype":10}},
+    {"id":"C8","name":"Governance Proposal","cost":1,"type":"purple","desc":"Clarify how major decisions are made.","effect":{"transparency":5,"trust_all":5}},
+    {"id":"C9","name":"Founder Lock-In Agreement","cost":2,"type":"purple","desc":"Keep founders committed for longer.","effect":{"trust_all":20,"transparency":10,"cost_percent":2}},
+    {"id":"C10","name":"Customer Incentive Program","cost":3,"type":"purple","desc":"Encourage customers to use the service more.","effect":{"utility":20,"velocity":-0.3,"cost_percent":5}},
+    {"id":"C11","name":"Strategic Partnership","cost":2,"type":"purple","desc":"Work with a credible partner to reduce risk.","effect":{"trust_all":15,"reg_risk":-5,"cost_percent":3}},
+    {"id":"C12","name":"Product Value Upgrade","cost":2,"type":"purple","desc":"Improve the product’s practical value.","effect":{"utility":15,"hype":10,"cost_percent":2}},
+    {"id":"C13","name":"Loyalty Reward Program","cost":2,"type":"purple","desc":"Reward existing customers or supporters.","effect":{"trust_all":10,"hype":15,"cost_percent":4}},
+    {"id":"C14","name":"Equity Swap","cost":3,"type":"purple","desc":"Trade ownership value for quick funding.","effect":{"funding_boost_percent":30,"trust_all":-20}},
 ]
 
 # ===================== MINH: CARD ENGINE – REACTION CARDS =====================
 REACTION_CARDS = [
-    {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","type":"lavender","desc":"Giảm bán tháo khi bot rút 50%","effect":{"sell_pressure_reduce":0.5}, "cost_percent":2},
-    {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","type":"lavender","desc":"Giảm 50% delta xấu","effect":{"halve_negative_delta":1}, "cost_percent":3},
-    {"id":"R3","name":"Whale Whisperer","trigger":"on_whale_trust_low","type":"lavender","desc":"Tăng trust của Whale 10","effect":{"whale_trust":10}, "cost_percent":5},
-    {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","type":"lavender","desc":"Tăng Transparency 10, giảm Hype 5","effect":{"transparency":10,"hype":-5}, "cost_percent":2},
-    {"id":"R5","name":"Liquidity Injection","trigger":"on_circuit_breaker","type":"lavender","desc":"Rút ngắn circuit breaker","effect":{"circuit_breaker_reduce":1}, "cost_percent":8},
-    {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","type":"lavender","desc":"Giảm rủi ro pháp lý 20","effect":{"reg_risk":-20}, "cost_percent":4},
-    {"id":"R7","name":"Security Patch","trigger":"on_security_low","type":"lavender","desc":"Tăng Security 15","effect":{"security":15}, "cost_percent":3},
-    {"id":"R8","name":"FOMO Suppression","trigger":"on_hype_high","type":"lavender","desc":"Giảm Hype 15, tăng Transparency 5","effect":{"hype":-15,"transparency":5}, "cost_percent":1},
-    {"id":"R9","name":"Investor Assurance","trigger":"on_trust_any_bot_low","type":"lavender","desc":"Tăng trust cho bot đó 15","effect":{"trust_single":15}, "cost_percent":2},
-    {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","type":"lavender","desc":"Thêm 3 tháng runway","effect":{"runway":3}, "cost_percent":10}
+    {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","condition":{"event":"bot_withdraw"},"desc":"Slow withdrawals when investors start leaving.","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
+    {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","condition":{"event":"market_bad"},"desc":"Respond quickly to bad market news.","cost_percent":3,"effect":{"halve_negative_delta":1}},
+    {"id":"R3","name":"Major Investor Briefing","trigger":"on_whale_trust_low","condition":{"metric":"whale_trust","operator":"<","value":30},"desc":"Rebuild confidence with major investors.","cost_percent":5,"effect":{"whale_trust":10}},
+    {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","condition":{"metric":"transparency","operator":"<","value":30},"desc":"Explain problems and restore transparency.","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
+    {"id":"R5","name":"Liquidity Support Plan","trigger":"on_circuit_breaker","condition":{"metric":"circuit_breaker_active","operator":"==","value":True},"desc":"Reduce the impact of a liquidity freeze.","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
+    {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","condition":{"metric":"reg_risk","operator":">","value":70},"desc":"Handle urgent legal or compliance risk.","cost_percent":4,"effect":{"reg_risk":-20}},
+    {"id":"R7","name":"Security Patch","trigger":"on_security_low","condition":{"metric":"security","operator":"<","value":30},"desc":"Fix urgent security weaknesses.","cost_percent":3,"effect":{"security":15}},
+    {"id":"R8","name":"Expectation Management","trigger":"on_hype_high","condition":{"metric":"hype","operator":">","value":80},"desc":"Control unrealistic public expectations.","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
+    {"id":"R9","name":"Investor Assurance","trigger":"on_trust_low","condition":{"metric":"min_bot_trust","operator":"<","value":20},"desc":"Reassure worried investors.","cost_percent":2,"effect":{"trust_all":5}},
+    {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","condition":{"metric":"runway","operator":"<","value":3},"desc":"Extend survival time during cash pressure.","cost_percent":10,"effect":{"runway":3}},
 ]
+
+def get_condition_value(project, metric):
+    if metric == "runway":
+        return calculate_metrics(project)["runway"]
+
+    if metric == "min_bot_trust":
+        return min(project.get("trust_scores", {0: 50}).values())
+
+    if metric == "whale_trust":
+        whale_scores = [
+            project["trust_scores"].get(bot["id"], 50)
+            for bot in BOTS
+            if bot["type"] == "Whale"
+        ]
+        return sum(whale_scores) / len(whale_scores) if whale_scores else 50
+
+    return project.get(metric)
+
+
+def check_condition(project, condition):
+    if not condition:
+        return True
+
+    if "event" in condition:
+        return condition["event"] in project.get("active_events", [])
+
+    metric = condition.get("metric")
+    operator = condition.get("operator")
+    target = condition.get("value")
+
+    current_value = get_condition_value(project, metric)
+
+    if current_value is None:
+        return False
+
+    if operator == "<":
+        return current_value < target
+    if operator == ">":
+        return current_value > target
+    if operator == "<=":
+        return current_value <= target
+    if operator == ">=":
+        return current_value >= target
+    if operator == "==":
+        return current_value == target
+
+    return False
+
+
+def get_available_reactions(project):
+    available = []
+
+    for card in project.get("reaction_hand", []):
+        if check_condition(project, card.get("condition")):
+            available.append(card)
+
+    return available
 
 # ==================== PHUC - CALCULATION ====================
 def clamp(x, lo, hi):
