@@ -799,9 +799,47 @@ def run_phase():
 
 @app.route('/api/card_lists', methods=['GET'])
 def card_lists():
-    return jsonify({'active': ACTIVE_CARDS_FULL, 'reaction': REACTION_CARDS})
+    """Trả về danh sách tất cả thẻ Active và Reaction cho người chơi chọn deck"""
+    try:
+        # Tạo bản copy để tránh vô tình sửa dữ liệu gốc
+        active_cards = [card.copy() for card in ACTIVE_CARDS_FULL]
+        reaction_cards = [card.copy() for card in REACTION_CARDS]
+        
+        return jsonify({
+            'active': active_cards,
+            'reaction': reaction_cards,
+            'total_active': len(active_cards),
+            'total_reaction': len(reaction_cards)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': 'Không thể tải danh sách thẻ', 'details': str(e)}), 500
 
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    
+    print(f"🚀 Server đang chạy tại http://0.0.0.0:{port}")
+    print(f"📌 Mode: {'Debug' if app.debug else 'Production'}")
+    
+    app.run(
+        host='0.0.0.0', 
+        port=port, 
+        debug=False,           # Nên để False khi deploy
+        threaded=True          # Tốt hơn cho nhiều request đồng thời
+ # Đặt ngoài các route
+CARD_CACHE = None
+
+@app.route('/api/card_lists', methods=['GET'])
+def card_lists():
+    global CARD_CACHE
+    if CARD_CACHE is None:
+        CARD_CACHE = {
+            'active': [card.copy() for card in ACTIVE_CARDS_FULL],
+            'reaction': [card.copy() for card in REACTION_CARDS],
+            'total_active': len(ACTIVE_CARDS_FULL),
+            'total_reaction': len(REACTION_CARDS)
+        }
+    return jsonify(CARD_CACHE)
+
+
