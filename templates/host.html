@@ -294,7 +294,9 @@
 <script>
     // ==================== BACKEND CONFIGURATION ====================
     // Thay đổi URL này thành endpoint thật của Backend
-    const API_BASE_URL = 'https://your-backend-api.com/api'; // ⚠️ THAY ĐỔI URL NÀY
+    const API_BASE_URL = window.location.origin + '/api';
+    console.log('API_BASE_URL:', API_BASE_URL);
+</script>
     let currentRoomId = null;
     let pollingInterval = null;
     let isConnected = false;
