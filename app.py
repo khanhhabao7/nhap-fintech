@@ -300,7 +300,11 @@ def play_page(room_id, player_index):
     if player_index < 0 or player_index >= room['num_players']:
         return "Chỉ số người chơi không hợp lệ", 400
     if room['players'][player_index] is not None:
-        return "Slot này đã có người chơi", 400
+        # Cho phép reconnect nếu đã join
+        return render_template('play.html',
+                               room_id=room_id,
+                               player_index=player_index,
+                               max_players=room['num_players'])
     return render_template('play.html', room_id=room_id, player_index=player_index, max_players=room['num_players'])
 
 @app.route('/api/create_room', methods=['POST'])
