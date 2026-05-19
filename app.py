@@ -674,13 +674,14 @@ def run_phase():
     
     if room['status'] != 'playing':
         return jsonify({'error': 'Game not active'}), 400
-    
-    # Kiểm tra ready (chỉ những người còn active)
+
+    # Kiểm tra ready chỉ với những người chơi còn active
     active_players_ready = all(
         room['player_ready'][i] 
         for i in range(room['num_players']) 
         if room['players'][i] and room['players'][i].get('status') == 'active'
     )
+    
     if not active_players_ready:
         return jsonify({'error': 'Chưa phải tất cả người chơi đều Ready'}), 400
 
@@ -692,7 +693,7 @@ def run_phase():
     for i in range(room['num_players']):
         room['player_triggers'][i] = {'available_reactions': []}
 
-    # ===================== 1. XỬ LÝ SCENARIO + ACTIVE CARD + REACTION TRIGGER =====================
+    # ===================== 1. XỬ LÝ TỪNG DỰ ÁN =====================
     for idx, proj in enumerate(players):
         if not proj or proj.get('status') != 'active' or proj.get('current_phase', 0) >= proj.get('max_phase', 999):
             continue
@@ -710,6 +711,7 @@ def run_phase():
             proj['material'] *= (1 + d['cogs'])
             proj['packaging'] *= (1 + d['cogs'])
             proj['labor'] *= (1 + d['cogs'])
+
         if 'hype' in d:
             proj['hype'] = clamp(proj['hype'] + d['hype'], 0, 100)
         if 'transparency' in d:
@@ -732,9 +734,12 @@ def run_phase():
             card = room['pending_cards'][idx]
             if card:
                 eff = card.get('effect', {})
-                if 'hype' in eff: proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
-                if 'transparency' in eff: proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
-                if 'price_percent' in eff: proj['price'] *= (1 + eff['price_percent'] / 100)
+                if 'hype' in eff:
+                    proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
+                if 'transparency' in eff:
+                    proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
+                if 'price_percent' in eff:
+                    proj['price'] *= (1 + eff['price_percent'] / 100)
                 if 'cogs_percent' in eff:
                     proj['material'] *= (1 + eff['cogs_percent'] / 100)
                     proj['packaging'] *= (1 + eff['cogs_percent'] / 100)
@@ -748,10 +753,10 @@ def run_phase():
                     proj['available_cash'] -= (eff['cost_percent'] / 100) * proj['target_funding']
                 if 'visibility' in eff:
                     proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
-                
+
                 logs.append(f" → Dự án {idx+1} chơi thẻ {card['name']}")
 
-        # Reaction Triggers
+        # Reaction Trigger Detection
         triggers = []
         for rc in proj.get('reaction_hand', []):
             if rc['trigger'] == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
@@ -783,24 +788,24 @@ def run_phase():
             proj['status'] = 'ended'
             logs.append(f" → Dự án {idx+1} đã kết thúc.")
 
-    # ===================== 2. XỬ LÝ BOT (GỌI HÀM MỚI) =====================
+    # ===================== 2. XỬ LÝ BOT =====================
     process_phase(room, phase, players, logs)
 
-    # ===================== 3. CLEAN UP & NEXT PHASE =====================
+    # ===================== 3. CLEAN UP =====================
     room['pending_cards'] = {}
     room['player_ready'] = [False] * room['num_players']
     room['logs'] = logs[-50:]
 
     room['phase'] += 1
 
-    # Phát bài mới
+    # Phát bài mới cho phase tiếp theo
     for idx, proj in enumerate(players):
         if proj and proj.get('status') == 'active' and proj.get('current_phase', 0) < proj.get('max_phase', 999):
             proj['current_hand'] = random.sample(proj['active_deck'], min(5, len(proj['active_deck'])))
             proj['energy_left'] = 3
             room['mulligan_used'][idx] = False
 
-    # Kiểm tra game kết thúc
+    # Kiểm tra game ended
     all_ended = all(p is None or p.get('current_phase', 0) >= p.get('max_phase', 999) for p in players)
     game_ended = (room['phase'] > room['max_phase']) or all_ended
 
