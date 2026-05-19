@@ -34,55 +34,62 @@ SCENARIOS = [
     {"id":24,"name":"Chứng nhận quốc tế","cat":"Regulatory","delta":{"reg_risk":-10,"transparency":10,"trust_all":10,"legal_cost_percent":-2}},
 ]
 
-ACTIVE_CARDS_FULL = [
-    {"id":"A1","name":"Marketing Blitz","cost":2,"type":"red","desc":"Tăng Hype, giảm Transparency","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
-    {"id":"A2","name":"Viral Campaign","cost":3,"type":"red","desc":"Tăng Hype mạnh","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
-    {"id":"A3","name":"Flash Sale","cost":2,"type":"red","desc":"Giảm giá tạm thời, tăng Hype","effect":{"price_percent":-15,"hype":15}},
-    {"id":"A4","name":"Influencer Deal","cost":2,"type":"red","desc":"Tăng Hype và Visibility","effect":{"hype":20,"visibility":15,"cost_percent":2}},
-    {"id":"A6","name":"FOMO Campaign","cost":2,"type":"red","desc":"Tăng Hype, thêm funding","effect":{"hype":20,"funding_boost_percent":5}},
-    {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"red","desc":"Tăng Hype, giảm nhẹ minh bạch","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
-    {"id":"A9","name":"Limited Offer","cost":1,"type":"red","desc":"Tăng Hype, Visibility nhẹ","effect":{"hype":10,"visibility":5}},
-    {"id":"A10","name":"Shill Army","cost":2,"type":"red","desc":"Tăng Hype cao, giảm minh bạch","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
-    {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"red","desc":"Giảm giá, tăng funding","effect":{"price_percent":-10,"funding_boost_percent":10}},
-    {"id":"A12","name":"Media Blast","cost":2,"type":"red","desc":"Tăng Hype, Visibility","effect":{"hype":20,"visibility":10,"cost_percent":1}},
-    {"id":"A13","name":"Meme Marketing","cost":1,"type":"red","desc":"Tăng Hype nhẹ, giảm minh bạch","effect":{"hype":15,"transparency":-2}},
-    {"id":"A14","name":"Aggressive Pricing","cost":2,"type":"red","desc":"Giảm giá sâu, tăng Hype","effect":{"price_percent":-20,"hype":10}},
-    {"id":"D1","name":"Cost Cutting","cost":1,"type":"green","desc":"Giảm COGS, tăng minh bạch","effect":{"cogs_percent":-3,"transparency":5}},
-    {"id":"D2","name":"Community Update","cost":1,"type":"green","desc":"Tăng Hype nhẹ, minh bạch","effect":{"hype":5,"transparency":3}},
-    {"id":"D3","name":"Third Party Audit","cost":2,"type":"green","desc":"Tăng minh bạch, giảm rủi ro","effect":{"transparency":15,"reg_risk":-10,"cost_percent":5}},
-    {"id":"D4","name":"Vesting Pledge","cost":1,"type":"green","desc":"Tăng minh bạch, trust","effect":{"transparency":10,"trust_all":5}},
-    {"id":"D5","name":"Emergency Fund","cost":2,"type":"green","desc":"Tăng runway","effect":{"runway":2,"cost_percent":5}},
-    {"id":"D6","name":"Open Book","cost":2,"type":"green","desc":"Tăng minh bạch mạnh","effect":{"transparency":20,"cost_percent":2}},
-    {"id":"D8","name":"Legal Shield","cost":2,"type":"green","desc":"Giảm rủi ro pháp lý","effect":{"reg_risk":-15,"cost_percent":3}},
-    {"id":"D9","name":"Slow & Steady","cost":1,"type":"green","desc":"Tăng minh bạch, Hype nhẹ","effect":{"transparency":5,"hype":2}},
-    {"id":"D10","name":"Crisis Management","cost":2,"type":"green","desc":"Giảm 50% delta tiêu cực","effect":{"halve_negative_delta":1}},
-    {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"green","desc":"Giảm COGS, tăng minh bạch","effect":{"cogs_percent":-5,"transparency":5}},
-    {"id":"D12","name":"Investor Call","cost":1,"type":"green","desc":"Tăng trust tất cả bot","effect":{"trust_all":10,"cost_percent":1}},
-    {"id":"D13","name":"Transparency Report","cost":2,"type":"green","desc":"Tăng minh bạch, giảm Hype","effect":{"transparency":15,"hype":-5}},
-    {"id":"T1","name":"Whale Discount","cost":3,"type":"purple","desc":"Tăng funding, giảm trust Whale","effect":{"funding_boost_percent":15,"trust_whale":-10,"cost_percent":2}},
-    {"id":"T3","name":"Secondary Offering","cost":3,"type":"purple","desc":"Tăng funding, giảm trust","effect":{"funding_boost_percent":20,"trust_all":-15}},
-    {"id":"T4","name":"DAO Vote","cost":2,"type":"purple","desc":"Tăng minh bạch, trust","effect":{"transparency":5,"trust_all":5}},
-    {"id":"T6","name":"Treasury Diversify","cost":2,"type":"purple","desc":"Giảm rủi ro, tăng trust","effect":{"reg_risk":-10,"trust_all":10}},
-    {"id":"T7","name":"Token Split","cost":2,"type":"purple","desc":"Tăng funding, Hype","effect":{"funding_boost_percent":5,"hype":10}},
-    {"id":"T8","name":"Governance Proposal","cost":1,"type":"purple","desc":"Tăng minh bạch, trust","effect":{"transparency":5,"trust_all":5}},
-    {"id":"T9","name":"Vesting Extension","cost":2,"type":"purple","desc":"Tăng trust, minh bạch","effect":{"trust_all":20,"transparency":10,"cost_percent":2}},
-    {"id":"T11","name":"Strategic Partnership","cost":2,"type":"purple","desc":"Tăng trust, giảm rủi ro","effect":{"trust_all":15,"reg_risk":-5,"cost_percent":3}},
-    {"id":"T13","name":"Airdrop to Holders","cost":2,"type":"purple","desc":"Tăng trust, Hype","effect":{"trust_all":10,"hype":15,"cost_percent":4}},
-    {"id":"T14","name":"Equity Swap","cost":3,"type":"purple","desc":"Tăng funding mạnh, giảm trust","effect":{"funding_boost_percent":30,"trust_all":-20}},
-]
+// ===== ACTIVE CARDS DATA (đã đổi type) =====
+const ACTIVE_CARDS_FULL = [
+    // Hot Pink cards (Attack)
+    {"id":"A1","name":"Marketing Blitz","cost":2,"type":"hotpink","desc":"Tăng Hype 25, giảm Transparency 5","effect":{"hype":25,"transparency":-5}},
+    {"id":"A2","name":"Viral Campaign","cost":3,"type":"hotpink","desc":"Tăng Hype 40, giảm Transparency 10","effect":{"hype":40,"transparency":-10}},
+    {"id":"A3","name":"Flash Sale","cost":2,"type":"hotpink","desc":"Giảm giá 15%, tăng Hype 15","effect":{"price_percent":-15,"hype":15}},
+    {"id":"A4","name":"Influencer Deal","cost":2,"type":"hotpink","desc":"Tăng Hype 20, Visibility 15","effect":{"hype":20,"visibility":15}},
+    {"id":"A6","name":"FOMO Campaign","cost":2,"type":"hotpink","desc":"Tăng Hype 20, Funding 5%","effect":{"hype":20,"funding_boost_percent":5}},
+    {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"hotpink","desc":"Tăng Hype 25, giảm Transparency 3","effect":{"hype":25,"transparency":-3}},
+    {"id":"A9","name":"Limited Offer","cost":1,"type":"hotpink","desc":"Tăng Hype 10, Visibility 5","effect":{"hype":10,"visibility":5}},
+    {"id":"A10","name":"Shill Army","cost":2,"type":"hotpink","desc":"Tăng Hype 30, giảm Transparency 15","effect":{"hype":30,"transparency":-15}},
+    {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"hotpink","desc":"Giảm giá 10%, tăng Funding 10%","effect":{"price_percent":-10,"funding_boost_percent":10}},
+    {"id":"A12","name":"Media Blast","cost":2,"type":"hotpink","desc":"Tăng Hype 20, Visibility 10","effect":{"hype":20,"visibility":10}},
+    {"id":"A13","name":"Meme Marketing","cost":1,"type":"hotpink","desc":"Tăng Hype 15, giảm Transparency 2","effect":{"hype":15,"transparency":-2}},
+    {"id":"A14","name":"Aggressive Pricing","cost":2,"type":"hotpink","desc":"Giảm giá 20%, tăng Hype 10","effect":{"price_percent":-20,"hype":10}},
+    
+    // Baby Blue cards (Defense)
+    {"id":"D1","name":"Cost Cutting","cost":1,"type":"babyblue","desc":"Giảm COGS 3%, tăng Transparency 5","effect":{"cogs_percent":-3,"transparency":5}},
+    {"id":"D2","name":"Community Update","cost":1,"type":"babyblue","desc":"Tăng Hype 5, Transparency 3","effect":{"hype":5,"transparency":3}},
+    {"id":"D3","name":"Third Party Audit","cost":2,"type":"babyblue","desc":"Tăng Transparency 15, giảm rủi ro","effect":{"transparency":15,"reg_risk":-10}},
+    {"id":"D4","name":"Vesting Pledge","cost":1,"type":"babyblue","desc":"Tăng Transparency 10, Trust 5","effect":{"transparency":10,"trust_all":5}},
+    {"id":"D5","name":"Emergency Fund","cost":2,"type":"babyblue","desc":"Tăng Runway 2 tháng","effect":{"runway":2}},
+    {"id":"D6","name":"Open Book","cost":2,"type":"babyblue","desc":"Tăng Transparency 20","effect":{"transparency":20}},
+    {"id":"D8","name":"Legal Shield","cost":2,"type":"babyblue","desc":"Giảm rủi ro pháp lý 15","effect":{"reg_risk":-15}},
+    {"id":"D9","name":"Slow & Steady","cost":1,"type":"babyblue","desc":"Tăng Transparency 5, Hype 2","effect":{"transparency":5,"hype":2}},
+    {"id":"D10","name":"Crisis Management","cost":2,"type":"babyblue","desc":"Giảm 50% delta tiêu cực","effect":{"halve_negative_delta":1}},
+    {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"babyblue","desc":"Giảm COGS 5%, tăng Transparency 5","effect":{"cogs_percent":-5,"transparency":5}},
+    {"id":"D12","name":"Investor Call","cost":1,"type":"babyblue","desc":"Tăng Trust 10","effect":{"trust_all":10}},
+    {"id":"D13","name":"Transparency Report","cost":2,"type":"babyblue","desc":"Tăng Transparency 15, giảm Hype 5","effect":{"transparency":15,"hype":-5}},
+    
+    // Lavender cards (Tokenomics/Reaction)
+    {"id":"T1","name":"Whale Discount","cost":3,"type":"lavender","desc":"Tăng Funding 15%, giảm trust Whale","effect":{"funding_boost_percent":15,"trust_whale":-10}},
+    {"id":"T3","name":"Secondary Offering","cost":3,"type":"lavender","desc":"Tăng Funding 20%, giảm trust","effect":{"funding_boost_percent":20,"trust_all":-15}},
+    {"id":"T4","name":"DAO Vote","cost":2,"type":"lavender","desc":"Tăng Transparency 5, Trust 5","effect":{"transparency":5,"trust_all":5}},
+    {"id":"T6","name":"Treasury Diversify","cost":2,"type":"lavender","desc":"Giảm rủi ro 10, tăng Trust 10","effect":{"reg_risk":-10,"trust_all":10}},
+    {"id":"T7","name":"Token Split","cost":2,"type":"lavender","desc":"Tăng Funding 5%, Hype 10","effect":{"funding_boost_percent":5,"hype":10}},
+    {"id":"T8","name":"Governance Proposal","cost":1,"type":"lavender","desc":"Tăng Transparency 5, Trust 5","effect":{"transparency":5,"trust_all":5}},
+    {"id":"T9","name":"Vesting Extension","cost":2,"type":"lavender","desc":"Tăng Trust 20, Transparency 10","effect":{"trust_all":20,"transparency":10}},
+    {"id":"T11","name":"Strategic Partnership","cost":2,"type":"lavender","desc":"Tăng Trust 15, giảm rủi ro","effect":{"trust_all":15,"reg_risk":-5}},
+    {"id":"T13","name":"Airdrop to Holders","cost":2,"type":"lavender","desc":"Tăng Trust 10, Hype 15","effect":{"trust_all":10,"hype":15}},
+    {"id":"T14","name":"Equity Swap","cost":3,"type":"lavender","desc":"Tăng Funding 30%, giảm trust","effect":{"funding_boost_percent":30,"trust_all":-20}}
+];
 
-REACTION_CARDS = [
-    {"id":"R1","name":"Lock‑up Extension","trigger":"on_bot_withdraw","desc":"Giảm bán tháo khi bot rút","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
-    {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","desc":"Giảm 50% delta xấu","cost_percent":3,"effect":{"halve_negative_delta":1}},
-    {"id":"R3","name":"Whale Whisperer","trigger":"on_whale_trust<30","desc":"Tăng trust của Whale","cost_percent":5,"effect":{"whale_trust":10}},
-    {"id":"R4","name":"Damage Control","trigger":"on_transparency<30","desc":"Tăng transparency, giảm Hype","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
-    {"id":"R5","name":"Liquidity Injection","trigger":"on_circuit_breaker","desc":"Rút ngắn circuit breaker","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
-    {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk>70","desc":"Giảm rủi ro pháp lý","cost_percent":4,"effect":{"reg_risk":-20}},
-    {"id":"R7","name":"Security Patch","trigger":"on_security<30","desc":"Tăng security","cost_percent":3,"effect":{"security":15}},
-    {"id":"R8","name":"FOMO Suppression","trigger":"on_hype>80","desc":"Giảm Hype, tăng transparency","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
-    {"id":"R9","name":"Investor Assurance","trigger":"on_trust_any_bot<20","desc":"Tăng trust cho bot đó","cost_percent":2,"effect":{"trust_single":15}},
-    {"id":"R10","name":"Runway Boost","trigger":"on_runway<3","desc":"Thêm 3 tháng runway","cost_percent":10,"effect":{"runway":3}},
-]
+// ===== REACTION CARDS DATA =====
+const REACTION_CARDS = [
+    {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","type":"lavender","desc":"Giảm bán tháo khi bot rút 50%","effect":{"sell_pressure_reduce":0.5}},
+    {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","type":"lavender","desc":"Giảm 50% delta xấu","effect":{"halve_negative_delta":1}},
+    {"id":"R3","name":"Whale Whisperer","trigger":"on_whale_trust<30","type":"lavender","desc":"Tăng trust của Whale 10","effect":{"whale_trust":10}},
+    {"id":"R4","name":"Damage Control","trigger":"on_transparency<30","type":"lavender","desc":"Tăng Transparency 10, giảm Hype 5","effect":{"transparency":10,"hype":-5}},
+    {"id":"R5","name":"Liquidity Injection","trigger":"on_circuit_breaker","type":"lavender","desc":"Rút ngắn circuit breaker","effect":{"circuit_breaker_reduce":1}},
+    {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk>70","type":"lavender","desc":"Giảm rủi ro pháp lý 20","effect":{"reg_risk":-20}},
+    {"id":"R7","name":"Security Patch","trigger":"on_security<30","type":"lavender","desc":"Tăng Security 15","effect":{"security":15}},
+    {"id":"R8","name":"FOMO Suppression","trigger":"on_hype>80","type":"lavender","desc":"Giảm Hype 15, tăng Transparency 5","effect":{"hype":-15,"transparency":5}},
+    {"id":"R9","name":"Investor Assurance","trigger":"on_trust_any_bot<20","type":"lavender","desc":"Tăng trust cho bot đó 15","effect":{"trust_single":15}},
+    {"id":"R10","name":"Runway Boost","trigger":"on_runway<3","type":"lavender","desc":"Thêm 3 tháng runway","effect":{"runway":3}}
+];
 
 random.seed(42)
 BOTS = []
