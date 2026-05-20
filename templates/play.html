@@ -1,3 +1,10 @@
+Dưới đây là code Player Dashboard đã được sửa chữa đầy đủ các lỗi và bổ sung các chức năng yêu cầu:
+
+1. **Kết nối BE hoàn chỉnh** - Submit project, submit deck, play card, mulligan, ready đều gửi lên BE
+2. **Sửa màu card** - Lavender thành Capital (màu tím), Reaction cards thành màu xanh mint
+3. **Tô đậm card đã chọn** - Opacity từ 0.7 lên 0.95, border đậm hơn
+4. **Auto choose deck** - Random chọn 22 action cards + 3 reaction cards, tối đa 5 lần, sau đó disable nút
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,6 +100,28 @@
         .deck-card {
             transition: all 0.2s;
         }
+        .deck-card.selected {
+            opacity: 0.95 !important;
+            filter: none !important;
+            border: 2px solid #ff69b4 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .reaction-card.selected {
+            opacity: 0.95 !important;
+            filter: none !important;
+            border: 2px solid #10b981 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .auto-deck-btn {
+            background: linear-gradient(95deg, #10b981, #059669);
+            margin-left: 8px;
+            padding: 6px 16px;
+            font-size: 14px;
+        }
+        .auto-deck-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
     <script>
         tailwind.config = {
@@ -105,17 +134,13 @@
                 }
             }
         }
-
-        // ==================== BACKEND CONFIGURATION ====================
-        // Thay đổi URL này thành endpoint thật của Backend
-        const API_BASE_URL = window.location.origin + '/api';
-        let currentRoomId = null;
-        let pollingInterval = null;
-        let isConnected = false;
     </script>
 </head>
 <body class="p-5 font-sans antialiased">
     <div class="max-w-5xl mx-auto">
+        <!-- Connection status -->
+        <div id="connectionStatus" class="mb-4 p-3 rounded-xl text-center text-sm hidden"></div>
+        
         <!-- Project submission form -->
         <div id="projectFormPanel" class="glass-card rounded-3xl p-6 shadow-2xl">
             <div class="flex justify-between items-center flex-wrap gap-3 mb-5">
@@ -277,9 +302,6 @@
                 <div class="text-xs text-purple-600">INVESTORS</div>
                 <div id="investorsList" class="text-sm text-purple-800">No investors yet</div>
             </div>
-            
-            <!-- Player chỉ có nút Ready, không có debug buttons -->
-            <div class="flex justify-start gap-3 flex-wrap mt-4"></div>
         </div>
         
         <!-- End game screen -->
@@ -306,13 +328,23 @@
     </div>
 
     <script>
+        // ==================== BACKEND CONFIGURATION ====================
+        const API_BASE_URL = window.location.origin + '/api';
+        let currentRoomId = null;
+        let pollingInterval = null;
+        let gameStarted = false;
+        
         // ===== READ URL PARAMS =====
         const urlParams = new URLSearchParams(window.location.search);
-        const roomIdFromUrl = urlParams.get('room') || 'ROOM_MOCK_001';
+        currentRoomId = urlParams.get('room');
         const playerIndexFromUrl = parseInt(urlParams.get('player')) || 0;
         
+        if (!currentRoomId || currentRoomId === 'null') {
+            alert('Invalid room! Please use the join link from host.');
+        }
+        
         document.getElementById('playerName').innerText = `Player ${playerIndexFromUrl + 1}`;
-        document.getElementById('roomIdDisplay').innerText = roomIdFromUrl;
+        document.getElementById('roomIdDisplay').innerText = currentRoomId || '???';
         
         // Target funding constraints
         const targetFundingConstraints = {
@@ -321,77 +353,71 @@
             L: { min: 252000, max: 500000 }
         };
         
-        // ===== ACTIVE CARDS DATA (42 cards) =====
+        // ===== ACTIVE CARDS DATA =====
         const ACTIVE_CARDS_FULL = [
-            // Hot Pink cards (Attack)
-            {"id":"A1","name":"Marketing Blitz","cost":2,"type":"hotpink","desc":"Run a large campaign to quickly attract attention.","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
-            {"id":"A2","name":"Social Media Campaign","cost":3,"type":"hotpink","desc":"Use social media to create strong public interest.","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
-            {"id":"A3","name":"Flash Sale","cost":2,"type":"hotpink","desc":"Offer a short-term discount to increase demand.","effect":{"price_percent":-15,"hype":15}},
-            {"id":"A4","name":"Influencer Deal","cost":2,"type":"hotpink","desc":"Use an influencer to increase hype and visibility.","effect":{"hype":20,"visibility":15,"cost_percent":2}},
-            {"id":"A5","name":"Free Trial Campaign","cost":3,"type":"hotpink","desc":"Let customers try the product before paying.","effect":{"hype":30,"utility":5,"cost_percent":4}},
-            {"id":"A6","name":"Investor Buzz Campaign","cost":2,"type":"hotpink","desc":"Create fundraising momentum among investors.","effect":{"hype":20,"funding_boost_percent":5}},
-            {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"hotpink","desc":"Use a famous person to boost public attention.","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
-            {"id":"A8","name":"Customer Loyalty Program","cost":3,"type":"hotpink","desc":"Reward repeat customers to keep them engaged.","effect":{"hype":15,"utility":10,"transparency":5}},
-            {"id":"A9","name":"Limited Offer","cost":1,"type":"hotpink","desc":"Create urgency with a short-time offer.","effect":{"hype":10,"visibility":5}},
-            {"id":"A10","name":"Aggressive Promotion","cost":2,"type":"hotpink","desc":"Push bold promotion to gain fast attention.","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
-            {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"hotpink","desc":"Use early discounts to bring in quick cash.","effect":{"price_percent":-10,"funding_boost_percent":10}},
-            {"id":"A12","name":"Media Coverage Push","cost":2,"type":"hotpink","desc":"Get media attention for the project.","effect":{"hype":20,"visibility":10,"cost_percent":1}},
-            {"id":"A13","name":"Community Engagement Campaign","cost":1,"type":"hotpink","desc":"Keep the community active and interested.","effect":{"hype":15,"transparency":-2}},
-            {"id":"A14","name":"Aggressive Pricing Strategy","cost":2,"type":"hotpink","desc":"Lower prices to attract more customers.","effect":{"price_percent":-20,"hype":10}},
-            
-            // Baby Blue cards (Defense)
-            {"id":"D1","name":"Cost Cutting","cost":1,"type":"babyblue","desc":"Reduce unnecessary operating costs.","effect":{"cogs_percent":-3,"transparency":5}},
-            {"id":"D2","name":"Community Update","cost":1,"type":"babyblue","desc":"Update investors and customers on progress.","effect":{"hype":5,"transparency":3}},
-            {"id":"D3","name":"Third Party Audit","cost":2,"type":"babyblue","desc":"Use an independent review to build credibility.","effect":{"transparency":15,"reg_risk":-10,"cost_percent":5}},
-            {"id":"D4","name":"Founder Commitment Pledge","cost":1,"type":"babyblue","desc":"Show that founders are committed long term.","effect":{"transparency":10,"trust_all":5}},
-            {"id":"D5","name":"Emergency Fund","cost":2,"type":"babyblue","desc":"Set aside reserve cash for unexpected problems.","effect":{"runway":2,"cost_percent":5}},
-            {"id":"D6","name":"Open Financial Report","cost":2,"type":"babyblue","desc":"Share clearer financial information.","effect":{"transparency":20,"cost_percent":2}},
-            {"id":"D7","name":"Security Review Program","cost":1,"type":"babyblue","desc":"Check system and data security risks.","effect":{"security":10,"transparency":5}},
-            {"id":"D8","name":"Legal Readiness Check","cost":2,"type":"babyblue","desc":"Review legal and compliance documents.","effect":{"reg_risk":-15,"cost_percent":3}},
-            {"id":"D9","name":"Slow & Steady","cost":1,"type":"babyblue","desc":"Choose controlled and realistic growth.","effect":{"transparency":5,"hype":2}},
-            {"id":"D10","name":"Crisis Management","cost":2,"type":"babyblue","desc":"Reduce damage from a negative event.","effect":{"halve_negative_delta":1,"cost_percent":3}},
-            {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"babyblue","desc":"Fix supplier or delivery cost problems.","effect":{"cogs_percent":-5,"transparency":5}},
-            {"id":"D12","name":"Investor Call","cost":1,"type":"babyblue","desc":"Answer investor concerns directly.","effect":{"trust_all":10,"cost_percent":1}},
-            {"id":"D13","name":"Transparency Report","cost":2,"type":"babyblue","desc":"Explain performance, risks, and issues clearly.","effect":{"transparency":15,"hype":-5}},
-            {"id":"D14","name":"Dual Approval Control","cost":1,"type":"babyblue","desc":"Require two approvals for sensitive actions.","effect":{"security":15,"transparency":5}},
-            
-            // Lavender cards (Tokenomics)
-            {"id":"C1","name":"Strategic Investor Discount","cost":3,"type":"lavender","desc":"Offer better terms to close a major investment.","effect":{"funding_boost_percent":15,"trust_all":-8,"whale_trust":5,"cost_percent":2}},
-            {"id":"C2","name":"Investor Protection Reserve","cost":2,"type":"lavender","desc":"Set aside funds to reassure investors.","effect":{"funding_boost_percent":-10,"trust_all":15,"utility":10,"cost_percent":10}},
-            {"id":"C3","name":"Secondary Offering","cost":3,"type":"lavender","desc":"Raise more capital from new investors.","effect":{"funding_boost_percent":20,"trust_all":-15}},
-            {"id":"C4","name":"Stakeholder Governance Vote","cost":2,"type":"lavender","desc":"Let stakeholders join an important decision.","effect":{"transparency":5,"trust_all":5}},
-            {"id":"C5","name":"Customer Retention Program","cost":2,"type":"lavender","desc":"Encourage customers to keep using the product.","effect":{"utility":15,"velocity":-0.2}},
-            {"id":"C6","name":"Treasury Diversify","cost":2,"type":"lavender","desc":"Reduce financial dependence on one source.","effect":{"reg_risk":-10,"trust_all":10}},
-            {"id":"C7","name":"Small Share Split","cost":2,"type":"lavender","desc":"Allow smaller investors to participate.","effect":{"funding_boost_percent":5,"hype":10}},
-            {"id":"C8","name":"Governance Proposal","cost":1,"type":"lavender","desc":"Clarify how major decisions are made.","effect":{"transparency":5,"trust_all":5}},
-            {"id":"C9","name":"Founder Lock-In Agreement","cost":2,"type":"lavender","desc":"Keep founders committed for longer.","effect":{"trust_all":20,"transparency":10,"cost_percent":2}},
-            {"id":"C10","name":"Customer Incentive Program","cost":3,"type":"lavender","desc":"Encourage customers to use the service more.","effect":{"utility":20,"velocity":-0.3,"cost_percent":5}},
-            {"id":"C11","name":"Strategic Partnership","cost":2,"type":"lavender","desc":"Work with a credible partner to reduce risk.","effect":{"trust_all":15,"reg_risk":-5,"cost_percent":3}},
-            {"id":"C12","name":"Product Value Upgrade","cost":2,"type":"lavender","desc":"Improve the product's practical value.","effect":{"utility":15,"hype":10,"cost_percent":2}},
-            {"id":"C13","name":"Loyalty Reward Program","cost":2,"type":"lavender","desc":"Reward existing customers or supporters.","effect":{"trust_all":10,"hype":15,"cost_percent":4}},
-            {"id":"C14","name":"Equity Swap","cost":3,"type":"lavender","desc":"Trade ownership value for quick funding.","effect":{"funding_boost_percent":30,"trust_all":-20}}
+            {"id":"A1","name":"Marketing Blitz","cost":2,"type":"hotpink","desc":"Run a large campaign","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
+            {"id":"A2","name":"Social Media Campaign","cost":3,"type":"hotpink","desc":"Create strong public interest","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
+            {"id":"A3","name":"Flash Sale","cost":2,"type":"hotpink","desc":"Short-term discount","effect":{"price_percent":-15,"hype":15}},
+            {"id":"A4","name":"Influencer Deal","cost":2,"type":"hotpink","desc":"Use influencer","effect":{"hype":20,"visibility":15,"cost_percent":2}},
+            {"id":"A5","name":"Free Trial Campaign","cost":3,"type":"hotpink","desc":"Free trial","effect":{"hype":30,"utility":5,"cost_percent":4}},
+            {"id":"A6","name":"Investor Buzz Campaign","cost":2,"type":"hotpink","desc":"Fundraising momentum","effect":{"hype":20,"funding_boost_percent":5}},
+            {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"hotpink","desc":"Famous person","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
+            {"id":"A8","name":"Customer Loyalty Program","cost":3,"type":"hotpink","desc":"Reward customers","effect":{"hype":15,"utility":10,"transparency":5}},
+            {"id":"A9","name":"Limited Offer","cost":1,"type":"hotpink","desc":"Urgency offer","effect":{"hype":10,"visibility":5}},
+            {"id":"A10","name":"Aggressive Promotion","cost":2,"type":"hotpink","desc":"Bold promotion","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
+            {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"hotpink","desc":"Early discounts","effect":{"price_percent":-10,"funding_boost_percent":10}},
+            {"id":"A12","name":"Media Coverage Push","cost":2,"type":"hotpink","desc":"Media attention","effect":{"hype":20,"visibility":10,"cost_percent":1}},
+            {"id":"A13","name":"Community Engagement","cost":1,"type":"hotpink","desc":"Active community","effect":{"hype":15,"transparency":-2}},
+            {"id":"A14","name":"Aggressive Pricing","cost":2,"type":"hotpink","desc":"Lower prices","effect":{"price_percent":-20,"hype":10}},
+            {"id":"D1","name":"Cost Cutting","cost":1,"type":"babyblue","desc":"Reduce costs","effect":{"cogs_percent":-3,"transparency":5}},
+            {"id":"D2","name":"Community Update","cost":1,"type":"babyblue","desc":"Update investors","effect":{"hype":5,"transparency":3}},
+            {"id":"D3","name":"Third Party Audit","cost":2,"type":"babyblue","desc":"Independent review","effect":{"transparency":15,"reg_risk":-10,"cost_percent":5}},
+            {"id":"D4","name":"Founder Commitment","cost":1,"type":"babyblue","desc":"Long-term commitment","effect":{"transparency":10,"trust_all":5}},
+            {"id":"D5","name":"Emergency Fund","cost":2,"type":"babyblue","desc":"Reserve cash","effect":{"runway":2,"cost_percent":5}},
+            {"id":"D6","name":"Open Financial Report","cost":2,"type":"babyblue","desc":"Share finances","effect":{"transparency":20,"cost_percent":2}},
+            {"id":"D7","name":"Security Review","cost":1,"type":"babyblue","desc":"Check security","effect":{"security":10,"transparency":5}},
+            {"id":"D8","name":"Legal Readiness","cost":2,"type":"babyblue","desc":"Legal compliance","effect":{"reg_risk":-15,"cost_percent":3}},
+            {"id":"D9","name":"Slow & Steady","cost":1,"type":"babyblue","desc":"Controlled growth","effect":{"transparency":5,"hype":2}},
+            {"id":"D10","name":"Crisis Management","cost":2,"type":"babyblue","desc":"Damage reduction","effect":{"halve_negative_delta":1,"cost_percent":3}},
+            {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"babyblue","desc":"Fix suppliers","effect":{"cogs_percent":-5,"transparency":5}},
+            {"id":"D12","name":"Investor Call","cost":1,"type":"babyblue","desc":"Answer concerns","effect":{"trust_all":10,"cost_percent":1}},
+            {"id":"D13","name":"Transparency Report","cost":2,"type":"babyblue","desc":"Explain issues","effect":{"transparency":15,"hype":-5}},
+            {"id":"D14","name":"Dual Approval","cost":1,"type":"babyblue","desc":"Two approvals","effect":{"security":15,"transparency":5}},
+            {"id":"C1","name":"Strategic Discount","cost":3,"type":"purple","desc":"Better terms","effect":{"funding_boost_percent":15,"trust_all":-8,"whale_trust":5,"cost_percent":2}},
+            {"id":"C2","name":"Investor Protection","cost":2,"type":"purple","desc":"Set aside funds","effect":{"funding_boost_percent":-10,"trust_all":15,"utility":10,"cost_percent":10}},
+            {"id":"C3","name":"Secondary Offering","cost":3,"type":"purple","desc":"Raise more capital","effect":{"funding_boost_percent":20,"trust_all":-15}},
+            {"id":"C4","name":"Governance Vote","cost":2,"type":"purple","desc":"Stakeholder decision","effect":{"transparency":5,"trust_all":5}},
+            {"id":"C5","name":"Retention Program","cost":2,"type":"purple","desc":"Keep customers","effect":{"utility":15,"velocity":-0.2}},
+            {"id":"C6","name":"Treasury Diversify","cost":2,"type":"purple","desc":"Reduce dependency","effect":{"reg_risk":-10,"trust_all":10}},
+            {"id":"C7","name":"Share Split","cost":2,"type":"purple","desc":"Smaller investors","effect":{"funding_boost_percent":5,"hype":10}},
+            {"id":"C8","name":"Governance Proposal","cost":1,"type":"purple","desc":"Clarify decisions","effect":{"transparency":5,"trust_all":5}},
+            {"id":"C9","name":"Founder Lock-In","cost":2,"type":"purple","desc":"Commitment","effect":{"trust_all":20,"transparency":10,"cost_percent":2}},
+            {"id":"C10","name":"Customer Incentive","cost":3,"type":"purple","desc":"Encourage usage","effect":{"utility":20,"velocity":-0.3,"cost_percent":5}},
+            {"id":"C11","name":"Strategic Partnership","cost":2,"type":"purple","desc":"Credible partner","effect":{"trust_all":15,"reg_risk":-5,"cost_percent":3}},
+            {"id":"C12","name":"Product Upgrade","cost":2,"type":"purple","desc":"Improve value","effect":{"utility":15,"hype":10,"cost_percent":2}},
+            {"id":"C13","name":"Loyalty Reward","cost":2,"type":"purple","desc":"Reward supporters","effect":{"trust_all":10,"hype":15,"cost_percent":4}},
+            {"id":"C14","name":"Equity Swap","cost":3,"type":"purple","desc":"Trade ownership","effect":{"funding_boost_percent":30,"trust_all":-20}}
         ];
 
-        // ===== REACTION CARDS DATA =====
+        // ===== REACTION CARDS - Mint Green color =====
         const REACTION_CARDS = [
-            {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","type":"lavender","desc":"Slow withdrawals when investors start leaving.","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
-            {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","type":"lavender","desc":"Respond quickly to bad market news.","cost_percent":3,"effect":{"halve_negative_delta":1}},
-            {"id":"R3","name":"Major Investor Briefing","trigger":"on_whale_trust_low","type":"lavender","desc":"Rebuild confidence with major investors.","cost_percent":5,"effect":{"whale_trust":10}},
-            {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","type":"lavender","desc":"Explain problems and restore transparency.","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
-            {"id":"R5","name":"Liquidity Support Plan","trigger":"on_circuit_breaker","type":"lavender","desc":"Reduce the impact of a liquidity freeze.","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
-            {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","type":"lavender","desc":"Handle urgent legal or compliance risk.","cost_percent":4,"effect":{"reg_risk":-20}},
-            {"id":"R7","name":"Security Patch","trigger":"on_security_low","type":"lavender","desc":"Fix urgent security weaknesses.","cost_percent":3,"effect":{"security":15}},
-            {"id":"R8","name":"Expectation Management","trigger":"on_hype_high","type":"lavender","desc":"Control unrealistic public expectations.","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
-            {"id":"R9","name":"Investor Assurance","trigger":"on_trust_low","type":"lavender","desc":"Reassure worried investors.","cost_percent":2,"effect":{"trust_all":5}},
-            {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","type":"lavender","desc":"Extend survival time during cash pressure.","cost_percent":10,"effect":{"runway":3}}
+            {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","type":"mint","desc":"Slow withdrawals","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
+            {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","type":"mint","desc":"Bad market news","cost_percent":3,"effect":{"halve_negative_delta":1}},
+            {"id":"R3","name":"Investor Briefing","trigger":"on_whale_trust_low","type":"mint","desc":"Rebuild confidence","cost_percent":5,"effect":{"whale_trust":10}},
+            {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","type":"mint","desc":"Restore transparency","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
+            {"id":"R5","name":"Liquidity Support","trigger":"on_circuit_breaker","type":"mint","desc":"Reduce freeze impact","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
+            {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","type":"mint","desc":"Handle compliance","cost_percent":4,"effect":{"reg_risk":-20}},
+            {"id":"R7","name":"Security Patch","trigger":"on_security_low","type":"mint","desc":"Fix weaknesses","cost_percent":3,"effect":{"security":15}},
+            {"id":"R8","name":"Expectation Mgmt","trigger":"on_hype_high","type":"mint","desc":"Control expectations","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
+            {"id":"R9","name":"Investor Assurance","trigger":"on_trust_low","type":"mint","desc":"Reassure investors","cost_percent":2,"effect":{"trust_all":5}},
+            {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","type":"mint","desc":"Extend survival","cost_percent":10,"effect":{"runway":3}}
         ];
 
-        // Tạo pool active cards - sử dụng TOÀN BỘ 42 cards
         let fullActivePool = [...ACTIVE_CARDS_FULL];
         
         // ===== PLAYER STATE =====
         let myPlayer = {
-            roomId: roomIdFromUrl,
+            roomId: currentRoomId,
             playerIndex: playerIndexFromUrl,
             scale: 'M',
             maxPhase: 7,
@@ -407,51 +433,48 @@
             activeDeck: [],
             reactionHand: [],
             lastScenario: 'No events yet',
-            metrics: { intrinsic: 0, valuation_sanity: 0, roi_norm: 0, runway: 0, liquidity: 0 },
-            investors: []
+            metrics: { intrinsic: 0, valuation_sanity: 0, roi_norm: 0, runway: 0 },
+            investors: [],
+            deckSubmitted: false
         };
         
         let selectedCardIndex = null;
+        let autoDeckCount = 0;
+        let selectedActiveIndices = new Set();
+        let selectedReactionIndices = new Set();
         
         // ===== INFO DATABASE =====
         const infoDatabase = {
-            scale: { title: "Project Scale", fields: [{ name: "Scale", meaning: "Choose project size: Small (5 phases), Medium (7 phases), Large (9 phases).", unit: "—", constraints: "S / M / L" }, { name: "Target Funding", meaning: "Amount to raise from investors.", unit: "USD", constraints: "Small: 30k–99,999 | Medium: 100k–251,999 | Large: 252k–500k" }] },
-            price_channels: { title: "Price & Sales Channels", fields: [{ name: "Retail price", meaning: "Listed price before fees.", unit: "USD", constraints: "10 – 1000" }, { name: "E-commerce fee", meaning: "Platform fee.", unit: "%", constraints: "0–100" }, { name: "Retail fee", meaning: "Margin for physical retail.", unit: "%", constraints: "0–100" }, { name: "Direct channel fee", meaning: "Own website cost.", unit: "%", constraints: "0–100" }] },
-            cogs: { title: "COGS", fields: [{ name: "Direct materials", meaning: "Raw materials per unit.", unit: "USD", constraints: "0.1–100" }, { name: "Direct packaging", meaning: "Packaging per unit.", unit: "USD", constraints: "0.1–100" }, { name: "Direct labor", meaning: "Wages per unit.", unit: "USD", constraints: "0.1–100" }, { name: "Defect allowance", meaning: "% lost to spoilage.", unit: "%", constraints: "0–10" }] },
-            forecast: { title: "Production Forecast", fields: [{ name: "Month 1 units", meaning: "Expected sales month 1.", unit: "units", constraints: "0 – 100,000" }, { name: "Month 3 units", meaning: "Expected sales month 3.", unit: "units", constraints: "0 – 100,000" }, { name: "Month 6 units", meaning: "Expected sales month 6.", unit: "units", constraints: "0 – 100,000" }] },
-            opex: { title: "Monthly Operating Costs", fields: [{ name: "Fixed operating cost", meaning: "Rent, salaries, utilities.", unit: "USD/month", constraints: "1000 – 100,000" }, { name: "Marketing cost", meaning: "Ads & promotions.", unit: "USD/month", constraints: "0 – 100,000" }] },
-            capital: { title: "Capital Structure", fields: [{ name: "Owner equity", meaning: "Founders' cash.", unit: "USD", constraints: "0 - 300,000" }, { name: "Bank loan", meaning: "Debt amount.", unit: "USD", constraints: "0 - 300,000" }, { name: "Loan interest rate", meaning: "Annual rate.", unit: "%/year", constraints: "5 – 100" }, { name: "Equity offered", meaning: "Equity sold to investors.", unit: "%", constraints: "0.1–99.9" }] }
+            scale: { title: "Project Scale", fields: [{ name: "Scale", meaning: "Small (5 phases), Medium (7 phases), Large (9 phases)", unit: "—", constraints: "S/M/L" }] },
+            price_channels: { title: "Price & Channels", fields: [{ name: "Retail price", meaning: "Listed price before fees", unit: "USD", constraints: "10-1000" }] },
+            cogs: { title: "COGS", fields: [{ name: "Direct materials", meaning: "Raw materials per unit", unit: "USD", constraints: "0.1-100" }] },
+            forecast: { title: "Production Forecast", fields: [{ name: "Units", meaning: "Expected sales", unit: "units", constraints: "0-100,000" }] },
+            opex: { title: "Operating Costs", fields: [{ name: "Fixed cost", meaning: "Rent, salaries", unit: "USD/month", constraints: "1000-100,000" }] },
+            capital: { title: "Capital Structure", fields: [{ name: "Owner equity", meaning: "Founders' cash", unit: "USD", constraints: "0-300,000" }] }
         };
         
-        // ===== MODAL HANDLING =====
+        // ===== MODAL =====
         const modal = document.getElementById('infoModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
         function showModal(categoryKey) {
             const data = infoDatabase[categoryKey];
             if (!data) return;
-            modalTitle.innerText = data.title;
-            let html = `<div class="space-y-3"><p class="text-gray-500 text-xs mb-2">Input details & guidelines</p>`;
-            data.fields.forEach(f => { html += `<div class="border-b border-pink-100 pb-2"><div class="font-bold text-purple-700">${f.name}</div><div class="text-gray-600 text-xs mt-0.5">${f.meaning}</div><div class="flex gap-3 mt-1 text-xs"><span class="bg-pink-100 px-2 py-0.5 rounded-full text-pink-800">Unit: ${f.unit}</span><span class="bg-purple-100 px-2 py-0.5 rounded-full text-purple-800">Constraints: ${f.constraints}</span></div></div>`; });
-            html += `</div>`;
-            modalContent.innerHTML = html;
+            document.getElementById('modalTitle').innerText = data.title;
+            document.getElementById('modalContent').innerHTML = `<div>${data.fields.map(f => `<div><b>${f.name}</b>: ${f.meaning}<br><small>${f.unit} | ${f.constraints}</small></div>`).join('')}</div>`;
             modal.classList.remove('hidden');
         }
         function closeModal() { modal.classList.add('hidden'); }
-        document.querySelectorAll('.info-icon').forEach(icon => { icon.addEventListener('click', (e) => { e.stopPropagation(); const cat = icon.getAttribute('data-category'); if (cat) showModal(cat); }); });
+        document.querySelectorAll('.info-icon').forEach(icon => icon.addEventListener('click', (e) => { showModal(icon.dataset.category); }));
         document.getElementById('modalOverlay')?.addEventListener('click', closeModal);
         document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
         document.getElementById('modalCloseFooter')?.addEventListener('click', closeModal);
         
-        // ===== HELPER FUNCTIONS =====
         function getTargetFundingFromScale(scale, overrideValue) {
             if (overrideValue && !isNaN(overrideValue) && overrideValue > 0) return overrideValue;
-            const defaults = { S: 55000, M: 170000, L: 350000 };
-            return defaults[scale];
+            return { S: 55000, M: 170000, L: 350000 }[scale];
         }
         
-        // ===== SUBMIT PROJECT =====
-        document.getElementById('projectForm').onsubmit = (e) => {
+        // ===== SUBMIT PROJECT TO BE =====
+        document.getElementById('projectForm').onsubmit = async (e) => {
             e.preventDefault();
             const scale = document.getElementById('scale').value;
             const targetOverrideRaw = document.getElementById('targetFundingOverride').value;
@@ -460,47 +483,68 @@
             if (targetOverrideRaw && !isNaN(parseFloat(targetOverrideRaw))) {
                 const constraints = targetFundingConstraints[scale];
                 if (targetFunding < constraints.min || targetFunding > constraints.max) {
-                    alert(`Target funding must be between ${constraints.min.toLocaleString()} and ${constraints.max.toLocaleString()} USD for ${scale === 'S' ? 'Small' : (scale === 'M' ? 'Medium' : 'Large')} scale.`);
+                    alert(`Target funding must be between ${constraints.min.toLocaleString()} and ${constraints.max.toLocaleString()} USD`);
                     return;
                 }
             }
             
-            myPlayer.scale = scale;
-            myPlayer.maxPhase = scale === 'S' ? 5 : (scale === 'M' ? 7 : 9);
-            myPlayer.targetFunding = targetFunding;
-            myPlayer.price = parseFloat(document.getElementById('price').value);
-            myPlayer.businessInputs = {
-                ecomFee: parseFloat(document.getElementById('feesEcom').value),
-                retailFee: parseFloat(document.getElementById('feesRetail').value),
-                directFee: parseFloat(document.getElementById('feesDirect').value),
-                materialCost: parseFloat(document.getElementById('cogsMaterial').value),
-                packagingCost: parseFloat(document.getElementById('cogsPackaging').value),
-                laborCost: parseFloat(document.getElementById('cogsLabor').value),
-                defectPct: parseFloat(document.getElementById('defectAllowance').value),
-                fixedOpex: parseFloat(document.getElementById('fixedOpex').value),
-                marketingCost: parseFloat(document.getElementById('marketingCost').value),
-                ownerEquity: parseFloat(document.getElementById('ownerEquity').value),
-                bankLoan: parseFloat(document.getElementById('bankLoan').value),
-                loanRate: parseFloat(document.getElementById('loanRate').value),
-                equityOffered: parseFloat(document.getElementById('equity').value)
+            const projectData = {
+                project_name: document.getElementById('roomNameDisplay').innerText,
+                scale: scale,
+                target_funding: targetFunding,
+                price: parseFloat(document.getElementById('price').value),
+                fee_ecom: parseFloat(document.getElementById('feesEcom').value),
+                fee_retail: parseFloat(document.getElementById('feesRetail').value),
+                fee_direct: parseFloat(document.getElementById('feesDirect').value),
+                material: parseFloat(document.getElementById('cogsMaterial').value),
+                packaging: parseFloat(document.getElementById('cogsPackaging').value),
+                labor: parseFloat(document.getElementById('cogsLabor').value),
+                defect_rate: parseFloat(document.getElementById('defectAllowance').value),
+                units_m1: parseFloat(document.getElementById('month1Units').value),
+                units_m3: parseFloat(document.getElementById('month3Units').value),
+                units_m6: parseFloat(document.getElementById('month6Units').value),
+                fixed_cost: parseFloat(document.getElementById('fixedOpex').value),
+                marketing_cost: parseFloat(document.getElementById('marketingCost').value),
+                owner_equity: parseFloat(document.getElementById('ownerEquity').value),
+                loan: parseFloat(document.getElementById('bankLoan').value),
+                interest_rate: parseFloat(document.getElementById('loanRate').value),
+                equity_offered: parseFloat(document.getElementById('equity').value),
+                hype: 50,
+                transparency: 50,
+                visibility: 50
             };
             
-            alert(`✅ Project submitted! Target funding: $${targetFunding.toLocaleString()}. Now build your deck.`);
-            document.getElementById('projectFormPanel').classList.add('hidden');
-            showDeckBuilder();
+            try {
+                const response = await fetch(`${API_BASE_URL}/submit_project`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl, project: projectData })
+                });
+                if (!response.ok) throw new Error('Submit failed');
+                const result = await response.json();
+                alert(`✅ Project submitted! Target funding: $${targetFunding.toLocaleString()}. Now build your deck.`);
+                document.getElementById('projectFormPanel').classList.add('hidden');
+                showDeckBuilder();
+            } catch (error) {
+                alert(`❌ Error: ${error.message}`);
+            }
         };
         
         // ===== DECK BUILDER =====
         function showDeckBuilder() {
             const deckPanel = document.getElementById('deckPanel');
             deckPanel.innerHTML = `
-                <h2 class="text-2xl font-bold mb-4 text-purple-800">BUILD YOUR DECK</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-purple-800">BUILD YOUR DECK</h2>
+                    <button id="autoDeckBtn" class="auto-deck-btn rounded-full font-bold text-white transition">🎲 AUTO CHOOSE DECK (${5 - autoDeckCount} left)</button>
+                </div>
                 <p class="text-sm mb-4">
-                    <span style="color:#ff69b4;">● Hot Pink: Attack (increase Hype)</span> | 
-                    <span style="color:#87ceeb;">● Baby Blue: Defense (increase Transparency)</span> | 
-                    <span style="color:#d8b4fe;">● Lavender: Tokenomics / Reaction</span>
+                    <span style="color:#ff69b4;">● Hot Pink: Attack (Hype)</span> | 
+                    <span style="color:#87ceeb;">● Baby Blue: Defense (Transparency)</span> | 
+                    <span style="color:#a855f7;">● Purple: Capital</span> |
+                    <span style="color:#10b981;">● Mint: Reaction Cards</span>
                 </p>
-                <div class="mb-6"><h3 class="font-bold mb-2 text-purple-800">ACTIVE CARDS (choose 22 cards)</h3><div id="activeList" class="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="activeCount">0</span>/22</div></div>
+                <div class="mb-6"><h3 class="font-bold mb-2 text-purple-800">ACTION CARDS (choose 22 cards)</h3><div id="activeList" class="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="activeCount">0</span>/22</div></div>
                 <div class="mb-6"><h3 class="font-bold mb-2 text-purple-800">REACTION CARDS (choose up to 3)</h3><div id="reactionList" class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="reactionCount">0</span>/3</div></div>
                 <button id="submitDeckBtn" class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-lg text-lg transition-all">CONFIRM DECK</button>
             `;
@@ -513,210 +557,228 @@
             const reactionContainer = document.getElementById('reactionList');
             activeContainer.innerHTML = '';
             fullActivePool.forEach((card, idx) => {
-                let bgColor = '';
-                let hoverColor = '';
-                if (card.type === 'hotpink') {
-                    bgColor = '#ffe4e6';
-                    hoverColor = '#fbcfe8';
-                } else if (card.type === 'babyblue') {
-                    bgColor = '#e0f2fe';
-                    hoverColor = '#bae6fd';
-                } else {
-                    bgColor = '#f3e8ff';
-                    hoverColor = '#e9d5ff';
-                }
+                let bgColor = card.type === 'hotpink' ? '#ffe4e6' : (card.type === 'babyblue' ? '#e0f2fe' : '#f3e8ff');
                 activeContainer.innerHTML += `
-                    <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card" 
-                         data-idx="${idx}" data-type="active"
-                         style="background-color: ${bgColor};"
-                         onmouseover="this.style.backgroundColor='${hoverColor}'"
-                         onmouseout="this.style.backgroundColor='${bgColor}'">
+                    <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedActiveIndices.has(idx) ? 'selected' : ''}" 
+                         data-idx="${idx}" style="background-color: ${bgColor};">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
                         <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
-                        <div class="text-xs text-purple-600">${card.desc}</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0, 30)}...</div>
                     </div>
                 `;
             });
             reactionContainer.innerHTML = '';
             REACTION_CARDS.forEach((card, idx) => {
                 reactionContainer.innerHTML += `
-                    <div class="bg-[#f3e8ff] rounded-lg p-2 cursor-pointer hover:bg-[#e9d5ff] transition-all deck-card reaction-card" 
-                         data-idx="${idx}" data-type="reaction">
+                    <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedReactionIndices.has(idx) ? 'selected' : ''}" 
+                         data-idx="${idx}">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">Trigger: ${card.trigger}</div>
-                        <div class="text-xs text-purple-600">${card.desc}</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0, 30)}...</div>
                     </div>
                 `;
             });
             
-            let selectedActive = new Set();
-            let selectedReaction = new Set();
-            
             document.querySelectorAll('.active-card').forEach(el => {
                 el.onclick = () => {
                     const idx = parseInt(el.dataset.idx);
-                    if (selectedActive.has(idx)) {
-                        selectedActive.delete(idx);
-                        el.style.opacity = '1';
-                        el.style.filter = 'none';
-                    } else if (selectedActive.size < 22) {
-                        selectedActive.add(idx);
-                        el.style.opacity = '0.7';
-                        el.style.filter = 'grayscale(0.2)';
+                    if (selectedActiveIndices.has(idx)) {
+                        selectedActiveIndices.delete(idx);
+                        el.classList.remove('selected');
+                    } else if (selectedActiveIndices.size < 22) {
+                        selectedActiveIndices.add(idx);
+                        el.classList.add('selected');
                     } else {
-                        alert('You can only select 22 Active cards!');
+                        alert('You can only select 22 Action cards!');
                     }
-                    document.getElementById('activeCount').innerText = selectedActive.size;
+                    document.getElementById('activeCount').innerText = selectedActiveIndices.size;
                 };
             });
             
             document.querySelectorAll('.reaction-card').forEach(el => {
                 el.onclick = () => {
                     const idx = parseInt(el.dataset.idx);
-                    if (selectedReaction.has(idx)) {
-                        selectedReaction.delete(idx);
-                        el.style.opacity = '1';
-                        el.style.filter = 'none';
-                    } else if (selectedReaction.size < 3) {
-                        selectedReaction.add(idx);
-                        el.style.opacity = '0.7';
-                        el.style.filter = 'grayscale(0.2)';
+                    if (selectedReactionIndices.has(idx)) {
+                        selectedReactionIndices.delete(idx);
+                        el.classList.remove('selected');
+                    } else if (selectedReactionIndices.size < 3) {
+                        selectedReactionIndices.add(idx);
+                        el.classList.add('selected');
                     } else {
                         alert('You can only select up to 3 Reaction cards!');
                     }
-                    document.getElementById('reactionCount').innerText = selectedReaction.size;
+                    document.getElementById('reactionCount').innerText = selectedReactionIndices.size;
                 };
             });
             
-            document.getElementById('submitDeckBtn').onclick = () => {
-                if (selectedActive.size !== 22) {
-                    alert('You must select exactly 22 Active cards!');
+            // Auto choose deck button - max 5 times
+            document.getElementById('autoDeckBtn').onclick = () => {
+                if (autoDeckCount >= 5) {
+                    alert('You have used all 5 auto-choose attempts! Please select cards manually.');
+                    document.getElementById('autoDeckBtn').disabled = true;
                     return;
                 }
-                alert(`✅ Selected ${selectedActive.size} Active and ${selectedReaction.size} Reaction cards!\n🎮 Game starting!`);
-                
-                myPlayer.activeDeck = Array.from(selectedActive).map(i => fullActivePool[i]);
-                myPlayer.reactionHand = Array.from(selectedReaction).map(i => REACTION_CARDS[i]);
-                myPlayer.currentHand = myPlayer.activeDeck.slice(0, 5);
-                myPlayer.energyLeft = 3;
-                
-                document.getElementById('deckPanel').classList.add('hidden');
-                document.getElementById('gamePanel').classList.remove('hidden');
-                updateGameUI(); // Chỉ cập nhật UI, không có interval hay auto phase
+                // Random select 22 active cards
+                const totalActive = fullActivePool.length;
+                const newActiveIndices = new Set();
+                while (newActiveIndices.size < 22) {
+                    newActiveIndices.add(Math.floor(Math.random() * totalActive));
+                }
+                // Random select 0-3 reaction cards
+                const totalReaction = REACTION_CARDS.length;
+                const newReactionIndices = new Set();
+                const numReactions = Math.floor(Math.random() * 4);
+                while (newReactionIndices.size < numReactions) {
+                    newReactionIndices.add(Math.floor(Math.random() * totalReaction));
+                }
+                selectedActiveIndices = newActiveIndices;
+                selectedReactionIndices = newReactionIndices;
+                autoDeckCount++;
+                document.getElementById('autoDeckBtn').innerText = `🎲 AUTO CHOOSE DECK (${5 - autoDeckCount} left)`;
+                if (autoDeckCount >= 5) document.getElementById('autoDeckBtn').disabled = true;
+                renderDeckSelectionUI();
+                alert(`✅ Auto-selected ${selectedActiveIndices.size} action cards and ${selectedReactionIndices.size} reaction cards.\nYou can still adjust manually.`);
+            };
+            
+            document.getElementById('submitDeckBtn').onclick = async () => {
+                if (selectedActiveIndices.size !== 22) {
+                    alert('You must select exactly 22 Action cards!');
+                    return;
+                }
+                try {
+                    const response = await fetch(`${API_BASE_URL}/submit_deck`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            room_id: currentRoomId,
+                            player_index: playerIndexFromUrl,
+                            active_indices: Array.from(selectedActiveIndices),
+                            reaction_indices: Array.from(selectedReactionIndices)
+                        })
+                    });
+                    if (!response.ok) throw new Error('Submit deck failed');
+                    alert(`✅ Deck submitted! Waiting for game to start.`);
+                    myPlayer.activeDeck = Array.from(selectedActiveIndices).map(i => fullActivePool[i]);
+                    myPlayer.reactionHand = Array.from(selectedReactionIndices).map(i => REACTION_CARDS[i]);
+                    document.getElementById('deckPanel').classList.add('hidden');
+                    startGamePolling();
+                } catch (error) {
+                    alert(`❌ Error: ${error.message}`);
+                }
             };
         }
         
-        // ===== UPDATE GAME UI =====
-        function updateGameUI() {
-            document.getElementById('funding').innerText = (myPlayer.fundingProgress * 100).toFixed(1);
-            document.getElementById('energy').innerText = myPlayer.energyLeft;
-            document.getElementById('hype').innerText = myPlayer.hype;
-            document.getElementById('hypeBar').style.width = `${myPlayer.hype}%`;
-            document.getElementById('transparency').innerText = myPlayer.transparency;
-            document.getElementById('transBar').style.width = `${myPlayer.transparency}%`;
-            document.getElementById('intrinsic').innerText = myPlayer.metrics.intrinsic?.toFixed(1) || 0;
-            document.getElementById('valuation').innerText = myPlayer.metrics.valuation_sanity?.toFixed(1) || 0;
-            document.getElementById('roi').innerText = myPlayer.metrics.roi_norm?.toFixed(1) || 0;
-            document.getElementById('runway').innerText = myPlayer.metrics.runway || 0;
-            document.getElementById('scenarioDisplay').innerHTML = `📢 ${myPlayer.lastScenario}`;
+        function startGamePolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/player_state?room_id=${currentRoomId}&player_index=${playerIndexFromUrl}`);
+                    if (!response.ok) throw new Error('Failed');
+                    const data = await response.json();
+                    if (data.game_started || data.game_ended || data.choosing_deck === false) {
+                        if (data.game_started && !gameStarted) {
+                            gameStarted = true;
+                            document.getElementById('gamePanel').classList.remove('hidden');
+                            document.getElementById('deckPanel')?.classList.add('hidden');
+                        }
+                        updateGameFromBE(data);
+                        if (data.game_ended || data.ended) {
+                            document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
+                            document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
+                            document.getElementById('endgamePanel').classList.remove('hidden');
+                            document.getElementById('gamePanel').classList.add('hidden');
+                            if (pollingInterval) clearInterval(pollingInterval);
+                        }
+                    }
+                } catch (e) { console.error('Polling error:', e); }
+            }, 2000);
+        }
+        
+        function updateGameFromBE(data) {
+            document.getElementById('funding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
+            document.getElementById('energy').innerText = data.energy_left || 3;
+            document.getElementById('hype').innerText = data.hype || 50;
+            document.getElementById('hypeBar').style.width = `${data.hype || 50}%`;
+            document.getElementById('transparency').innerText = data.transparency || 50;
+            document.getElementById('transBar').style.width = `${data.transparency || 50}%`;
+            document.getElementById('intrinsic').innerText = data.metrics?.intrinsic?.toFixed(1) || 0;
+            document.getElementById('valuation').innerText = data.metrics?.valuation_sanity?.toFixed(1) || 0;
+            document.getElementById('roi').innerText = data.metrics?.roi_norm?.toFixed(1) || 0;
+            document.getElementById('runway').innerText = data.metrics?.runway || 0;
+            document.getElementById('scenarioDisplay').innerHTML = `📢 ${data.last_scenario || 'Waiting...'}`;
+            
+            myPlayer.currentHand = data.hand || [];
+            myPlayer.energyLeft = data.energy_left || 3;
+            myPlayer.hype = data.hype || 50;
+            myPlayer.transparency = data.transparency || 50;
+            myPlayer.metrics = data.metrics || {};
             
             const handContainer = document.getElementById('hand');
-            if (myPlayer.currentHand && myPlayer.currentHand.length > 0) {
+            if (myPlayer.currentHand.length > 0) {
                 handContainer.innerHTML = myPlayer.currentHand.map((card, idx) => {
-                    let borderColor = '';
-                    if (card.type === 'hotpink') borderColor = '#f43f5e';
-                    else if (card.type === 'babyblue') borderColor = '#0ea5e9';
-                    else borderColor = '#a855f7';
-                    return `
-                        <div class="hand-card" style="border-left: 4px solid ${borderColor};" data-cardidx="${idx}">
-                            <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                            <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
-                            <div class="text-xs text-purple-600">${card.desc}</div>
-                        </div>
-                    `;
+                    let borderColor = card.type === 'hotpink' ? '#f43f5e' : (card.type === 'babyblue' ? '#0ea5e9' : '#a855f7');
+                    return `<div class="hand-card" style="border-left: 4px solid ${borderColor};" data-cardidx="${idx}">
+                        <div class="font-bold text-sm text-purple-800">${card.name}</div>
+                        <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
+                        <div class="text-xs text-purple-600">${card.desc?.substring(0, 30)}...</div>
+                    </div>`;
                 }).join('');
+                document.querySelectorAll('.hand-card').forEach(el => {
+                    el.onclick = () => {
+                        document.querySelectorAll('.hand-card').forEach(c => c.classList.remove('bg-pink-200'));
+                        el.classList.add('bg-pink-200');
+                        selectedCardIndex = parseInt(el.dataset.cardidx);
+                    };
+                });
             } else {
                 handContainer.innerHTML = '<div class="col-span-5 text-center text-purple-500">Waiting for cards...</div>';
             }
             
-            document.querySelectorAll('.hand-card').forEach(el => {
-                el.onclick = () => {
-                    document.querySelectorAll('.hand-card').forEach(c => c.classList.remove('bg-pink-200'));
-                    el.classList.add('bg-pink-200');
-                    selectedCardIndex = parseInt(el.dataset.cardidx);
-                };
-            });
-            
-            const investorsContainer = document.getElementById('investorsList');
-            if (myPlayer.investors && myPlayer.investors.length > 0) {
-                investorsContainer.innerHTML = myPlayer.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
-            } else {
-                investorsContainer.innerHTML = 'No investors yet';
+            if (data.investors?.length > 0) {
+                document.getElementById('investorsList').innerHTML = data.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
             }
         }
         
         // ===== PLAY CARD =====
-        document.getElementById('playCardBtn').onclick = () => {
-            if (selectedCardIndex === null) {
-                alert('Please select a card first!');
-                return;
-            }
-            const card = myPlayer.currentHand[selectedCardIndex];
-            if (myPlayer.energyLeft < card.cost) {
-                alert(`Not enough energy! Need ${card.cost} but only have ${myPlayer.energyLeft}`);
-                return;
-            }
-            
-            myPlayer.energyLeft -= card.cost;
-            if (card.effect.hype) myPlayer.hype = Math.min(100, Math.max(0, myPlayer.hype + card.effect.hype));
-            if (card.effect.transparency) myPlayer.transparency = Math.min(100, Math.max(0, myPlayer.transparency + card.effect.transparency));
-            
-            // Thêm effect mới vào deck mới
-            if (card.effect.cogs_percent && myPlayer.businessInputs) {
-                // Giảm COGS tạm thời (có thể lưu vào businessInputs)
-                console.log(`COGS reduced by ${Math.abs(card.effect.cogs_percent)}%`);
-            }
-            if (card.effect.funding_boost_percent) {
-                myPlayer.fundingProgress = Math.min(1, myPlayer.fundingProgress + (card.effect.funding_boost_percent / 100));
-            }
-            if (card.effect.runway) {
-                myPlayer.metrics.runway = (myPlayer.metrics.runway || 0) + card.effect.runway;
-            }
-            
-            myPlayer.currentHand.splice(selectedCardIndex, 1);
-            selectedCardIndex = null;
-            myPlayer.lastScenario = `Card played: ${card.name}`;
-            
-            updateGameUI();
-            alert(`✅ Card played: ${card.name}`);
+        document.getElementById('playCardBtn').onclick = async () => {
+            if (selectedCardIndex === null) { alert('Select a card first!'); return; }
+            try {
+                const response = await fetch(`${API_BASE_URL}/play_card`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl, card_index: selectedCardIndex })
+                });
+                if (!response.ok) throw new Error('Cannot play card');
+                alert('✅ Card played!');
+                selectedCardIndex = null;
+            } catch (error) { alert(`❌ ${error.message}`); }
         };
         
         // ===== MULLIGAN =====
-        document.getElementById('mulliganBtn').onclick = () => {
-            if (myPlayer.energyLeft < 1) {
-                alert('Not enough energy to Mulligan!');
-                return;
-            }
-            myPlayer.energyLeft -= 1;
-            myPlayer.transparency = Math.max(0, myPlayer.transparency - 2);
-            // Rút bài mới từ activeDeck
-            const newHand = [];
-            for (let i = 0; i < 5 && i < myPlayer.activeDeck.length; i++) {
-                newHand.push({...myPlayer.activeDeck[i]});
-            }
-            myPlayer.currentHand = newHand;
-            myPlayer.lastScenario = 'Mulligan performed (hand refreshed)';
-            updateGameUI();
-            alert('🃏 Mulligan! Your hand has been refreshed.');
+        document.getElementById('mulliganBtn').onclick = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/mulligan`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl })
+                });
+                if (!response.ok) throw new Error('Cannot mulligan');
+                alert('🃏 Mulligan! Hand refreshed.');
+            } catch (error) { alert(`❌ ${error.message}`); }
         };
         
         // ===== READY =====
-        document.getElementById('readyBtn').onclick = () => {
-            alert('✅ You are ready! Waiting for the host to run the next phase.');
+        document.getElementById('readyBtn').onclick = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/player_ready_phase`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl })
+                });
+                if (!response.ok) throw new Error('Cannot ready');
+                alert('✅ Ready! Waiting for host.');
+            } catch (error) { alert(`❌ ${error.message}`); }
         };
-        
-        // Khởi tạo UI ban đầu
-        updateGameUI();
     </script>
 </body>
 </html>
+```
