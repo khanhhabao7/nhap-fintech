@@ -537,6 +537,62 @@ def submit_project():
     room_id = data['room_id']
     player_index = data['player_index']
     project_data = data['project']
+# ========== THÊM VALIDATION NGAY TẠI ĐÂY ==========
+    # Tạo một bản copy tạm để kiểm tra (vì project_data chưa có các trường mặc định)
+    test_proj = project_data.copy()
+    test_proj.update({
+        'trust_scores': {bot['id']: 50 for bot in BOTS},
+        'status': 'active',
+        'funding_progress': 0.0,
+        'total_invested': 0,
+        'available_cash': test_proj.get('owner_equity', 50000) + test_proj.get('loan', 30000),
+        'legal_cost_spent': 0,
+        'current_phase': 0,
+        'hype': test_proj.get('hype', 50),
+        'transparency': test_proj.get('transparency', 50),
+        'visibility': test_proj.get('visibility', 50),
+        'active_deck': None,
+        'reaction_hand': None,
+        'current_hand': [],
+        'energy_left': 3,
+    })
+    
+    # Gọi hàm validate_project (đã có sẵn trong code)
+    is_valid, msg = validate_project(test_proj)
+    if not is_valid:
+        return jsonify({'error': msg}), 400
+    # ================================================
+
+    # Nếu validation OK, mới lưu vào room
+    room['players'][player_index] = test_proj
+    room['player_ready'][player_index] = True
+    room['submitted_players'] += 1
+
+    # ========== TÍNH TOÁN CÁC CHỈ SỐ NGAY LẬP TỨC ==========
+    # Tính metrics (intrinsic, valuation_sanity, roi_norm, runway, ...)
+    metrics = calculate_metrics(test_proj)
+    
+    # (Tùy chọn) Lưu các metrics vào project để dùng sau
+    test_proj['preview_intrinsic'] = metrics['intrinsic']
+    test_proj['preview_valuation_sanity'] = metrics['valuation_sanity']
+    test_proj['preview_roi_norm'] = metrics['roi_norm']
+    test_proj['preview_runway'] = metrics['runway']
+    # ====================================================
+
+    room['logs'].append(f"✅ Player {player_index + 1} đã submit dự án. Preview: Intrinsic={metrics['intrinsic']:.1f}, Runway={metrics['runway']} tháng")
+
+    return jsonify({
+        'ok': True,
+        'submitted_count': room['submitted_players'],
+        'total_players': room['num_players'],
+        'message': 'Dự án đã được gửi thành công!',
+        'preview': {
+            'intrinsic': metrics['intrinsic'],
+            'valuation_sanity': metrics['valuation_sanity'],
+            'roi_norm': metrics['roi_norm'],
+            'runway': metrics['runway']
+        }
+    })
 
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
