@@ -105,6 +105,13 @@
                 }
             }
         }
+
+        // ==================== BACKEND CONFIGURATION ====================
+        // Thay đổi URL này thành endpoint thật của Backend
+        const API_BASE_URL = window.location.origin + '/api';
+        let currentRoomId = null;
+        let pollingInterval = null;
+        let isConnected = false;
     </script>
 </head>
 <body class="p-5 font-sans antialiased">
