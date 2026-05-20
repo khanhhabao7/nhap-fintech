@@ -329,9 +329,15 @@
         let gameStarted = false;
         
         // ===== READ URL PARAMS =====
-        const urlParams = new URLSearchParams(window.location.search);
-        currentRoomId = urlParams.get('room');
-        const playerIndexFromUrl = parseInt(urlParams.get('player')) || 0;
+       // Lấy room_id từ URL path (không phải query string)
+// URL format: /play/ROOM_ID/PLAYER_INDEX
+const pathParts = window.location.pathname.split('/');
+// pathParts = ['', 'play', 'ROOM_ID', '0']
+if (pathParts.length >= 3) {
+    currentRoomId = pathParts[2];
+} else {
+    currentRoomId = urlParams.get('room'); // fallback cho query string
+}
         
         if (!currentRoomId || currentRoomId === 'null') {
             alert('Invalid room! Please use the join link from host.');
