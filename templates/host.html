@@ -227,6 +227,10 @@
             background: linear-gradient(95deg, #10b981, #059669);
             margin-left: 8px;
         }
+        .force-start-btn {
+            background: linear-gradient(95deg, #f59e0b, #ea580c);
+            margin-left: 8px;
+        }
     </style>
 </head>
 <body>
@@ -303,8 +307,8 @@
 
         <!-- Game control buttons -->
         <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
-            <button onclick="nextPhase()" id="runPhaseBtn" disabled>▶ NEXT PHASE</button>
-            <button onclick="resetCurrentPhase()" id="resetPhaseBtn" disabled>🔄 RESET CURRENT PHASE</button>
+            <button onclick="runPhase()" id="runPhaseBtn" disabled>▶ RUN NEXT PHASE</button>
+            <button onclick="forceStartDeckPhase()" id="forceStartDeckBtn" disabled>🎲 FORCE START DECK SELECTION</button>
             <button onclick="endGame()" id="endGameBtn" disabled>⛔ END GAME</button>
             <button onclick="resetGame()" id="resetGameBtn" disabled>🔄 RESET GAME</button>
         </div>
@@ -332,13 +336,13 @@
 
 <script>
     // ==================== BACKEND CONFIGURATION ====================
-    const API_BASE_URL = window.location.origin + '/api'; 
+    const API_BASE_URL = window.location.origin + '/api';
     let currentRoomId = null;
     let pollingInterval = null;
     let isConnected = false;
     
     // Quản lý danh sách các phòng đã tạo (lưu trong session)
-    let hostRooms = []; // [{ id, name, maxPlayers, createdAt }]
+    let hostRooms = [];
 
     // Khởi tạo danh sách phòng từ sessionStorage
     function loadRoomsFromStorage() {
@@ -364,7 +368,6 @@
             selector.innerHTML += `<option value="${room.id}" ${selected}>🏠 ${room.name} (${room.id})</option>`;
         });
         if (hostRooms.length === 0 && document.getElementById('gamePanel') && document.getElementById('gamePanel').style.display === 'block') {
-            // Không có phòng nào -> quay về setup
             document.getElementById('gamePanel').style.display = 'none';
             document.getElementById('setupPanel').style.display = 'block';
             if (pollingInterval) clearInterval(pollingInterval);
@@ -378,7 +381,6 @@
         if (!newRoomId) return;
         if (currentRoomId === newRoomId) return;
         
-        // Dừng polling cũ
         if (pollingInterval) {
             clearInterval(pollingInterval);
             pollingInterval = null;
@@ -387,17 +389,13 @@
         currentRoomId = newRoomId;
         sessionStorage.setItem('currentRoomId', currentRoomId);
         
-        // Reset UI và bắt đầu polling mới
-        document.getElementById('roomId').innerText = currentRoomId;
         const roomInfo = hostRooms.find(r => r.id === currentRoomId);
         if (roomInfo) {
             document.getElementById('roomNameDisplay').innerText = roomInfo.name;
             document.getElementById('maxPlayers').innerText = roomInfo.maxPlayers;
-        } else {
-            document.getElementById('roomNameDisplay').innerText = 'Đang tải...';
         }
+        document.getElementById('roomId').innerText = currentRoomId;
         
-        // Reset các placeholder
         document.getElementById('rankings').innerHTML = '<div class="loading-placeholder">Đang tải dữ liệu người chơi...</div>';
         document.getElementById('logsArea').innerHTML = '<div class="data-empty">⏳ Đang tải log...</div>';
         document.getElementById('joinLinksList').innerHTML = '<div class="loading-placeholder">Đang tải link tham gia...</div>';
@@ -407,7 +405,7 @@
         startPolling();
     }
     
-    // Tạo phòng mới (không giới hạn số lượng)
+    // Hàm tạo phòng MỚI - gọi đúng API /api/create_room
     async function createNewRoom(isAdditional = false, roomNameOverride = null, playerCountOverride = null) {
         const roomName = roomNameOverride || document.getElementById('roomName').value.trim() || 'Startup Game';
         const numPlayers = playerCountOverride || parseInt(document.getElementById('numPlayers').value, 10);
@@ -418,50 +416,45 @@
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/rooms`, {
+            const response = await fetch(`${API_BASE_URL}/create_room`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: roomName,
-                    maxPlayers: numPlayers
-                })
+                body: JSON.stringify({ num_players: numPlayers })
             });
             
             if (!response.ok) throw new Error(`Tạo phòng thất bại: ${response.status}`);
             
             const roomData = await response.json();
-            const newRoomId = roomData.id;
+            const newRoomId = roomData.room_id;
             
-            // Thêm vào danh sách phòng của host
-            hostRooms.push({
+            const newRoomInfo = {
                 id: newRoomId,
-                name: roomData.name || roomName,
-                maxPlayers: roomData.maxPlayers || numPlayers,
+                name: roomName,
+                maxPlayers: numPlayers,
                 createdAt: new Date().toISOString()
-            });
+            };
+            
+            hostRooms.push(newRoomInfo);
             saveRoomsToStorage();
             
             if (!isAdditional) {
-                // Lần đầu tạo phòng -> chuyển sang gamePanel
                 currentRoomId = newRoomId;
                 sessionStorage.setItem('currentRoomId', currentRoomId);
                 document.getElementById('setupPanel').style.display = 'none';
                 document.getElementById('gamePanel').style.display = 'block';
                 document.getElementById('roomId').innerText = currentRoomId;
-                document.getElementById('roomNameDisplay').innerText = roomData.name || roomName;
-                document.getElementById('maxPlayers').innerText = roomData.maxPlayers || numPlayers;
+                document.getElementById('roomNameDisplay').innerText = roomName;
+                document.getElementById('maxPlayers').innerText = numPlayers;
                 updateRoomSelector();
                 startPolling();
                 alert(`✅ Phòng "${roomName}" đã được tạo thành công!\nRoom ID: ${currentRoomId}`);
             } else {
-                // Tạo thêm phòng khi đang ở gamePanel
                 updateRoomSelector();
-                // Chuyển sang phòng mới tạo
                 currentRoomId = newRoomId;
                 sessionStorage.setItem('currentRoomId', currentRoomId);
                 document.getElementById('roomId').innerText = currentRoomId;
-                document.getElementById('roomNameDisplay').innerText = roomData.name || roomName;
-                document.getElementById('maxPlayers').innerText = roomData.maxPlayers || numPlayers;
+                document.getElementById('roomNameDisplay').innerText = roomName;
+                document.getElementById('maxPlayers').innerText = numPlayers;
                 if (pollingInterval) clearInterval(pollingInterval);
                 startPolling();
                 alert(`✅ Đã tạo thêm phòng "${roomName}". Bạn đang xem phòng mới này.`);
@@ -470,7 +463,7 @@
             return roomData;
         } catch (error) {
             console.error('Create room error:', error);
-            alert(`❌ Không thể tạo phòng: ${error.message}\nVui lòng kiểm tra kết nối đến Backend.`);
+            alert(`❌ Không thể tạo phòng: ${error.message}`);
             updateConnectionStatus(false, error.message);
             return null;
         }
@@ -493,7 +486,6 @@
         await createNewRoom(true, name, players);
     }
     
-    // Hiển thị trạng thái kết nối
     function updateConnectionStatus(connected, message) {
         const statusDiv = document.getElementById('connectionStatus');
         if (connected) {
@@ -513,7 +505,12 @@
         if (!currentRoomId) return null;
         try {
             const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}`);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return null;
+                }
+                throw new Error(`HTTP ${response.status}`);
+            }
             const data = await response.json();
             updateConnectionStatus(true, 'Connected');
             return data;
@@ -541,35 +538,42 @@
         }
     }
 
-    // Render dữ liệu từ BE lên UI (metric đầy đủ, không lỗi)
     function renderGameData(roomData) {
         if (!roomData) return;
 
         document.getElementById('roomNameDisplay').innerText = roomData.name || 'Game Room';
-        document.getElementById('playerCount').innerText = roomData.joinedPlayers || roomData.players?.filter(p => p.status === 'active').length || 0;
+        document.getElementById('playerCount').innerText = roomData.joinedPlayers || 0;
         document.getElementById('maxPlayers').innerText = roomData.maxPlayers || '?';
         document.getElementById('currentPhase').innerText = roomData.currentPhase ?? '?';
         document.getElementById('maxPhase').innerText = roomData.maxPhase ?? 7;
         
         const gameStatusSpan = document.getElementById('gameStatus');
+        const canStartDeck = roomData.can_start_deck === true;
+        const isGameActive = roomData.status === 'playing' && !roomData.ended;
+        
         if (roomData.ended) {
             gameStatusSpan.innerHTML = '🏁 ENDED';
             gameStatusSpan.className = 'error';
-        } else if (roomData.currentPhase >= roomData.maxPhase) {
-            gameStatusSpan.innerHTML = '🏆 COMPLETED';
-            gameStatusSpan.className = 'error';
-        } else {
+        } else if (roomData.status === 'playing') {
             gameStatusSpan.innerHTML = '🔥 IN PROGRESS';
             gameStatusSpan.className = 'success';
+        } else if (roomData.status === 'choosing_deck') {
+            gameStatusSpan.innerHTML = '📦 CHOOSING DECKS';
+            gameStatusSpan.className = 'success';
+        } else if (roomData.status === 'waiting_for_projects') {
+            gameStatusSpan.innerHTML = '📝 WAITING FOR PROJECTS';
+            gameStatusSpan.className = 'loading-placeholder';
+        } else {
+            gameStatusSpan.innerHTML = '⏳ WAITING';
+            gameStatusSpan.className = 'loading-placeholder';
         }
-
-        const isGameActive = !roomData.ended && roomData.currentPhase < roomData.maxPhase;
+        
         document.getElementById('runPhaseBtn').disabled = !isGameActive;
-        document.getElementById('resetPhaseBtn').disabled = !isGameActive;
+        document.getElementById('forceStartDeckBtn').disabled = roomData.status !== 'waiting_for_projects' || !canStartDeck;
         document.getElementById('endGameBtn').disabled = roomData.ended;
         document.getElementById('resetGameBtn').disabled = false;
 
-        // Leaderboard - hiển thị đúng metric từ BE (funding, hype, transparency, score)
+        // Leaderboard
         if (roomData.players && roomData.players.length > 0) {
             const sorted = [...roomData.players].sort((a, b) => (b.score || 0) - (a.score || 0));
             let rankingsHtml = '';
@@ -577,13 +581,12 @@
                 const isJoined = player.status === 'active';
                 const isEnded = player.status === 'ended';
                 const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
-                const statusLabel = isJoined ? 'Active' : (isEnded ? 'Finished' : 'Not Joined');
                 const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
                 
                 rankingsHtml += `
                     <div class="rank-card ${cardClass}">
-                        <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id}`}
-                            <span class="player-join-tag ${isJoined ? 'joined' : (isEnded ? 'joined' : 'waiting')}">${statusLabel}</span>
+                        <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id + 1}`}
+                            <span class="player-join-tag ${isJoined ? 'joined' : (isEnded ? 'joined' : 'waiting')}">${player.status === 'active' ? 'Active' : (player.status === 'ended' ? 'Finished' : 'Not Joined')}</span>
                         </h3>
                         <div class="player-funding">💰 Funding: <span>${fundingPercent}%</span></div>
                         <div class="funding-bar"><div class="funding-bar-fill" style="width: ${fundingPercent}%;"></div></div>
@@ -591,7 +594,6 @@
                             <span class="metric-tag hype-tag">📈 Hype ${player.hype ?? 0}</span>
                             <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                             <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
-                            <span class="metric-tag status-tag">📌 ${player.status === 'active' ? 'Playing' : (player.status === 'ended' ? 'Done' : 'Pending')}</span>
                         </div>
                     </div>
                 `;
@@ -601,7 +603,7 @@
             document.getElementById('rankings').innerHTML = '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
         }
 
-        // Logs (sự kiện từ BE, bao gồm random event)
+        // Logs
         if (roomData.logs && roomData.logs.length > 0) {
             const logsHtml = [...roomData.logs].reverse().map(log => `<div>📌 ${log}</div>`).join('');
             document.getElementById('logsArea').innerHTML = logsHtml;
@@ -609,7 +611,7 @@
             document.getElementById('logsArea').innerHTML = '<div class="data-empty">📭 Chưa có sự kiện nào</div>';
         }
 
-        // Join Links (do BE gen)
+        // Join Links
         if (roomData.joinLinks && roomData.joinLinks.length > 0) {
             let linksHtml = '<div style="display: flex; flex-direction: column; gap: 12px;">';
             roomData.joinLinks.forEach(link => {
@@ -638,69 +640,49 @@
         if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
             const select = document.getElementById('phaseSelect');
             select.innerHTML = roomData.phaseDetails.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || ''})</option>`).join('');
-            if (roomData.phaseDetails.length > 0) {
-                showPhaseDetailsFromData(roomData);
-            }
         }
-    }
-
-    function showPhaseDetailsFromData(roomData) {
-        const select = document.getElementById('phaseSelect');
-        if (!select || !roomData.phaseDetails) return;
-        const phaseNum = parseInt(select.value, 10);
-        const detail = roomData.phaseDetails.find(d => d.phase === phaseNum);
-        const container = document.getElementById('phaseDetails');
-        if (!detail) {
-            container.innerHTML = '<div class="data-empty">📌 Chọn phase để xem chi tiết</div>';
-            return;
-        }
-        container.innerHTML = `
-            <div><strong>📌 PHASE ${detail.phase}</strong> · ${detail.date || ''}</div>
-            <div style="margin: 8px 0;"><em>${detail.event || 'Không có mô tả'}</em></div>
-            <div style="display:grid; gap:10px; margin-top: 12px;">
-                ${(detail.players || []).map(p => `
-                    <div style="background: rgba(245,240,255,0.7); border-radius: 14px; padding: 10px; display: flex; justify-content: space-between; flex-wrap: wrap;">
-                        <div><strong>${p.name}</strong> <span style="color:#6b21a5;">${p.status}</span></div>
-                        <div style="display: flex; gap: 8px;">
-                            <span class="metric-tag">💰 ${((p.funding||0)*100).toFixed(0)}%</span>
-                            <span class="metric-tag hype-tag">📈 ${p.hype || 0}</span>
-                            <span class="metric-tag score-tag">🏅 ${(p.score||0).toFixed(2)}</span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
     }
 
     function showPhaseDetails() {
         if (currentRoomId) fetchAndUpdateUI();
     }
 
-    async function nextPhase() {
+    async function runPhase() {
         if (!currentRoomId) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/next-phase`, {
+            const response = await fetch(`${API_BASE_URL}/run_phase`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ room_id: currentRoomId })
             });
-            if (!response.ok) throw new Error('Cannot advance phase');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Cannot run phase');
+            }
             await fetchAndUpdateUI();
         } catch (error) {
             alert(`❌ Lỗi: ${error.message}`);
         }
     }
 
-    async function resetCurrentPhase() {
+    async function forceStartDeckPhase() {
         if (!currentRoomId) return;
-        try {
-            const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/reset-phase`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            if (!response.ok) throw new Error('Cannot reset phase');
-            await fetchAndUpdateUI();
-        } catch (error) {
-            alert(`❌ Lỗi: ${error.message}`);
+        if (confirm('Force bắt đầu giai đoạn chọn Deck? (Chỉ dùng khi đã có ít nhất 2 người chơi submit dự án)')) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/start_deck_phase`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: currentRoomId })
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Cannot force start deck phase');
+                }
+                await fetchAndUpdateUI();
+                alert('✅ Đã chuyển sang giai đoạn chọn Deck!');
+            } catch (error) {
+                alert(`❌ Lỗi: ${error.message}`);
+            }
         }
     }
 
@@ -754,8 +736,8 @@
     window.showCreateRoomModal = showCreateRoomModal;
     window.closeRoomModal = closeRoomModal;
     window.switchToRoom = switchToRoom;
-    window.nextPhase = nextPhase;
-    window.resetCurrentPhase = resetCurrentPhase;
+    window.runPhase = runPhase;
+    window.forceStartDeckPhase = forceStartDeckPhase;
     window.endGame = endGame;
     window.resetGame = resetGame;
     window.showPhaseDetails = showPhaseDetails;
@@ -769,17 +751,19 @@
         currentRoomId = savedRoomId;
         document.getElementById('setupPanel').style.display = 'none';
         document.getElementById('gamePanel').style.display = 'block';
+        const roomInfo = hostRooms.find(r => r.id === currentRoomId);
+        if (roomInfo) {
+            document.getElementById('roomNameDisplay').innerText = roomInfo.name;
+            document.getElementById('maxPlayers').innerText = roomInfo.maxPlayers;
+        }
+        document.getElementById('roomId').innerText = currentRoomId;
         startPolling();
         updateRoomSelector();
-    } else if (savedRoomId) {
-        // ID không hợp lệ, xóa session
-        sessionStorage.removeItem('currentRoomId');
     }
 
     fetch(`${API_BASE_URL}/health`).catch(err => {
-        updateConnectionStatus(false, 'Backend không khả dụng. Vui lòng cấu hình API_BASE_URL đúng.');
+        updateConnectionStatus(false, 'Backend không khả dụng.');
     });
 </script>
 </body>
 </html>
-
