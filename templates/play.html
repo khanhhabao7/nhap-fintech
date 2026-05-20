@@ -8,7 +8,7 @@
     <style>
         body {
             background: linear-gradient(135deg, #fce4ec 0%, #e1d5e7 50%, #c5d9f0 100%);
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.92);
@@ -352,17 +352,36 @@
     <script>
         // ==================== BACKEND CONFIGURATION ====================
         const API_BASE_URL = window.location.origin + '/api';
-        let currentRoomId = null;
+        
+        // ==================== LẤY DỮ LIỆU TỪ FLASK TEMPLATE ====================
+        const roomId = "{{ room_id }}";
+        const playerIndex = {{ player_index }};
+        const maxPlayers = {{ max_players }};
+
+        // Kiểm tra nếu có lỗi truyền biến
+        if (!roomId || roomId === "None") {
+            alert("Lỗi: Không tìm thấy phòng. Vui lòng sử dụng link join từ host.");
+            throw new Error("Invalid roomId");
+        }
+
+        // Gán vào biến toàn cục
+        let currentRoomId = roomId;
+        let playerIndexFromUrl = playerIndex;
+
+        // Hiển thị lên giao diện
+        document.getElementById('roomIdDisplay').innerText = currentRoomId;
+        document.getElementById('playerName').innerText = `Player ${playerIndex + 1}`;
+
+        // ==================== CÁC BIẾN KHÁC ====================
         let pollingInterval = null;
         let gameStarted = false;
         let projectSubmitted = false;
-        
-        // ===== READ URL PARAMS =====
-        const urlParams = new URLSearchParams(window.location.search);
-        currentRoomId = urlParams.get('room');
-        const playerIndexFromUrl = parseInt(urlParams.get('player')) || 0;
-        
-        // Validate room ID
+        let selectedCardIndex = null;
+        let autoDeckCount = 0;
+        let selectedActiveIndices = new Set();
+        let selectedReactionIndices = new Set();
+
+        // Kiểm tra kết nối room
         if (!currentRoomId || currentRoomId === 'null' || currentRoomId === 'undefined') {
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.className = 'connection-error mb-4';
@@ -371,7 +390,6 @@
             document.getElementById('projectFormPanel').style.opacity = '0.5';
             document.getElementById('projectFormPanel').style.pointerEvents = 'none';
         } else {
-            // Check room connection
             fetch(`${API_BASE_URL}/rooms/${currentRoomId}`)
                 .then(res => {
                     if (res.ok) {
@@ -391,10 +409,6 @@
                     statusDiv.classList.remove('hidden');
                 });
         }
-        
-        // Display player info
-        document.getElementById('playerName').innerText = `Player ${playerIndexFromUrl + 1}`;
-        document.getElementById('roomIdDisplay').innerText = currentRoomId || '???';
         
         // Target funding constraints
         const targetFundingConstraints = {
@@ -488,11 +502,6 @@
             deckSubmitted: false
         };
         
-        let selectedCardIndex = null;
-        let autoDeckCount = 0;
-        let selectedActiveIndices = new Set();
-        let selectedReactionIndices = new Set();
-        
         // ===== INFO DATABASE =====
         const infoDatabase = {
             scale: { title: "Project Scale", fields: [{ name: "Scale", meaning: "Choose project size: Small (5 phases), Medium (7 phases), Large (9 phases).", unit: "—", constraints: "S / M / L" }, { name: "Target Funding", meaning: "Amount to raise from investors.", unit: "USD", constraints: "Small: 30k–99,999 | Medium: 100k–251,999 | Large: 252k–500k" }] },
@@ -527,7 +536,7 @@
             return defaults[scale];
         }
         
-        // ===== SUBMIT PROJECT TO BE =====
+        // ===== SUBMIT PROJECT =====
         document.getElementById('projectForm').onsubmit = async (e) => {
             e.preventDefault();
             
@@ -748,7 +757,6 @@
         function startGamePolling() {
             if (pollingInterval) clearInterval(pollingInterval);
             
-            // Show waiting message
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.className = 'connection-success mb-4';
             statusDiv.innerHTML = '⏳ Waiting for host to start the game...';
@@ -880,4 +888,3 @@
     </script>
 </body>
 </html>
-
