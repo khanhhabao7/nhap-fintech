@@ -358,12 +358,16 @@ def get_bots_for_phase(phase, total_bots=200):
     count = int(total_bots * ratio)
     return BOTS[:count]
 
-def process_phase(room, phase, players, logs):
+def process_phase(room, phase, players, logs, card_boosts=None):
+    if card_boosts is None:
+        card_boosts = {}
+    
     active_bots = get_bots_for_phase(phase)
     logs.append(f"Phase {phase}: Có {len(active_bots)} bot hoạt động")
     bot_alloc = room['bot_alloc']
     A = {}
 
+    # Tính attractiveness cho từng bot và dự án
     for bot in active_bots:
         for idx, proj in enumerate(players):
             if not proj or proj.get('status') != 'active' or proj['funding_progress'] >= 1 or proj.get('current_phase', 0) >= proj['max_phase']:
@@ -371,7 +375,8 @@ def process_phase(room, phase, players, logs):
             else:
                 metrics = calculate_metrics(proj)   
                 hist = room['bot_memory'][bot['id']]['attractiveness_history'][idx]
-                current_attr = attractiveness(proj, bot, metrics)
+                card_boost = card_boosts.get(idx, 0)
+                current_attr = attractiveness(proj, bot, metrics, card_boost)
                 if hist:
                     weighted_avg = sum((i+1)*val for i, val in enumerate(hist)) / sum(range(1, len(hist)+1))
                     decay = bot['memory_decay_rate']
@@ -383,6 +388,7 @@ def process_phase(room, phase, players, logs):
                     hist.pop(0)
                 A[(bot['id'], idx)] = final_attr
 
+    # Xử lý rút vốn
     for bot in active_bots:
         best_idx = max(range(len(players)), key=lambda i: A.get((bot['id'], i), -1e9))
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
@@ -419,36 +425,45 @@ def process_phase(room, phase, players, logs):
                     players[idx]['funding_progress'] = 0
                     logs.append(f"Dự án {idx+1} PHÁ SẢN!")
 
+    # Xử lý đầu tư mới - CHỈ ĐẦU TƯ VÀO DỰ ÁN TỐT NHẤT
     for bot in active_bots:
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
         idle = alloc_entry['idle']
         if idle <= 0:
             continue
+        
+        # Tìm dự án tốt nhất để đầu tư
         candidates = [i for i, p in enumerate(players) if p and p['status'] == 'active' and p['funding_progress'] < 1 and p.get('current_phase', 0) < p['max_phase']]
         if not candidates:
             continue
-        attrs = [A.get((bot['id'], i), -1e9) for i in candidates]
-        min_a = min(attrs)
-        shifted = [max(0, a - min_a + 0.01) for a in attrs]
-        sum_exp = sum(math.exp(a / 20) for a in shifted)
-        probs = [math.exp(a / 20) / sum_exp for a in shifted]
-        remaining = idle
-        for _ in range(5):
-            if remaining <= 0:
-                break
-            for j, idx in enumerate(candidates):
-                invest = remaining * probs[j]
-                invested_by_bot = alloc_entry['perProject'][idx]
-                max_per_bot = players[idx]['target_funding'] * (0.2 if phase == 1 else 0.25)
-                cap = min(invest, max_per_bot - invested_by_bot)
-                if cap > 0:
-                    players[idx]['total_invested'] += cap
-                    players[idx]['available_cash'] += cap
-                    players[idx]['funding_progress'] = min(1.0, players[idx]['total_invested'] / players[idx]['target_funding'])
-                    alloc_entry['perProject'][idx] += cap
-                    remaining -= cap
-                    logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
-        alloc_entry['idle'] = remaining
+        
+        # Chỉ đầu tư vào dự án có attractiveness cao nhất
+        best_idx = max(candidates, key=lambda i: A.get((bot['id'], i), -1e9))
+        best_attr = A.get((bot['id'], best_idx), -1e9)
+        
+        if best_attr < 30:  # Nếu attractiveness quá thấp, không đầu tư
+            continue
+            
+        invested_by_bot = alloc_entry['perProject'][best_idx]
+        max_per_bot = players[best_idx]['target_funding'] * 0.3  # Mỗi bot chỉ đầu tư tối đa 30% target funding
+        
+        # Tính số tiền muốn đầu tư (dựa trên tỷ lệ attractiveness)
+        invest_ratio = min(0.3, best_attr / 100)  # Tối đa 30% idle vốn
+        desired = idle * invest_ratio
+        cap = min(desired, max_per_bot - invested_by_bot)
+        
+        if cap > 0 and cap <= players[best_idx]['available_cash']:
+            old_funding = players[best_idx]['funding_progress']
+            players[best_idx]['total_invested'] += cap
+            players[best_idx]['available_cash'] += cap
+            # ĐẢM BẢO KHÔNG VƯỢT QUÁ 100%
+            players[best_idx]['funding_progress'] = min(1.0, players[best_idx]['total_invested'] / players[best_idx]['target_funding'])
+            alloc_entry['perProject'][best_idx] += cap
+            alloc_entry['idle'] -= cap
+            logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {best_idx+1} (Funding: {old_funding*100:.1f}% -> {players[best_idx]['funding_progress']*100:.1f}%)")
+        elif cap > 0:
+            logs.append(f"Bot {bot['type']} muốn đầu tư {cap:.0f} nhưng dự án {best_idx+1} không đủ khả năng nhận")
+
 
 # ==================== KHANH: FLASK APP & ROOMS ====================
 rooms = {}
