@@ -93,83 +93,41 @@
         .deck-card {
             transition: all 0.2s;
         }
-        .deck-card.selected {
-            opacity: 0.95 !important;
-            filter: none !important;
-            border: 2px solid #ff69b4 !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        .reaction-card.selected {
-            opacity: 0.95 !important;
-            filter: none !important;
-            border: 2px solid #10b981 !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
         .auto-deck-btn {
-            background: linear-gradient(95deg, #10b981, #059669);
-            margin-left: 8px;
-            padding: 6px 16px;
-            font-size: 14px;
-        }
-        .auto-deck-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .loading-spinner {
+            background: #8b5cf6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #ba6bff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .auto-deck-btn:hover {
+            background: #7c3aed;
         }
-        .connection-error {
-            background: linear-gradient(95deg, #ef4444, #dc2626);
-            color: white;
-            padding: 12px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            text-align: center;
+        .connection-status {
+            transition: all 0.2s;
         }
-        .connection-success {
-            background: linear-gradient(95deg, #10b981, #059669);
-            color: white;
-            padding: 12px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            text-align: center;
+        .selected-card {
+            opacity: 0.6;
+            filter: grayscale(0.2);
+            border: 2px solid #ec4899;
+            box-shadow: 0 0 0 2px rgba(236,72,153,0.3);
         }
     </style>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'game-bg': '#f9f3ff',
-                        'game-card': '#ffffff',
-                    }
-                }
-            }
-        }
-    </script>
 </head>
 <body class="p-5 font-sans antialiased">
     <div class="max-w-5xl mx-auto">
-        <!-- Connection status -->
-        <div id="connectionStatus" class="mb-4 p-3 rounded-xl text-center text-sm hidden"></div>
-        
+        <div id="connectionStatus" class="connection-status mb-4 p-3 rounded-xl text-center text-sm hidden"></div>
+
         <!-- Project submission form -->
         <div id="projectFormPanel" class="glass-card rounded-3xl p-6 shadow-2xl">
             <div class="flex justify-between items-center flex-wrap gap-3 mb-5">
                 <h2 class="text-3xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-600 to-blue-500 bg-clip-text text-transparent">SUBMIT YOUR PROJECT</h2>
                 <div class="bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full shadow-sm border border-purple-200 text-sm">
                     <span class="text-pink-500 font-bold">You are:</span> <strong id="playerName" class="text-purple-800">Player 1</strong> 
-                    <span class="text-gray-500 ml-3">Room: <span id="roomIdDisplay" class="font-mono">---</span></span>
+                    <span class="text-gray-500 ml-3">Room: <span id="roomIdDisplay" class="font-mono">...</span></span>
                 </div>
             </div>
             
@@ -350,150 +308,33 @@
     </div>
 
     <script>
-        // ==================== BACKEND CONFIGURATION ====================
-        const API_BASE_URL = window.location.origin + '/api';
-        let currentRoomId = null;
-        let pollingInterval = null;
-        let gameStarted = false;
-        let projectSubmitted = false;
+        // ==================== GET ROOM & PLAYER FROM URL ====================
+        const pathParts = window.location.pathname.split('/');
+        const roomIdFromUrl = pathParts[2];
+        const playerIndexFromUrl = parseInt(pathParts[3]) || 0;
         
-        // ===== READ URL PARAMS =====
-        const urlParams = new URLSearchParams(window.location.search);
-        currentRoomId = urlParams.get('room');
-        const playerIndexFromUrl = parseInt(urlParams.get('player')) || 0;
-        
-        // Validate room ID
-        if (!currentRoomId || currentRoomId === 'null' || currentRoomId === 'undefined') {
-            const statusDiv = document.getElementById('connectionStatus');
-            statusDiv.className = 'connection-error mb-4';
-            statusDiv.innerHTML = '❌ INVALID ROOM! Please use the join link provided by the host.<br><small>Example: /play/ROOM_ID/0</small>';
-            statusDiv.classList.remove('hidden');
-            document.getElementById('projectFormPanel').style.opacity = '0.5';
-            document.getElementById('projectFormPanel').style.pointerEvents = 'none';
-        } else {
-            // Check room connection
-            fetch(`${API_BASE_URL}/rooms/${currentRoomId}`)
-                .then(res => {
-                    if (res.ok) {
-                        const statusDiv = document.getElementById('connectionStatus');
-                        statusDiv.className = 'connection-success mb-4';
-                        statusDiv.innerHTML = '✅ Connected to game room! Ready to submit your project.';
-                        statusDiv.classList.remove('hidden');
-                        setTimeout(() => statusDiv.classList.add('hidden'), 3000);
-                    } else {
-                        throw new Error('Room not found');
-                    }
-                })
-                .catch(err => {
-                    const statusDiv = document.getElementById('connectionStatus');
-                    statusDiv.className = 'connection-error mb-4';
-                    statusDiv.innerHTML = `⚠️ Cannot connect to room "${currentRoomId}". Make sure backend is running.`;
-                    statusDiv.classList.remove('hidden');
-                });
+        if (!roomIdFromUrl || roomIdFromUrl === 'undefined') {
+            alert('Invalid room link. Please use the link provided by the host.');
+            throw new Error('Missing room id in path');
         }
         
-        // Display player info
         document.getElementById('playerName').innerText = `Player ${playerIndexFromUrl + 1}`;
-        document.getElementById('roomIdDisplay').innerText = currentRoomId || '???';
+        document.getElementById('roomIdDisplay').innerText = roomIdFromUrl;
         
-        // Target funding constraints
-        const targetFundingConstraints = {
-            S: { min: 30000, max: 99999 },
-            M: { min: 100000, max: 251999 },
-            L: { min: 252000, max: 500000 }
-        };
+        const targetFundingConstraints = { S: { min: 30000, max: 99999 }, M: { min: 100000, max: 251999 }, L: { min: 252000, max: 500000 } };
+        const API_BASE = window.location.origin + '/api';
+        let activeCardsMaster = [];
+        let reactionCardsMaster = [];
         
-        // ===== ACTIVE CARDS DATA (42 cards) =====
-        const ACTIVE_CARDS_FULL = [
-            {"id":"A1","name":"Marketing Blitz","cost":2,"type":"hotpink","desc":"Run a large campaign to quickly attract attention.","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
-            {"id":"A2","name":"Social Media Campaign","cost":3,"type":"hotpink","desc":"Use social media to create strong public interest.","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
-            {"id":"A3","name":"Flash Sale","cost":2,"type":"hotpink","desc":"Offer a short-term discount to increase demand.","effect":{"price_percent":-15,"hype":15}},
-            {"id":"A4","name":"Influencer Deal","cost":2,"type":"hotpink","desc":"Use an influencer to increase hype and visibility.","effect":{"hype":20,"visibility":15,"cost_percent":2}},
-            {"id":"A5","name":"Free Trial Campaign","cost":3,"type":"hotpink","desc":"Let customers try the product before paying.","effect":{"hype":30,"utility":5,"cost_percent":4}},
-            {"id":"A6","name":"Investor Buzz Campaign","cost":2,"type":"hotpink","desc":"Create fundraising momentum among investors.","effect":{"hype":20,"funding_boost_percent":5}},
-            {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"hotpink","desc":"Use a famous person to boost public attention.","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
-            {"id":"A8","name":"Customer Loyalty Program","cost":3,"type":"hotpink","desc":"Reward repeat customers to keep them engaged.","effect":{"hype":15,"utility":10,"transparency":5}},
-            {"id":"A9","name":"Limited Offer","cost":1,"type":"hotpink","desc":"Create urgency with a short-time offer.","effect":{"hype":10,"visibility":5}},
-            {"id":"A10","name":"Aggressive Promotion","cost":2,"type":"hotpink","desc":"Push bold promotion to gain fast attention.","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
-            {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"hotpink","desc":"Use early discounts to bring in quick cash.","effect":{"price_percent":-10,"funding_boost_percent":10}},
-            {"id":"A12","name":"Media Coverage Push","cost":2,"type":"hotpink","desc":"Get media attention for the project.","effect":{"hype":20,"visibility":10,"cost_percent":1}},
-            {"id":"A13","name":"Community Engagement Campaign","cost":1,"type":"hotpink","desc":"Keep the community active and interested.","effect":{"hype":15,"transparency":-2}},
-            {"id":"A14","name":"Aggressive Pricing Strategy","cost":2,"type":"hotpink","desc":"Lower prices to attract more customers.","effect":{"price_percent":-20,"hype":10}},
-            {"id":"D1","name":"Cost Cutting","cost":1,"type":"babyblue","desc":"Reduce unnecessary operating costs.","effect":{"cogs_percent":-3,"transparency":5}},
-            {"id":"D2","name":"Community Update","cost":1,"type":"babyblue","desc":"Update investors and customers on progress.","effect":{"hype":5,"transparency":3}},
-            {"id":"D3","name":"Third Party Audit","cost":2,"type":"babyblue","desc":"Use an independent review to build credibility.","effect":{"transparency":15,"reg_risk":-10,"cost_percent":5}},
-            {"id":"D4","name":"Founder Commitment Pledge","cost":1,"type":"babyblue","desc":"Show that founders are committed long term.","effect":{"transparency":10,"trust_all":5}},
-            {"id":"D5","name":"Emergency Fund","cost":2,"type":"babyblue","desc":"Set aside reserve cash for unexpected problems.","effect":{"runway":2,"cost_percent":5}},
-            {"id":"D6","name":"Open Financial Report","cost":2,"type":"babyblue","desc":"Share clearer financial information.","effect":{"transparency":20,"cost_percent":2}},
-            {"id":"D7","name":"Security Review Program","cost":1,"type":"babyblue","desc":"Check system and data security risks.","effect":{"security":10,"transparency":5}},
-            {"id":"D8","name":"Legal Readiness Check","cost":2,"type":"babyblue","desc":"Review legal and compliance documents.","effect":{"reg_risk":-15,"cost_percent":3}},
-            {"id":"D9","name":"Slow & Steady","cost":1,"type":"babyblue","desc":"Choose controlled and realistic growth.","effect":{"transparency":5,"hype":2}},
-            {"id":"D10","name":"Crisis Management","cost":2,"type":"babyblue","desc":"Reduce damage from a negative event.","effect":{"halve_negative_delta":1,"cost_percent":3}},
-            {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"babyblue","desc":"Fix supplier or delivery cost problems.","effect":{"cogs_percent":-5,"transparency":5}},
-            {"id":"D12","name":"Investor Call","cost":1,"type":"babyblue","desc":"Answer investor concerns directly.","effect":{"trust_all":10,"cost_percent":1}},
-            {"id":"D13","name":"Transparency Report","cost":2,"type":"babyblue","desc":"Explain performance, risks, and issues clearly.","effect":{"transparency":15,"hype":-5}},
-            {"id":"D14","name":"Dual Approval Control","cost":1,"type":"babyblue","desc":"Require two approvals for sensitive actions.","effect":{"security":15,"transparency":5}},
-            {"id":"C1","name":"Strategic Investor Discount","cost":3,"type":"purple","desc":"Offer better terms to close a major investment.","effect":{"funding_boost_percent":15,"trust_all":-8,"whale_trust":5,"cost_percent":2}},
-            {"id":"C2","name":"Investor Protection Reserve","cost":2,"type":"purple","desc":"Set aside funds to reassure investors.","effect":{"funding_boost_percent":-10,"trust_all":15,"utility":10,"cost_percent":10}},
-            {"id":"C3","name":"Secondary Offering","cost":3,"type":"purple","desc":"Raise more capital from new investors.","effect":{"funding_boost_percent":20,"trust_all":-15}},
-            {"id":"C4","name":"Stakeholder Governance Vote","cost":2,"type":"purple","desc":"Let stakeholders join an important decision.","effect":{"transparency":5,"trust_all":5}},
-            {"id":"C5","name":"Customer Retention Program","cost":2,"type":"purple","desc":"Encourage customers to keep using the product.","effect":{"utility":15,"velocity":-0.2}},
-            {"id":"C6","name":"Treasury Diversify","cost":2,"type":"purple","desc":"Reduce financial dependence on one source.","effect":{"reg_risk":-10,"trust_all":10}},
-            {"id":"C7","name":"Small Share Split","cost":2,"type":"purple","desc":"Allow smaller investors to participate.","effect":{"funding_boost_percent":5,"hype":10}},
-            {"id":"C8","name":"Governance Proposal","cost":1,"type":"purple","desc":"Clarify how major decisions are made.","effect":{"transparency":5,"trust_all":5}},
-            {"id":"C9","name":"Founder Lock-In Agreement","cost":2,"type":"purple","desc":"Keep founders committed for longer.","effect":{"trust_all":20,"transparency":10,"cost_percent":2}},
-            {"id":"C10","name":"Customer Incentive Program","cost":3,"type":"purple","desc":"Encourage customers to use the service more.","effect":{"utility":20,"velocity":-0.3,"cost_percent":5}},
-            {"id":"C11","name":"Strategic Partnership","cost":2,"type":"purple","desc":"Work with a credible partner to reduce risk.","effect":{"trust_all":15,"reg_risk":-5,"cost_percent":3}},
-            {"id":"C12","name":"Product Value Upgrade","cost":2,"type":"purple","desc":"Improve the product's practical value.","effect":{"utility":15,"hype":10,"cost_percent":2}},
-            {"id":"C13","name":"Loyalty Reward Program","cost":2,"type":"purple","desc":"Reward existing customers or supporters.","effect":{"trust_all":10,"hype":15,"cost_percent":4}},
-            {"id":"C14","name":"Equity Swap","cost":3,"type":"purple","desc":"Trade ownership value for quick funding.","effect":{"funding_boost_percent":30,"trust_all":-20}}
-        ];
-
-        // ===== REACTION CARDS =====
-        const REACTION_CARDS = [
-            {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","type":"mint","desc":"Slow withdrawals when investors start leaving.","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
-            {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","type":"mint","desc":"Respond quickly to bad market news.","cost_percent":3,"effect":{"halve_negative_delta":1}},
-            {"id":"R3","name":"Major Investor Briefing","trigger":"on_whale_trust_low","type":"mint","desc":"Rebuild confidence with major investors.","cost_percent":5,"effect":{"whale_trust":10}},
-            {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","type":"mint","desc":"Explain problems and restore transparency.","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
-            {"id":"R5","name":"Liquidity Support Plan","trigger":"on_circuit_breaker","type":"mint","desc":"Reduce the impact of a liquidity freeze.","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
-            {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","type":"mint","desc":"Handle urgent legal or compliance risk.","cost_percent":4,"effect":{"reg_risk":-20}},
-            {"id":"R7","name":"Security Patch","trigger":"on_security_low","type":"mint","desc":"Fix urgent security weaknesses.","cost_percent":3,"effect":{"security":15}},
-            {"id":"R8","name":"Expectation Management","trigger":"on_hype_high","type":"mint","desc":"Control unrealistic public expectations.","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
-            {"id":"R9","name":"Investor Assurance","trigger":"on_trust_low","type":"mint","desc":"Reassure worried investors.","cost_percent":2,"effect":{"trust_all":5}},
-            {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","type":"mint","desc":"Extend survival time during cash pressure.","cost_percent":10,"effect":{"runway":3}}
-        ];
-
-        let fullActivePool = [...ACTIVE_CARDS_FULL];
-        
-        // ===== PLAYER STATE =====
-        let myPlayer = {
-            roomId: currentRoomId,
-            playerIndex: playerIndexFromUrl,
-            scale: 'M',
-            maxPhase: 7,
-            targetFunding: 150000,
-            price: 35,
-            transparency: 50,
-            hype: 50,
-            fundingProgress: 0,
-            availableCash: 80000,
-            energyLeft: 3,
-            currentPhase: 1,
-            currentHand: [],
-            activeDeck: [],
-            reactionHand: [],
-            lastScenario: 'No events yet',
-            metrics: { intrinsic: 0, valuation_sanity: 0, roi_norm: 0, runway: 0 },
-            investors: [],
-            deckSubmitted: false
-        };
-        
+        let pollingInterval = null;
         let selectedCardIndex = null;
-        let autoDeckCount = 0;
-        let selectedActiveIndices = new Set();
-        let selectedReactionIndices = new Set();
+        let deckSubmitted = false;   // Đã nộp deck thành công
         
-        // ===== INFO DATABASE =====
+        // State cho deck builder
+        let selectedActive = new Set();   // lưu index
+        let selectedReaction = new Set();
+        
+        // ==================== INFO MODAL ====================
         const infoDatabase = {
             scale: { title: "Project Scale", fields: [{ name: "Scale", meaning: "Choose project size: Small (5 phases), Medium (7 phases), Large (9 phases).", unit: "—", constraints: "S / M / L" }, { name: "Target Funding", meaning: "Amount to raise from investors.", unit: "USD", constraints: "Small: 30k–99,999 | Medium: 100k–251,999 | Large: 252k–500k" }] },
             price_channels: { title: "Price & Sales Channels", fields: [{ name: "Retail price", meaning: "Listed price before fees.", unit: "USD", constraints: "10 – 1000" }, { name: "E-commerce fee", meaning: "Platform fee.", unit: "%", constraints: "0–100" }, { name: "Retail fee", meaning: "Margin for physical retail.", unit: "%", constraints: "0–100" }, { name: "Direct channel fee", meaning: "Own website cost.", unit: "%", constraints: "0–100" }] },
@@ -503,58 +344,64 @@
             capital: { title: "Capital Structure", fields: [{ name: "Owner equity", meaning: "Founders' cash.", unit: "USD", constraints: "0 - 300,000" }, { name: "Bank loan", meaning: "Debt amount.", unit: "USD", constraints: "0 - 300,000" }, { name: "Loan interest rate", meaning: "Annual rate.", unit: "%/year", constraints: "5 – 100" }, { name: "Equity offered", meaning: "Equity sold to investors.", unit: "%", constraints: "0.1–99.9" }] }
         };
         
-        // ===== MODAL =====
         const modal = document.getElementById('infoModal');
-        function showModal(categoryKey) {
-            const data = infoDatabase[categoryKey];
-            if (!data) return;
-            document.getElementById('modalTitle').innerText = data.title;
-            let html = `<div class="space-y-3">`;
-            data.fields.forEach(f => { html += `<div class="border-b border-pink-100 pb-2"><div class="font-bold text-purple-700">${f.name}</div><div class="text-gray-600 text-xs mt-0.5">${f.meaning}</div><div class="flex gap-3 mt-1 text-xs"><span class="bg-pink-100 px-2 py-0.5 rounded-full text-pink-800">Unit: ${f.unit}</span><span class="bg-purple-100 px-2 py-0.5 rounded-full text-purple-800">Constraints: ${f.constraints}</span></div></div>`; });
-            html += `</div>`;
-            document.getElementById('modalContent').innerHTML = html;
-            modal.classList.remove('hidden');
-        }
-        function closeModal() { modal.classList.add('hidden'); }
-        document.querySelectorAll('.info-icon').forEach(icon => icon.addEventListener('click', (e) => { showModal(icon.dataset.category); }));
-        document.getElementById('modalOverlay')?.addEventListener('click', closeModal);
-        document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
-        document.getElementById('modalCloseFooter')?.addEventListener('click', closeModal);
+        function showModal(cat) { let d=infoDatabase[cat]; if(!d) return; document.getElementById('modalTitle').innerText=d.title; let html='<div class="space-y-3">'; d.fields.forEach(f=>{html+=`<div class="border-b border-pink-100 pb-2"><div class="font-bold text-purple-700">${f.name}</div><div class="text-gray-600 text-xs">${f.meaning}</div><div class="flex gap-3 mt-1 text-xs"><span class="bg-pink-100 px-2 py-0.5 rounded-full text-pink-800">Unit: ${f.unit}</span><span class="bg-purple-100 px-2 py-0.5 rounded-full text-purple-800">Constraints: ${f.constraints}</span></div></div>`;}); html+='</div>'; document.getElementById('modalContent').innerHTML=html; modal.classList.remove('hidden'); }
+        function closeModal(){ modal.classList.add('hidden'); }
+        document.querySelectorAll('.info-icon').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); let cat=icon.getAttribute('data-category'); if(cat) showModal(cat); }); });
+        document.getElementById('modalOverlay')?.addEventListener('click',closeModal);
+        document.getElementById('closeModalBtn')?.addEventListener('click',closeModal);
+        document.getElementById('modalCloseFooter')?.addEventListener('click',closeModal);
         
-        function getTargetFundingFromScale(scale, overrideValue) {
-            if (overrideValue && !isNaN(overrideValue) && overrideValue > 0) return overrideValue;
-            const defaults = { S: 55000, M: 170000, L: 350000 };
-            return defaults[scale];
+        function getTargetFundingFromScale(scale, override){ if(override && !isNaN(override) && override>0) return override; const def={S:55000, M:170000, L:350000}; return def[scale]; }
+        
+        // ==================== LOAD CARDS FROM BACKEND ====================
+        async function loadCards() {
+            try {
+                const res = await fetch(`${API_BASE}/card_lists`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                activeCardsMaster = data.active;
+                reactionCardsMaster = data.reaction;
+                console.log('Loaded cards OK');
+                return true;
+            } catch (err) {
+                console.error('Error loading cards:', err);
+                alert('Cannot load cards from server. Please refresh.');
+                return false;
+            }
         }
         
-        // ===== SUBMIT PROJECT TO BE =====
+        // Helper fetch JSON an toàn
+        async function fetchJSON(url, options) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`Expected JSON but got ${contentType}: ${text.substring(0, 100)}`);
+            }
+            return response.json();
+        }
+        
+        // ==================== SUBMIT PROJECT ====================
         document.getElementById('projectForm').onsubmit = async (e) => {
             e.preventDefault();
-            
-            if (!currentRoomId || currentRoomId === 'null') {
-                alert('❌ Cannot submit: Invalid room ID. Please use the correct join link.');
-                return;
-            }
-            
             const scale = document.getElementById('scale').value;
             const targetOverrideRaw = document.getElementById('targetFundingOverride').value;
             let targetFunding = getTargetFundingFromScale(scale, parseFloat(targetOverrideRaw));
-            
             if (targetOverrideRaw && !isNaN(parseFloat(targetOverrideRaw))) {
                 const constraints = targetFundingConstraints[scale];
                 if (targetFunding < constraints.min || targetFunding > constraints.max) {
-                    alert(`Target funding must be between ${constraints.min.toLocaleString()} and ${constraints.max.toLocaleString()} USD for ${scale === 'S' ? 'Small' : (scale === 'M' ? 'Medium' : 'Large')} scale.`);
+                    alert(`Target funding must be between ${constraints.min.toLocaleString()} and ${constraints.max.toLocaleString()} USD`);
                     return;
                 }
             }
             
-            const submitBtn = e.target;
-            const originalText = submitBtn.innerText;
-            submitBtn.innerText = '⏳ Submitting...';
-            submitBtn.disabled = true;
-            
             const projectData = {
-                project_name: `Player ${playerIndexFromUrl + 1}'s Project`,
+                project_name: `Player ${playerIndexFromUrl+1}'s Project`,
                 scale: scale,
                 target_funding: targetFunding,
                 price: parseFloat(document.getElementById('price').value),
@@ -580,215 +427,233 @@
             };
             
             try {
-                const response = await fetch(`${API_BASE_URL}/submit_project`, {
+                const data = await fetchJSON(`${API_BASE}/submit_project`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl, project: projectData })
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, project: projectData })
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Submit failed');
-                }
-                
-                const result = await response.json();
-                projectSubmitted = true;
-                alert(`✅ Project submitted successfully! Target funding: $${targetFunding.toLocaleString()}. Now build your deck.`);
+                if (!data.ok) throw new Error(data.error || 'Submit failed');
+                alert(`✅ Project submitted! Target funding: $${targetFunding.toLocaleString()}. Now build your deck.`);
                 document.getElementById('projectFormPanel').classList.add('hidden');
-                showDeckBuilder();
-            } catch (error) {
-                console.error('Submit error:', error);
-                alert(`❌ Error: ${error.message}\n\nMake sure backend is running at ${API_BASE_URL}`);
-            } finally {
-                submitBtn.innerText = originalText;
-                submitBtn.disabled = false;
+                await showDeckBuilder();
+            } catch (err) {
+                alert(`❌ Submit failed: ${err.message}`);
+                console.error(err);
             }
         };
         
-        // ===== DECK BUILDER =====
-        function showDeckBuilder() {
+        // ==================== DECK BUILDER ====================
+        async function showDeckBuilder() {
+            // Đảm bảo cards đã được load
+            if (!activeCardsMaster.length) {
+                const loaded = await loadCards();
+                if (!loaded) return;
+            }
+            
             const deckPanel = document.getElementById('deckPanel');
             deckPanel.innerHTML = `
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-purple-800">BUILD YOUR DECK</h2>
-                    <button id="autoDeckBtn" class="auto-deck-btn rounded-full font-bold text-white transition">🎲 AUTO CHOOSE DECK (${5 - autoDeckCount} left)</button>
+                <h2 class="text-2xl font-bold mb-4 text-purple-800">BUILD YOUR DECK</h2>
+                <div class="mb-4 flex justify-end">
+                    <button id="autoDeckBtn" class="auto-deck-btn">🎲 AUTO-SELECT RANDOM DECK (Preview & Edit)</button>
                 </div>
                 <p class="text-sm mb-4">
-                    <span style="color:#ff69b4;">● Hot Pink: Attack (increase Hype)</span> | 
-                    <span style="color:#87ceeb;">● Baby Blue: Defense (increase Transparency)</span> | 
+                    <span style="color:#ff69b4;">● Hot Pink: Attack</span> | 
+                    <span style="color:#87ceeb;">● Baby Blue: Defense</span> | 
                     <span style="color:#a855f7;">● Purple: Capital</span> |
                     <span style="color:#10b981;">● Mint: Reaction Cards</span>
                 </p>
-                <div class="mb-6"><h3 class="font-bold mb-2 text-purple-800">ACTION CARDS (choose 22 cards)</h3><div id="activeList" class="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="activeCount">0</span>/22</div></div>
-                <div class="mb-6"><h3 class="font-bold mb-2 text-purple-800">REACTION CARDS (choose up to 3)</h3><div id="reactionList" class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="reactionCount">0</span>/3</div></div>
-                <button id="submitDeckBtn" class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-lg text-lg transition-all">CONFIRM DECK</button>
+                <div class="mb-6"><h3 class="font-bold mb-2">ACTION CARDS (choose 22 cards)</h3><div id="activeList" class="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="activeCount">0</span>/22</div></div>
+                <div class="mb-6"><h3 class="font-bold mb-2">REACTION CARDS (choose up to 3)</h3><div id="reactionList" class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="reactionCount">0</span>/3</div></div>
+                <button id="submitDeckBtn" class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-lg text-lg">CONFIRM DECK</button>
             `;
             deckPanel.classList.remove('hidden');
+            
+            // Reset selection state
+            selectedActive.clear();
+            selectedReaction.clear();
             renderDeckSelectionUI();
+            
+            // Nút Auto chỉ random local, KHÔNG tự động submit
+            document.getElementById('autoDeckBtn').onclick = () => {
+                autoSelectRandomLocally();
+            };
+        }
+        
+        // Random 22 active cards (từ tổng số) và 0-3 reaction cards, cập nhật UI
+        function autoSelectRandomLocally() {
+            if (!activeCardsMaster.length) {
+                alert('Cards not ready yet. Please wait.');
+                return;
+            }
+            const totalActive = activeCardsMaster.length;
+            const totalReaction = reactionCardsMaster.length;
+            
+            // Random 22 active indices (không trùng)
+            const shuffledActive = [...Array(totalActive).keys()];
+            for (let i = shuffledActive.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledActive[i], shuffledActive[j]] = [shuffledActive[j], shuffledActive[i]];
+            }
+            const newActiveIndices = shuffledActive.slice(0, 22);
+            
+            // Random 0-3 reaction indices
+            const numReactions = Math.floor(Math.random() * 4); // 0..3
+            const shuffledReaction = [...Array(totalReaction).keys()];
+            for (let i = shuffledReaction.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledReaction[i], shuffledReaction[j]] = [shuffledReaction[j], shuffledReaction[i]];
+            }
+            const newReactionIndices = shuffledReaction.slice(0, numReactions);
+            
+            // Cập nhật selected sets
+            selectedActive.clear();
+            newActiveIndices.forEach(idx => selectedActive.add(idx));
+            selectedReaction.clear();
+            newReactionIndices.forEach(idx => selectedReaction.add(idx));
+            
+            // Render lại UI để highlight
+            renderDeckSelectionUI();
+            
+            alert(`✨ Auto selected ${selectedActive.size} Active cards and ${selectedReaction.size} Reaction cards.\nYou can still change your selection before confirming.`);
         }
         
         function renderDeckSelectionUI() {
             const activeContainer = document.getElementById('activeList');
             const reactionContainer = document.getElementById('reactionList');
+            if (!activeContainer || !reactionContainer) return;
+            
             activeContainer.innerHTML = '';
-            fullActivePool.forEach((card, idx) => {
-                let bgColor = card.type === 'hotpink' ? '#ffe4e6' : (card.type === 'babyblue' ? '#e0f2fe' : '#f3e8ff');
+            activeCardsMaster.forEach((card, idx) => {
+                let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
+                const isSelected = selectedActive.has(idx);
+                const selectedClass = isSelected ? 'selected-card' : '';
                 activeContainer.innerHTML += `
-                    <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedActiveIndices.has(idx) ? 'selected' : ''}" 
-                         data-idx="${idx}" style="background-color: ${bgColor};">
+                    <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedClass}" data-idx="${idx}" data-type="active" style="background-color:${bgColor};">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
                         <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0, 30)}...</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
                     </div>
                 `;
             });
+            
             reactionContainer.innerHTML = '';
-            REACTION_CARDS.forEach((card, idx) => {
+            reactionCardsMaster.forEach((card, idx) => {
+                const isSelected = selectedReaction.has(idx);
+                const selectedClass = isSelected ? 'selected-card' : '';
                 reactionContainer.innerHTML += `
-                    <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedReactionIndices.has(idx) ? 'selected' : ''}" 
-                         data-idx="${idx}">
+                    <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" data-idx="${idx}" data-type="reaction">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0, 30)}...</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
                     </div>
                 `;
             });
             
+            // Gắn sự kiện click cho active cards
             document.querySelectorAll('.active-card').forEach(el => {
-                el.onclick = () => {
+                el.onclick = (e) => {
+                    e.stopPropagation();
                     const idx = parseInt(el.dataset.idx);
-                    if (selectedActiveIndices.has(idx)) {
-                        selectedActiveIndices.delete(idx);
-                        el.classList.remove('selected');
-                    } else if (selectedActiveIndices.size < 22) {
-                        selectedActiveIndices.add(idx);
-                        el.classList.add('selected');
+                    if (selectedActive.has(idx)) {
+                        selectedActive.delete(idx);
                     } else {
-                        alert('You can only select 22 Action cards!');
+                        if (selectedActive.size >= 22) {
+                            alert('You can only select 22 Active cards!');
+                            return;
+                        }
+                        selectedActive.add(idx);
                     }
-                    document.getElementById('activeCount').innerText = selectedActiveIndices.size;
+                    renderDeckSelectionUI(); // re-render để cập nhật giao diện
                 };
             });
             
+            // Gắn sự kiện click cho reaction cards
             document.querySelectorAll('.reaction-card').forEach(el => {
-                el.onclick = () => {
+                el.onclick = (e) => {
+                    e.stopPropagation();
                     const idx = parseInt(el.dataset.idx);
-                    if (selectedReactionIndices.has(idx)) {
-                        selectedReactionIndices.delete(idx);
-                        el.classList.remove('selected');
-                    } else if (selectedReactionIndices.size < 3) {
-                        selectedReactionIndices.add(idx);
-                        el.classList.add('selected');
+                    if (selectedReaction.has(idx)) {
+                        selectedReaction.delete(idx);
                     } else {
-                        alert('You can only select up to 3 Reaction cards!');
+                        if (selectedReaction.size >= 3) {
+                            alert('You can only select up to 3 Reaction cards!');
+                            return;
+                        }
+                        selectedReaction.add(idx);
                     }
-                    document.getElementById('reactionCount').innerText = selectedReactionIndices.size;
+                    renderDeckSelectionUI();
                 };
             });
             
-            document.getElementById('autoDeckBtn').onclick = () => {
-                if (autoDeckCount >= 5) {
-                    alert('You have used all 5 auto-choose attempts! Please select cards manually.');
-                    document.getElementById('autoDeckBtn').disabled = true;
-                    return;
-                }
-                const totalActive = fullActivePool.length;
-                const newActiveIndices = new Set();
-                while (newActiveIndices.size < 22) {
-                    newActiveIndices.add(Math.floor(Math.random() * totalActive));
-                }
-                const totalReaction = REACTION_CARDS.length;
-                const newReactionIndices = new Set();
-                const numReactions = Math.floor(Math.random() * 4);
-                while (newReactionIndices.size < numReactions) {
-                    newReactionIndices.add(Math.floor(Math.random() * totalReaction));
-                }
-                selectedActiveIndices = newActiveIndices;
-                selectedReactionIndices = newReactionIndices;
-                autoDeckCount++;
-                document.getElementById('autoDeckBtn').innerText = `🎲 AUTO CHOOSE DECK (${5 - autoDeckCount} left)`;
-                if (autoDeckCount >= 5) document.getElementById('autoDeckBtn').disabled = true;
-                renderDeckSelectionUI();
-                alert(`✅ Auto-selected ${selectedActiveIndices.size} action cards and ${selectedReactionIndices.size} reaction cards.\nYou can still adjust manually.`);
-            };
-            
-            document.getElementById('submitDeckBtn').onclick = async () => {
-                if (selectedActiveIndices.size !== 22) {
-                    alert('You must select exactly 22 Action cards!');
-                    return;
-                }
-                
-                const submitBtn = document.getElementById('submitDeckBtn');
-                const originalText = submitBtn.innerText;
-                submitBtn.innerText = '⏳ Submitting deck...';
-                submitBtn.disabled = true;
-                
-                try {
-                    const response = await fetch(`${API_BASE_URL}/submit_deck`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            room_id: currentRoomId,
-                            player_index: playerIndexFromUrl,
-                            active_indices: Array.from(selectedActiveIndices),
-                            reaction_indices: Array.from(selectedReactionIndices)
-                        })
-                    });
-                    if (!response.ok) throw new Error('Submit deck failed');
-                    alert(`✅ Deck submitted! Waiting for host to start the game.`);
-                    document.getElementById('deckPanel').classList.add('hidden');
-                    startGamePolling();
-                } catch (error) {
-                    alert(`❌ Error: ${error.message}`);
-                    submitBtn.innerText = originalText;
-                    submitBtn.disabled = false;
-                }
-            };
+            document.getElementById('activeCount').innerText = selectedActive.size;
+            document.getElementById('reactionCount').innerText = selectedReaction.size;
         }
         
+        // Gửi deck lên server
+        async function submitDeckToServer() {
+            if (selectedActive.size !== 22) {
+                alert('You must select exactly 22 Active cards!');
+                return false;
+            }
+            const activeIndices = Array.from(selectedActive);
+            const reactionIndices = Array.from(selectedReaction);
+            try {
+                const data = await fetchJSON(`${API_BASE}/submit_deck`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, active_indices: activeIndices, reaction_indices: reactionIndices })
+                });
+                if (!data.ok) throw new Error(data.error);
+                alert(`✅ Deck submitted! Waiting for host to start the game.`);
+                deckSubmitted = true;
+                document.getElementById('deckPanel').classList.add('hidden');
+                startGamePolling();
+                return true;
+            } catch (err) {
+                alert(`❌ Submit deck failed: ${err.message}`);
+                console.error(err);
+                return false;
+            }
+        }
+        
+        // ==================== GAME POLLING ====================
         function startGamePolling() {
             if (pollingInterval) clearInterval(pollingInterval);
             
-            // Show waiting message
             const statusDiv = document.getElementById('connectionStatus');
-            statusDiv.className = 'connection-success mb-4';
+            statusDiv.className = 'connection-status bg-blue-100 text-blue-800 p-3 rounded-xl mb-4';
             statusDiv.innerHTML = '⏳ Waiting for host to start the game...';
             statusDiv.classList.remove('hidden');
             
             pollingInterval = setInterval(async () => {
-                if (!currentRoomId) return;
                 try {
-                    const response = await fetch(`${API_BASE_URL}/player_state?room_id=${currentRoomId}&player_index=${playerIndexFromUrl}`);
-                    if (!response.ok) {
-                        if (response.status === 404) {
-                            statusDiv.innerHTML = '⚠️ Room not found. Please check your connection.';
-                            statusDiv.className = 'connection-error mb-4';
-                        }
-                        return;
-                    }
-                    const data = await response.json();
+                    const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
                     
-                    if (data.game_started || data.game_ended) {
-                        if (data.game_started && !gameStarted) {
-                            gameStarted = true;
+                    if (data.game_started && !data.game_ended) {
+                        if (document.getElementById('gamePanel').classList.contains('hidden')) {
                             statusDiv.classList.add('hidden');
                             document.getElementById('gamePanel').classList.remove('hidden');
                         }
-                        updateGameFromBE(data);
-                        if (data.game_ended || data.ended) {
-                            document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
-                            document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
-                            document.getElementById('endgamePanel').classList.remove('hidden');
-                            document.getElementById('gamePanel').classList.add('hidden');
-                            if (pollingInterval) clearInterval(pollingInterval);
+                        updateGameUIFromData(data);
+                    } else if (data.game_ended || data.ended) {
+                        document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
+                        document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
+                        document.getElementById('endgamePanel').classList.remove('hidden');
+                        document.getElementById('gamePanel').classList.add('hidden');
+                        if (pollingInterval) clearInterval(pollingInterval);
+                    } else if (data.choosing_deck === true && !deckSubmitted) {
+                        // Nếu chưa submit deck và game đang ở giai đoạn chọn deck, hiển thị deck builder
+                        if (document.getElementById('deckPanel').classList.contains('hidden') && document.getElementById('gamePanel').classList.contains('hidden')) {
+                            showDeckBuilder();
                         }
                     }
-                } catch (e) { 
-                    console.error('Polling error:', e);
+                } catch (err) {
+                    console.error('Polling error:', err);
+                    statusDiv.innerHTML = '⚠️ Error connecting to server. Retrying...';
                 }
             }, 2000);
         }
         
-        function updateGameFromBE(data) {
+        function updateGameUIFromData(data) {
             document.getElementById('funding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
             document.getElementById('energy').innerText = data.energy_left || 3;
             document.getElementById('hype').innerText = data.hype || 50;
@@ -801,14 +666,14 @@
             document.getElementById('runway').innerText = data.metrics?.runway || 0;
             document.getElementById('scenarioDisplay').innerHTML = `📢 ${data.last_scenario || 'Waiting for phase...'}`;
             
-            const handContainer = document.getElementById('hand');
+            const handDiv = document.getElementById('hand');
             if (data.hand && data.hand.length > 0) {
-                handContainer.innerHTML = data.hand.map((card, idx) => {
-                    let borderColor = card.type === 'hotpink' ? '#f43f5e' : (card.type === 'babyblue' ? '#0ea5e9' : '#a855f7');
-                    return `<div class="hand-card" style="border-left: 4px solid ${borderColor};" data-cardidx="${idx}">
-                        <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
-                        <div class="text-xs text-purple-600">${card.desc?.substring(0, 30)}...</div>
+                handDiv.innerHTML = data.hand.map((card, idx) => {
+                    let borderColor = card.type === 'red' ? '#f43f5e' : (card.type === 'green' ? '#0ea5e9' : '#a855f7');
+                    return `<div class="hand-card" style="border-left:4px solid ${borderColor};" data-cardidx="${idx}">
+                        <div class="font-bold text-sm">${card.name}</div>
+                        <div class="text-xs">Cost: ${card.cost}</div>
+                        <div class="text-xs">${card.desc?.substring(0,30)}</div>
                     </div>`;
                 }).join('');
                 document.querySelectorAll('.hand-card').forEach(el => {
@@ -819,65 +684,96 @@
                     };
                 });
             } else {
-                handContainer.innerHTML = '<div class="col-span-5 text-center text-purple-500">Waiting for cards...</div>';
+                handDiv.innerHTML = '<div class="col-span-5 text-center text-purple-500">Waiting for cards...</div>';
             }
             
-            if (data.investors?.length > 0) {
-                document.getElementById('investorsList').innerHTML = data.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
-            } else {
-                document.getElementById('investorsList').innerHTML = 'No investors yet';
-            }
+            const invDiv = document.getElementById('investorsList');
+            if (data.investors?.length) invDiv.innerHTML = data.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
+            else invDiv.innerHTML = 'No investors yet';
         }
         
-        // ===== PLAY CARD =====
-        document.getElementById('playCardBtn').onclick = async () => {
-            if (selectedCardIndex === null) { alert('Please select a card first!'); return; }
+        // ==================== PLAYER ACTIONS ====================
+        document.getElementById('playCardBtn')?.addEventListener('click', async () => {
+            if (selectedCardIndex === null) { alert('Select a card first'); return; }
             try {
-                const response = await fetch(`${API_BASE_URL}/play_card`, {
+                const data = await fetchJSON(`${API_BASE}/play_card`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl, card_index: selectedCardIndex })
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, card_index: selectedCardIndex })
                 });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error || 'Cannot play card');
-                alert(`✅ ${result.message || 'Card played!'}`);
+                if (!data.ok) throw new Error(data.error);
+                alert(`✅ ${data.message || 'Card played!'}`);
                 selectedCardIndex = null;
-            } catch (error) { 
-                alert(`❌ ${error.message}`); 
+            } catch (err) {
+                alert(`❌ ${err.message}`);
+                console.error(err);
             }
-        };
+        });
         
-        // ===== MULLIGAN =====
-        document.getElementById('mulliganBtn').onclick = async () => {
+        document.getElementById('mulliganBtn')?.addEventListener('click', async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/mulligan`, {
+                const data = await fetchJSON(`${API_BASE}/mulligan`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl })
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl })
                 });
-                const result = await response.json();
-                if (!response.ok) throw new Error(result.error || 'Cannot mulligan');
-                alert(`🃏 ${result.message || 'Mulligan successful! Hand refreshed.'}`);
-            } catch (error) { 
-                alert(`❌ ${error.message}`); 
+                if (!data.ok) throw new Error(data.error);
+                alert(`🃏 ${data.message || 'Mulligan successful!'}`);
+            } catch (err) {
+                alert(`❌ ${err.message}`);
+                console.error(err);
             }
-        };
+        });
         
-        // ===== READY =====
-        document.getElementById('readyBtn').onclick = async () => {
+        document.getElementById('readyBtn')?.addEventListener('click', async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/player_ready_phase`, {
+                const data = await fetchJSON(`${API_BASE}/player_ready_phase`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ room_id: currentRoomId, player_index: playerIndexFromUrl })
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl })
                 });
-                if (!response.ok) throw new Error('Cannot ready');
-                alert('✅ You are ready! Waiting for host to run the next phase.');
-            } catch (error) { 
-                alert(`❌ ${error.message}`); 
+                if (data.ok) alert('✅ You are ready! Waiting for host to run next phase.');
+                else alert('Ready failed');
+            } catch (err) {
+                alert(`❌ ${err.message}`);
+                console.error(err);
             }
-        };
+        });
+        
+        // Gắn sự kiện cho nút submit deck (sau khi render lại)
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'submitDeckBtn') {
+                submitDeckToServer();
+            }
+        });
+        
+        // ==================== INIT ====================
+        (async () => {
+            await loadCards();  // đảm bảo cards có sẵn
+            // Kiểm tra trạng thái ban đầu
+            try {
+                const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
+                if (data.hype !== undefined && data.deck_ready === false && data.choosing_deck === true) {
+                    document.getElementById('projectFormPanel').classList.add('hidden');
+                    await showDeckBuilder();
+                } else if (data.game_started) {
+                    document.getElementById('projectFormPanel').classList.add('hidden');
+                    startGamePolling();
+                } else if (data.hype !== undefined && data.deck_ready === true) {
+                    document.getElementById('projectFormPanel').classList.add('hidden');
+                    deckSubmitted = true;
+                    startGamePolling();
+                } else {
+                    document.getElementById('projectFormPanel').classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('Initial state check failed:', err);
+                // vẫn hiển thị form
+                document.getElementById('projectFormPanel').classList.remove('hidden');
+            }
+        })();
     </script>
 </body>
 </html>
+
 
