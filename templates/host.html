@@ -562,37 +562,38 @@
         }
 
         // ─── JOIN LINKS ───────────────────────────────────────────────────────
-        function updateJoinLinks() {
-            if (!room || !room.join_links) return;
-            const playersById = {};
-            (room.players || []).forEach(p => { playersById[p.id] = p; });
+function updateJoinLinks() {
+    if (!room || !room.join_links) return;
+    
+    let html = '<div style="display:grid;gap:8px;">';
+    room.join_links.forEach(link => {
+        const player = room.players?.find(p => p.id === link.player_id || p.id === link.player_index);
+        const joined = player && player.status !== 'not_joined';
+        const statusLabel = joined ? 'Joined' : 'Not Joined';
+        const statusClass = joined ? 'joined' : 'waiting';
+        
+        // Lấy max_phase từ player hoặc dùng giá trị mặc định
+        const currentMaxPhase = player?.max_phase || room.max_phase || 7;
+        const gameEnded = room.ended || room.current_phase >= currentMaxPhase;
 
-            let html = '<div style="display:grid;gap:8px;">';
-            room.join_links.forEach(link => {
-                const player = playersById[link.player_id];
-                const joined = player && player.status !== 'not_joined';
-                const statusLabel = joined ? 'Joined' : 'Not Joined';
-                const statusClass = joined ? 'joined' : 'waiting';
-                const gameEnded = room.ended || room.current_phase >= room.max_phase;
-
-                html += `
-                <div style="background:rgba(255,255,255,0.8);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                    <div>
-                        <span style="font-weight:bold;color:#db2777;">${link.player_name}</span>
-                        <span style="color:#6b21a5;font-size:12px;margin-left:8px;">(Index: ${link.player_index})</span>
-                        <span class="join-status-tag ${statusClass}" style="margin-left:12px;">${statusLabel}</span>
-                    </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                        <input type="text" value="${link.url}" style="background:#f3e8ff;font-size:12px;padding:6px;border-radius:8px;width:300px;color:#1e1b2b;border:1px solid #c9b1e6;" readonly>
-                        <button onclick="copyLink('${link.url}')" ${gameEnded ? 'disabled' : ''} style="background:#ec4899;padding:6px 12px;border-radius:8px;font-size:12px;border:none;color:white;cursor:pointer;margin-top:0;">
-                            Copy
-                        </button>
-                    </div>
-                </div>`;
-            });
-            html += '</div>';
-            document.getElementById('joinLinksList').innerHTML = html;
-        }
+        html += `
+        <div style="background:rgba(255,255,255,0.8);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div>
+                <span style="font-weight:bold;color:#db2777;">${link.player_name}</span>
+                <span style="color:#6b21a5;font-size:12px;margin-left:8px;">(Index: ${link.player_index})</span>
+                <span class="join-status-tag ${statusClass}" style="margin-left:12px;">${statusLabel}</span>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <input type="text" value="${link.url}" style="background:#f3e8ff;font-size:12px;padding:6px;border-radius:8px;width:300px;color:#1e1b2b;border:1px solid #c9b1e6;" readonly>
+                <button onclick="copyLink('${link.url}')" ${gameEnded ? 'disabled' : ''} style="background:#ec4899;padding:6px 12px;border-radius:8px;font-size:12px;border:none;color:white;cursor:pointer;margin-top:0;">
+                    Copy
+                </button>
+            </div>
+        </div>`;
+    });
+    html += '</div>';
+    document.getElementById('joinLinksList').innerHTML = html;
+}
 
         // ─── LEADERBOARD CARDS ────────────────────────────────────────────────
 function updateRankings() {
@@ -606,21 +607,28 @@ function updateRankings() {
         const tagCls = joined ? 'joined' : 'waiting';
         const label = joined ? 'Joined' : (ended ? 'Finished' : 'Not Joined');
         const pct = ((player.funding ?? 0) * 100).toFixed(1);
-        const currentPhase = player.current_phase || 0;
-        const maxPhase = player.max_phase || 7;
         
-        // ===== THÊM: Hiển thị phase progress của từng player =====
-        const phaseText = player.status === 'active' ? `Phase: ${currentPhase}/${maxPhase}` : '';
+        // ===== LẤY ĐÚNG max_phase CỦA TỪNG PLAYER =====
+        const currentPhase = player.current_phase || 0;
+        const maxPhase = player.max_phase || 7;  // Dùng max_phase riêng của player
+        const phaseText = joined ? `Phase: ${currentPhase}/${maxPhase}` : '';
         const readyText = player.ready_for_next_phase ? '✅ Ready' : '⏳ Waiting';
+        
+        // Hiển thị scale (Small/Medium/Large)
+        let scaleText = '';
+        if (player.project_size) {
+            const scaleNames = { S: 'Small', M: 'Medium', L: 'Large' };
+            scaleText = `📐 ${scaleNames[player.project_size] || 'Medium'} (${maxPhase} phases)`;
+        }
         
         html += `
         <div class="rank-card ${cardCls}">
             <h3 style="color:#2e1a47;">${icon} ${player.name}
                 <span class="player-join-tag ${tagCls}">${label}</span>
-                ${player.status === 'active' ? `<span style="font-size: 11px; margin-left: 8px;">${readyText}</span>` : ''}
+                ${joined ? `<span style="font-size: 11px; margin-left: 8px; color: ${player.ready_for_next_phase ? '#16a34a' : '#f59e0b'}">${readyText}</span>` : ''}
             </h3>
-            ${player.project_size ? `<div style="font-size: 11px; color: #6b21a5;">📐 ${player.project_size === 'S' ? 'Small' : player.project_size === 'L' ? 'Large' : 'Medium'} (${maxPhase} phases)</div>` : ''}
-            <div style="font-size: 12px; color: #4a2b7a;">${phaseText}</div>
+            ${scaleText ? `<div style="font-size: 11px; color: #6b21a5; margin-bottom: 4px;">${scaleText}</div>` : ''}
+            ${phaseText ? `<div style="font-size: 12px; color: #4a2b7a; margin-bottom: 4px;">🕒 ${phaseText}</div>` : ''}
             <div class="player-funding">💰 Funding: <span>${pct}%</span></div>
             <div class="funding-bar"><div class="funding-bar-fill" style="width:${pct}%;"></div></div>
             <div class="player-metric-list">
@@ -688,33 +696,33 @@ function updateRankings() {
         // ─── MASTER DISPLAY ───────────────────────────────────────────────────
 function updateDisplay() {
     if (!room) return;
+    
+    // Thông tin chung của phòng
     document.getElementById('roomNameDisplay').innerText = room.name;
     document.getElementById('roomId').innerText = room.id;
     document.getElementById('maxPlayers').innerText = room.num_players;
     document.getElementById('currentPhase').innerText = room.current_phase;
     
-    // ===== SỬA: Lấy max_phase từ player đầu tiên hoặc player đang active =====
-    let maxPhase = 7; // default
+    // ===== QUAN TRỌNG: Hiển thị max_phase của phòng (giá trị lớn nhất) =====
+    // Việc này chỉ để host biết game kéo dài bao lâu, KHÔNG ảnh hưởng logic end game
+    let displayMaxPhase = 7; // default
     if (room.players && room.players.length > 0) {
-        // Tìm player active đầu tiên có max_phase
-        const activePlayer = room.players.find(p => p && p.status === 'active' && p.max_phase);
-        if (activePlayer) {
-            maxPhase = activePlayer.max_phase;
-        } else {
-            // Hoặc lấy max_phase từ bất kỳ player nào
-            const anyPlayer = room.players.find(p => p && p.max_phase);
-            if (anyPlayer) {
-                maxPhase = anyPlayer.max_phase;
-            }
+        const allMaxPhases = room.players
+            .filter(p => p && p.max_phase)
+            .map(p => p.max_phase);
+        if (allMaxPhases.length > 0) {
+            displayMaxPhase = Math.max(...allMaxPhases);
         }
     }
-    document.getElementById('maxPhase').innerText = maxPhase;
-
+    document.getElementById('maxPhase').innerText = displayMaxPhase;
+    
+    // Số người đã join
     const joined = (room.players || []).filter(p => p && p.status !== 'not_joined').length;
     document.getElementById('playerCount').innerText = joined;
-
-    updateJoinLinks();
-    updateRankings();
+    
+    // Cập nhật các thành phần khác
+    updateJoinLinks();      // Link join (lấy từ room.join_links)
+    updateRankings();       // Bảng xếp hạng (hiển thị max_phase của từng player)
     updateLogs();
     refreshPhaseSelect();
     showPhaseDetails();
@@ -745,27 +753,33 @@ async function createRoom() {
         }
 
         const data = await response.json();
-        
-        // QUAN TRỌNG: Kiểm tra cấu trúc response từ backend
-        console.log('Room created:', data);
-        
+
         // Backend trả về: { id, name, maxPlayers, joinLinks }
+        // Chuyển đổi joinLinks từ camelCase sang snake_case cho frontend dùng
+        const joinLinks = (data.joinLinks || []).map(link => ({
+            player_index: link.playerIndex,
+            player_id: link.playerIndex,
+            player_name: link.playerName,
+            url: link.realLink
+        }));
+
         room = {
             id: data.id,
             name: data.name,
             num_players: data.maxPlayers,
             current_phase: 0,
+            max_phase: 7,  // temporary, sẽ được cập nhật từ players sau
             ended: false,
             players: [],
-            logs: ["🎮 Room created! Waiting for players..."],
-            join_links: data.joinLinks || []
+            logs: ["🎮 Room created! Waiting for players to submit projects..."],
+            join_links: joinLinks
         };
-        
+
         // Khởi tạo players array
         for (let i = 0; i < room.num_players; i++) {
             room.players.push({
                 id: i,
-                name: `Player ${i+1}`,
+                name: `Player ${i + 1}`,
                 funding: 0,
                 hype: 50,
                 transparency: 50,
@@ -773,10 +787,13 @@ async function createRoom() {
                 status: 'not_joined',
                 project_size: null,
                 funding_target: null,
-                funding_amount: 0
+                funding_amount: 0,
+                max_phase: null,
+                current_phase: 0,
+                ready_for_next_phase: false
             });
         }
-        
+
         phaseSnapshots = [];
         recordSnapshot(1, 'Room created and game initialized');
 
@@ -784,7 +801,7 @@ async function createRoom() {
         document.getElementById('gamePanel').style.display = 'block';
         updateDisplay();
         startAutoUpdate();
-        
+
     } catch (e) {
         console.error('Create room error:', e);
         errDiv.textContent = '❌ ' + e.message;
@@ -941,50 +958,92 @@ async function resetCurrentPhase() {
 
         // ─── AUTO-POLL ────────────────────────────────────────────────────────
 async function pollRoom() {
-    if (!room || !room.id) return;
-    
+    if (!room || !room.id) {
+        console.warn('Cannot poll: room or room.id is undefined');
+        return;
+    }
+
     try {
         const response = await fetch(`/api/rooms/${room.id}`);
-        if (!response.ok) return;
         
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.warn('Room not found on server');
+                return;
+            }
+            throw new Error(`HTTP ${response.status}`);
+        }
+
         const data = await response.json();
         
-        // Cập nhật players với phase riêng của từng người
-        if (data.players) {
+        // Cập nhật logs
+        if (data.logs) room.logs = data.logs;
+        
+        // Cập nhật trạng thái ended của phòng
+        room.ended = data.ended || false;
+        
+        // Cập nhật current_phase của phòng (nếu có)
+        if (data.currentPhase !== undefined) room.current_phase = data.currentPhase;
+        
+        // Cập nhật players với đầy đủ thông tin
+        if (data.players && Array.isArray(data.players)) {
             room.players = room.players.map((existingPlayer, idx) => {
                 const updatedPlayer = data.players[idx];
                 if (updatedPlayer) {
                     return {
                         ...existingPlayer,
-                        ...updatedPlayer,
-                        // Đảm bảo giữ lại các field quan trọng
-                        ready_for_next_phase: updatedPlayer.ready_for_next_phase || false,
-                        current_phase: updatedPlayer.current_phase || existingPlayer.current_phase || 0
+                        id: updatedPlayer.id ?? existingPlayer.id,
+                        name: updatedPlayer.name ?? existingPlayer.name,
+                        funding: updatedPlayer.funding ?? existingPlayer.funding ?? 0,
+                        hype: updatedPlayer.hype ?? existingPlayer.hype ?? 50,
+                        transparency: updatedPlayer.transparency ?? existingPlayer.transparency ?? 50,
+                        score: updatedPlayer.score ?? existingPlayer.score ?? 0,
+                        status: updatedPlayer.status ?? existingPlayer.status ?? 'not_joined',
+                        // QUAN TRỌNG: Các field riêng của từng player
+                        project_size: updatedPlayer.project_size || updatedPlayer.scale || existingPlayer.project_size,
+                        max_phase: updatedPlayer.max_phase || updatedPlayer.maxPhase || existingPlayer.max_phase,
+                        current_phase: updatedPlayer.current_phase || updatedPlayer.currentPhase || existingPlayer.current_phase || 0,
+                        funding_target: updatedPlayer.funding_target || updatedPlayer.targetFunding || existingPlayer.funding_target,
+                        funding_amount: updatedPlayer.funding_amount || updatedPlayer.fundingAmount || existingPlayer.funding_amount,
+                        ready_for_next_phase: updatedPlayer.ready_for_next_phase ?? existingPlayer.ready_for_next_phase ?? false
                     };
                 }
                 return existingPlayer;
             });
         }
         
-        room.logs = data.logs || room.logs;
-        room.ended = data.ended || false;
+        // Cập nhật join links nếu có
+        if (data.joinLinks && Array.isArray(data.joinLinks)) {
+            room.join_links = data.joinLinks.map(link => ({
+                player_index: link.playerIndex,
+                player_id: link.playerIndex,
+                player_name: link.playerName,
+                url: link.realLink
+            }));
+        }
         
-        // Tính max_phase lớn nhất để hiển thị
-        const allMaxPhases = room.players.filter(p => p && p.max_phase).map(p => p.max_phase);
-        room.display_max_phase = allMaxPhases.length > 0 ? Math.max(...allMaxPhases) : 7;
+        // Cập nhật UI
+        updateDisplay();
         
-        // Kiểm tra xem có phải tất cả players đã kết thúc không
-        const allPlayersEnded = room.players.every(p => 
-            !p || p.status === 'not_joined' || p.status === 'ended' || 
-            (p.current_phase >= (p.max_phase || 7))
-        );
+        // KIỂM TRA END GAME: Tất cả players đã kết thúc phase cuối của mình
+        const allPlayersEnded = room.players.every(p => {
+            // Bỏ qua player chưa join
+            if (!p || p.status === 'not_joined') return true;
+            // Player đã ended hoặc đã đạt max_phase
+            if (p.status === 'ended') return true;
+            // Kiểm tra current_phase >= max_phase
+            const maxPhase = p.max_phase || 7;
+            const currentPhase = p.current_phase || 0;
+            return currentPhase >= maxPhase;
+        });
         
+        // Nếu tất cả đã kết thúc và phòng chưa đánh dấu ended
         if (allPlayersEnded && !room.ended) {
             room.ended = true;
+            onGameEnded();
             showLeaderboardModal();
         }
         
-        updateDisplay();
     } catch (e) {
         console.warn('Poll error:', e.message);
     }
