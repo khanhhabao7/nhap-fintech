@@ -725,73 +725,147 @@
         }
 
         // ─── RUN NEXT PHASE ───────────────────────────────────────────────────
-        async function runPhase() {
-            if (!room) return;
-            const btn = document.getElementById('runPhaseBtn');
-            btn.disabled    = true;
-            btn.textContent = '⏳ Running…';
-            try {
-                room = await apiPost(`/rooms/${room.id}/run-phase`);
-                const latestLog = (room.logs || [])[0] || `Phase ${room.current_phase} completed`;
-                recordSnapshot(room.current_phase, latestLog);
-                updateDisplay();
-                if (room.ended) {
-                    onGameEnded();
-                    showLeaderboardModal();
-                }
-            } catch (e) {
-                alert('❌ ' + e.message);
-            } finally {
-                btn.disabled    = false;
-                btn.textContent = '▶ RUN NEXT PHASE';
-            }
+async function runPhase() {
+    if (!room) return;
+    const btn = document.getElementById('runPhaseBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Running…';
+    try {
+        // Sửa endpoint từ /run-phase thành /next-phase
+        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/next-phase`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || err.error || `HTTP ${response.status}`);
         }
+        
+        const result = await response.json();
+        
+        // Cập nhật room state
+        room.current_phase = result.phase || (room.current_phase + 1);
+        
+        // Lấy lại thông tin room mới nhất
+        await pollRoom();
+        
+        // Ghi nhận snapshot
+        recordSnapshot(room.current_phase, `Phase ${room.current_phase} completed`);
+        
+        updateDisplay();
+        
+        if (room.ended) {
+            onGameEnded();
+            showLeaderboardModal();
+        }
+    } catch (e) {
+        console.error('Run phase error:', e);
+        alert('❌ ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '▶ RUN NEXT PHASE';
+    }
+}
 
         // ─── END GAME ─────────────────────────────────────────────────────────
-        async function endGame() {
-            if (!room || room.ended) return;
-            if (!confirm('End the game now? This cannot be undone.')) return;
-            try {
-                room = await apiPost(`/rooms/${room.id}/end-game`);
-                recordSnapshot(room.current_phase, 'Game ended by teacher');
-                onGameEnded();
-                updateDisplay();
-                showLeaderboardModal();
-            } catch (e) {
-                alert('❌ ' + e.message);
-            }
+async function endGame() {
+    if (!room || room.ended) return;
+    if (!confirm('End the game now? This cannot be undone.')) return;
+    
+    const btn = document.getElementById('endGameBtn');
+    btn.disabled = true;
+    
+    try {
+        // Sửa endpoint từ /end-game thành /end
+        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/end`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || err.error || `HTTP ${response.status}`);
         }
+        
+        await response.json();
+        
+        room.ended = true;
+        recordSnapshot(room.current_phase, 'Game ended by teacher');
+        onGameEnded();
+        updateDisplay();
+        showLeaderboardModal();
+    } catch (e) {
+        console.error('End game error:', e);
+        alert('❌ ' + e.message);
+    } finally {
+        btn.disabled = false;
+    }
+}
 
         // ─── RESET GAME ───────────────────────────────────────────────────────
-        async function resetGame() {
-            if (!room) return;
-            if (!confirm('Reset the entire game? All player progress will be lost.')) return;
-            try {
-                room = await apiPost(`/rooms/${room.id}/reset-game`);
-                phaseSnapshots = [];
-                recordSnapshot(room.current_phase, 'Game has been RESET! Starting over.');
-                setGameButtonsDisabled(false);
-                document.getElementById('gameStatus').innerHTML  = 'IN PROGRESS';
-                document.getElementById('gameStatus').className  = 'success';
-                updateDisplay();
-                startAutoUpdate();
-                alert('✅ Game reset!');
-            } catch (e) {
-                alert('❌ ' + e.message);
-            }
+async function resetGame() {
+    if (!room) return;
+    if (!confirm('Reset the entire game? All player progress will be lost.')) return;
+    
+    try {
+        // Sửa endpoint từ /reset-game thành /reset
+        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/reset`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || err.error || `HTTP ${response.status}`);
         }
+        
+        await response.json();
+        
+        // Lấy lại thông tin room mới
+        await pollRoom();
+        
+        phaseSnapshots = [];
+        recordSnapshot(room.current_phase, 'Game has been RESET! Starting over.');
+        setGameButtonsDisabled(false);
+        document.getElementById('gameStatus').innerHTML = 'IN PROGRESS';
+        document.getElementById('gameStatus').className = 'success';
+        updateDisplay();
+        startAutoUpdate();
+        alert('✅ Game reset!');
+    } catch (e) {
+        console.error('Reset game error:', e);
+        alert('❌ ' + e.message);
+    }
+}
 
         // ─── RESET CURRENT PHASE ──────────────────────────────────────────────
-        async function resetCurrentPhase() {
-            if (!room) return;
-            try {
-                room = await apiPost(`/rooms/${room.id}/reset-phase`);
-                updateDisplay();
-                alert('✅ Current phase reset!');
-            } catch (e) {
-                alert('❌ ' + e.message);
-            }
+async function resetCurrentPhase() {
+    if (!room) return;
+    
+    try {
+        // Endpoint này đúng rồi, giữ nguyên
+        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/reset-phase`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || err.error || `HTTP ${response.status}`);
         }
+        
+        const result = await response.json();
+        
+        // Cập nhật phase
+        room.current_phase = result.phase;
+        updateDisplay();
+        alert('✅ Current phase reset!');
+    } catch (e) {
+        console.error('Reset phase error:', e);
+        alert('❌ ' + e.message);
+    }
+}
 
         // ─── AUTO-POLL ────────────────────────────────────────────────────────
         async function pollRoom() {
