@@ -1690,14 +1690,25 @@
             }
             // Initialize rules sidebar
             initRulesSidebar();
+// ===== THÊM HÀM NÀY TRƯỚC =====
+function updateDisplay() {
+    console.log("Updating player display...");
+    // Cập nhật giao diện người chơi ở đây
+    // Ví dụ: cập nhật funding, hype, transparency, hand cards, v.v.
+    if (myPlayer) {
+        document.getElementById('funding').innerText = (myPlayer.fundingProgress * 100).toFixed(1);
+        document.getElementById('hype').innerText = myPlayer.hype;
+        document.getElementById('transparency').innerText = myPlayer.transparency;
+        // ... các cập nhật khác
+    }
+}
 
-            // Override relevant functions to update rules button visibility
-            const originalUpdateDisplay = updateDisplay;
-            updateDisplay = function () {
-                originalUpdateDisplay();
-                updateRulesButtonVisibility();
-            };
-
+// ===== SAU ĐÓ MỚI OVERRIDE =====
+const originalUpdateDisplay = updateDisplay;
+updateDisplay = function() {
+    originalUpdateDisplay();
+    updateRulesButtonVisibility();
+};
             const originalCloseLeaderboardModal = closeLeaderboardModal;
             closeLeaderboardModal = function () {
                 if (originalCloseLeaderboardModal) originalCloseLeaderboardModal();
