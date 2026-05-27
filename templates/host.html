@@ -1,81 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Startup Game - Host Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+
+        body {
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #fce4ec 0%, #e1d5e7 50%, #c5d9f0 100%);
             color: #1e1b2b;
-            padding: 20px; 
+            padding: 20px;
             min-height: 100vh;
         }
+
         .container { max-width: 1200px; margin: auto; }
-        .panel { 
+
+        .panel {
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
             border-radius: 1.5rem;
-            padding: 20px; 
+            padding: 20px;
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
         }
-        button { 
+
+        button {
             background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff);
-            color: white; 
-            border: none; 
-            padding: 10px 24px; 
-            border-radius: 40px; 
-            cursor: pointer; 
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
             font-size: 16px;
             font-weight: 600;
             margin-top: 10px;
             transition: all 0.25s;
         }
-        button:hover { 
+
+        button:hover {
             background: linear-gradient(95deg, #ff80ab, #c47eff, #7eaeff);
             transform: scale(0.98);
             box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
         }
+
         button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        input, select { 
+
+        input, select {
             background-color: rgba(255, 255, 255, 0.9);
             border: 1px solid #c9b1e6;
-            padding: 8px 12px; 
-            border-radius: 12px; 
-            color: #1e1b2b; 
+            padding: 8px 12px;
+            border-radius: 12px;
+            color: #1e1b2b;
             margin: 0 5px;
         }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #b77eff;
-        }
-        .rankings { 
-            display: grid; 
-            gap: 12px; 
-            margin-top: 15px; 
-        }
-        .rank-card { 
+
+        input:focus, select:focus { outline: none; border-color: #b77eff; }
+
+        .rankings { display: grid; gap: 12px; margin-top: 15px; }
+
+        .rank-card {
             background: rgba(255, 255, 255, 0.75);
-            border-radius: 1rem; 
-            padding: 12px; 
+            border-radius: 1rem;
+            padding: 12px;
             border-left: 4px solid #ec4899;
             transition: all 0.2s;
         }
-        .player-card-joined { 
-            background: rgba(34, 197, 94, 0.15);
-            border-left-color: #22c55e;
-        }
-        .player-card-not-joined {
-            background: #ffffffdd;
-            border-left-color: #94a3b8;
-        }
-        .player-card-ended {
-            background: rgba(245, 158, 11, 0.15);
-            border-left-color: #f59e0b;
-        }
+
+        .player-card-joined  { background: rgba(34, 197, 94, 0.15); border-left-color: #22c55e; }
+        .player-card-not-joined { background: #ffffffdd; border-left-color: #94a3b8; }
+        .player-card-ended   { background: rgba(245, 158, 11, 0.15); border-left-color: #f59e0b; }
+
         .player-join-tag {
             display: inline-block;
             margin-left: 10px;
@@ -84,14 +81,10 @@
             font-size: 12px;
             font-weight: 700;
         }
-        .player-join-tag.joined {
-            background: #16a34a;
-            color: #ecfdf5;
-        }
-        .player-join-tag.waiting {
-            background: #cbd5e1;
-            color: #1e293b;
-        }
+
+        .player-join-tag.joined  { background: #16a34a; color: #ecfdf5; }
+        .player-join-tag.waiting { background: #cbd5e1; color: #1e293b; }
+
         .join-status-tag {
             display: inline-flex;
             align-items: center;
@@ -101,22 +94,15 @@
             font-size: 12px;
             font-weight: 600;
         }
-        .player-funding {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f59e0b;
-            margin-bottom: 6px;
-        }
-        .player-funding span {
-            color: #1e1b2b;
-            font-weight: 600;
-        }
-        .player-metric-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 10px 0 8px;
-        }
+
+        .join-status-tag.joined  { background: #16a34a; color: #ecfdf5; }
+        .join-status-tag.waiting { background: #cbd5e1; color: #1e293b; }
+
+        .player-funding { font-size: 18px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; }
+        .player-funding span { color: #1e1b2b; font-weight: 600; }
+
+        .player-metric-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 8px; }
+
         .metric-tag {
             display: inline-flex;
             align-items: center;
@@ -129,64 +115,44 @@
             color: #4a2b7a;
             border: 1px solid #e2c6ff;
         }
-        .metric-tag.hype-tag { background: rgba(59, 130, 246, 0.15); color: #2563eb; border-color: rgba(59, 130, 246, 0.3); }
-        .metric-tag.transparency-tag { background: rgba(16, 185, 129, 0.12); color: #059669; border-color: rgba(16, 185, 129, 0.3); }
-        .metric-tag.score-tag { background: rgba(168, 85, 247, 0.12); color: #7c3aed; border-color: rgba(168, 85, 247, 0.3); }
-        .metric-tag.status-tag { background: rgba(148, 163, 184, 0.14); color: #475569; border-color: rgba(148, 163, 184, 0.3); }
-        .funding-bar {
-            width: 100%;
-            height: 10px;
-            background: #e2d4f0;
-            border-radius: 999px;
-            overflow: hidden;
-            margin-top: 6px;
-        }
-        .funding-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #facc15 0%, #f59e0b 100%);
-            border-radius: 999px;
-        }
-        .join-status-tag.joined {
-            background: #16a34a;
-            color: #ecfdf5;
-        }
-        .join-status-tag.waiting {
-            background: #cbd5e1;
-            color: #1e293b;
-        }
-        .logs { 
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 1rem; 
-            padding: 12px; 
-            max-height: 300px; 
-            overflow-y: auto; 
-            font-family: monospace; 
-            font-size: 13px; 
+
+        .metric-tag.hype-tag         { background: rgba(59,130,246,0.15); color: #2563eb; border-color: rgba(59,130,246,0.3); }
+        .metric-tag.transparency-tag { background: rgba(16,185,129,0.12); color: #059669; border-color: rgba(16,185,129,0.3); }
+        .metric-tag.score-tag        { background: rgba(168,85,247,0.12);  color: #7c3aed; border-color: rgba(168,85,247,0.3); }
+        .metric-tag.status-tag       { background: rgba(148,163,184,0.14); color: #475569; border-color: rgba(148,163,184,0.3); }
+
+        .funding-bar { width: 100%; height: 10px; background: #e2d4f0; border-radius: 999px; overflow: hidden; margin-top: 6px; }
+        .funding-bar-fill { height: 100%; background: linear-gradient(90deg, #facc15 0%, #f59e0b 100%); border-radius: 999px; }
+
+        .logs {
+            background: rgba(0,0,0,0.05);
+            border-radius: 1rem;
+            padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
             margin-top: 15px;
             border: 1px solid #e2d4f0;
         }
+
         .flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-        .link-item { 
-            background: rgba(255, 255, 255, 0.6);
-            padding: 10px; 
-            border-radius: 12px; 
-            margin-bottom: 8px; 
-            word-break: break-all; 
-        }
+
+        .link-item { background: rgba(255,255,255,0.6); padding: 10px; border-radius: 12px; margin-bottom: 8px; word-break: break-all; }
+
         .success { color: #16a34a; font-weight: 600; }
-        .error { color: #dc2626; font-weight: 600; }
+        .error   { color: #dc2626; font-weight: 600; }
+
         .section-panel {
-            background: rgba(255, 255, 255, 0.7);
+            background: rgba(255,255,255,0.7);
             border-radius: 1rem;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid rgba(210, 180, 255, 0.5);
+            border: 1px solid rgba(210,180,255,0.5);
         }
-        .section-panel h3 {
-            margin-bottom: 14px;
-            color: #2e1a47;
-            font-weight: 700;
-        }
+
+        .section-panel h3 { margin-bottom: 14px; color: #2e1a47; font-weight: 700; }
+
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -195,29 +161,20 @@
             margin-bottom: 16px;
             color: #2e1a47;
         }
-        .section-header span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        h2 {
-            color: #2e1a47;
-        }
+
+        .section-header span { display: inline-flex; align-items: center; gap: 6px; }
+
+        h2 { color: #2e1a47; }
+
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #edd9ff; border-radius: 20px; }
         ::-webkit-scrollbar-thumb { background: #a569e6; border-radius: 20px; }
 
         /* Leaderboard & End Game Styles */
-        .leaderboard-container {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        .leaderboard-category {
-            margin-bottom: 24px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.6);
-        }
+        .leaderboard-container { max-height: 500px; overflow-y: auto; }
+
+        .leaderboard-category { margin-bottom: 24px; border-radius: 16px; overflow: hidden; background: rgba(255,255,255,0.6); }
+
         .category-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -228,41 +185,28 @@
             justify-content: space-between;
             align-items: center;
         }
-        .category-header.small { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e1b2b; }
+
+        .category-header.small  { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e1b2b; }
         .category-header.medium { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #1e1b2b; }
-        .category-header.large { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #1e1b2b; }
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        .category-header.large  { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #1e1b2b; }
+
+        .leaderboard-table { width: 100%; border-collapse: collapse; }
+
         .leaderboard-table th,
-        .leaderboard-table td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .leaderboard-table th {
-            background: rgba(0, 0, 0, 0.05);
-            font-weight: 600;
-            color: #2e1a47;
-        }
-        .leaderboard-table tr:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-        .rank-1 { background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), transparent); font-weight: bold; }
-        .rank-2 { background: linear-gradient(90deg, rgba(192, 192, 192, 0.2), transparent); }
-        .rank-3 { background: linear-gradient(90deg, rgba(205, 127, 50, 0.2), transparent); }
-        .funding-amount {
-            font-weight: 600;
-            color: #f59e0b;
-        }
+        .leaderboard-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.1); }
+
+        .leaderboard-table th { background: rgba(0,0,0,0.05); font-weight: 600; color: #2e1a47; }
+        .leaderboard-table tr:hover { background: rgba(255,255,255,0.5); }
+
+        .rank-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); font-weight: bold; }
+        .rank-2 { background: linear-gradient(90deg, rgba(192,192,192,0.2), transparent); }
+        .rank-3 { background: linear-gradient(90deg, rgba(205,127,50,0.2), transparent); }
+
+        .funding-amount { font-weight: 600; color: #f59e0b; }
+
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
             backdrop-filter: blur(5px);
             z-index: 1000;
             display: flex;
@@ -270,6 +214,7 @@
             justify-content: center;
             animation: fadeIn 0.3s ease;
         }
+
         .modal-content {
             background: white;
             border-radius: 24px;
@@ -278,13 +223,15 @@
             max-height: 85vh;
             overflow-y: auto;
             padding: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
             animation: slideUp 0.3s ease;
         }
+
         @keyframes slideUp {
             from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            to   { transform: translateY(0);    opacity: 1; }
         }
+
         .close-modal {
             float: right;
             background: #ef4444;
@@ -296,10 +243,10 @@
             font-size: 14px;
             margin-top: -10px;
         }
-        .close-modal:hover {
-            background: #dc2626;
-        }
-        /* Game Rules Sidebar Styles */
+
+        .close-modal:hover { background: #dc2626; }
+
+        /* Game Rules Sidebar */
         .rules-button {
             position: fixed;
             bottom: 24px;
@@ -313,20 +260,18 @@
             border-radius: 28px;
             font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .rules-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-        }
+
+        .rules-button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
+
         .rules-sidebar {
             position: fixed;
-            top: 0;
-            right: -500px;
+            top: 0; right: -500px;
             width: 500px;
             max-width: 90vw;
             height: 100vh;
@@ -334,13 +279,13 @@
             color: #f0f0f0;
             z-index: 1000;
             transition: right 0.3s ease;
-            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+            box-shadow: -5px 0 30px rgba(0,0,0,0.3);
             overflow-y: auto;
             font-family: 'Inter', sans-serif;
         }
-        .rules-sidebar.open {
-            right: 0;
-        }
+
+        .rules-sidebar.open { right: 0; }
+
         .rules-sidebar-header {
             padding: 24px;
             background: linear-gradient(135deg, #ec4899, #8b5cf6);
@@ -351,102 +296,44 @@
             top: 0;
             z-index: 10;
         }
-        .rules-sidebar-header h2 {
-            color: white;
-            margin: 0;
-            font-size: 1.5rem;
-        }
+
+        .rules-sidebar-header h2 { color: white; margin: 0; font-size: 1.5rem; }
+
         .close-rules {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255,255,255,0.2);
             border: none;
             color: white;
             font-size: 28px;
             cursor: pointer;
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
         }
-        .close-rules:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-        .rules-sidebar-content {
-            padding: 24px;
-        }
-        .rules-sidebar-content h3 {
-            color: #f472b6;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-size: 1.25rem;
-        }
-        .rules-sidebar-content h4 {
-            color: #a78bfa;
-            margin-top: 15px;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-        .rules-sidebar-content p, 
-        .rules-sidebar-content li {
-            color: #e0e0e0;
-            line-height: 1.6;
-            font-size: 0.9rem;
-        }
-        .rules-sidebar-content ul, 
-        .rules-sidebar-content ol {
-            padding-left: 20px;
-            margin: 10px 0;
-        }
-        .rules-sidebar-content li {
-            margin: 6px 0;
-        }
-        .rules-sidebar-content .highlight {
-            background: rgba(236, 72, 153, 0.2);
-            padding: 2px 6px;
-            border-radius: 6px;
-            color: #f472b6;
-            font-weight: 600;
-        }
+
+        .close-rules:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+
+        .rules-sidebar-content { padding: 24px; }
+        .rules-sidebar-content h3 { color: #f472b6; margin-top: 20px; margin-bottom: 10px; font-size: 1.25rem; }
+        .rules-sidebar-content h4 { color: #a78bfa; margin-top: 15px; margin-bottom: 8px; font-size: 1rem; }
+        .rules-sidebar-content p, .rules-sidebar-content li { color: #e0e0e0; line-height: 1.6; font-size: 0.9rem; }
+        .rules-sidebar-content ul, .rules-sidebar-content ol { padding-left: 20px; margin: 10px 0; }
+        .rules-sidebar-content li { margin: 6px 0; }
+        .rules-sidebar-content .highlight { background: rgba(236,72,153,0.2); padding: 2px 6px; border-radius: 6px; color: #f472b6; font-weight: 600; }
+
         .rules-sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
             z-index: 998;
             display: none;
         }
-        .rules-sidebar-overlay.show {
-            display: block;
-        }
-        .api-status-bar {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        .api-status-bar.connected { background: rgba(34,197,94,0.15); color: #16a34a; border: 1px solid #bbf7d0; }
-        .api-status-bar.error { background: rgba(239,68,68,0.1); color: #dc2626; border: 1px solid #fecaca; }
-        .api-status-bar.loading { background: rgba(234,179,8,0.1); color: #b45309; border: 1px solid #fde68a; }
-        .spinner {
-            display: inline-block;
-            width: 14px; height: 14px;
-            border: 2px solid rgba(0,0,0,0.15);
-            border-top-color: #9333ea;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .rules-sidebar-overlay.show { display: block; }
     </style>
 </head>
+
 <body>
     <!-- Game Rules Sidebar -->
     <button class="rules-button" id="rulesButton" style="display: none;">📖</button>
@@ -458,15 +345,22 @@
         </div>
         <div class="rules-sidebar-content">
             <h3>1. Overview</h3>
-            <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the most attractive project. Each player creates a startup, chooses a custom deck of cards, and navigates random events. Investors (our system) decide where to put their money. The host controls the game flow. After several rounds (phases), a final score determines the winner.</p>
+            <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the most
+                attractive project. Each player creates a startup, chooses a custom deck of cards, and navigates random
+                events. Investors (our system) decide where to put their money. The host controls the game flow. After
+                several rounds (phases), a final score determines the winner.</p>
 
             <h3>2. Setup</h3>
             <h4>2.1 Host creates a room</h4>
-            <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create Room</span>. The system generates unique join links – one per player. The host sends each link to the corresponding player.</p>
-            
+            <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create Room</span>. The
+                system generates unique join links – one per player. The host sends each link to the corresponding
+                player.</p>
+
             <h4>2.2 Players enter project details</h4>
-            <p>Each player opens their link and fills in the required information about their startup (price, costs, production forecast, capital structure, etc.). All fields have reasonable limits to keep the game balanced.</p>
-            
+            <p>Each player opens their link and fills in the required information about their startup (price, costs,
+                production forecast, capital structure, etc.). All fields have reasonable limits to keep the game
+                balanced.</p>
+
             <h4>2.3 Players build their deck</h4>
             <p>After submitting the project, each player selects:</p>
             <ul>
@@ -477,9 +371,11 @@
                         <li><span class="highlight">Capital</span>: affects funding, trust, or financial structure.</li>
                     </ul>
                 </li>
-                <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a specific condition is met.</li>
+                <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a specific
+                    condition is met.</li>
             </ul>
-            <p><em>Note: Cards are selected by clicking on them (no "highlight" step). The host decides when the deck selection phase ends and the game starts.</em></p>
+            <p><em>Note: Cards are selected by clicking on them (no "highlight" step). The host decides when the deck
+                    selection phase ends and the game starts.</em></p>
 
             <h3>3. Game Flow – Phases</h3>
             <p>The number of phases depends on the chosen scale:</p>
@@ -489,12 +385,18 @@
                 <li>Large → 9 phases</li>
             </ul>
             <p>The host controls the progression: after each phase, the host decides when to move to the next one.</p>
-            
+
             <h4>During a phase:</h4>
-            <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including market, internal, external, or regulatory events.</p>
-            
-            <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their deck. They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and then clicking the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new cards) – costs 1 energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards that are triggered will appear as clickable buttons; they can be used at any time during the phase (each only once). The host decides when the phase ends and proceeds to the next one.</p>
-            
+            <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including market,
+                internal, external, or regulatory events.</p>
+
+            <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their deck.
+                They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and then clicking
+                the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new cards) – costs 1
+                energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards that are triggered will
+                appear as clickable buttons; they can be used at any time during the phase (each only once). The host
+                decides when the phase ends and proceeds to the next one.</p>
+
             <p><strong>c. Host runs the phase</strong><br>When the host clicks Run Phase, the system:</p>
             <ul>
                 <li>Applies all played cards and event effects.</li>
@@ -502,19 +404,25 @@
                 <li>Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random) evaluate all active projects.</li>
                 <li>Bots may withdraw money from less attractive projects.</li>
                 <li>Bots may invest new money into attractive projects (softmax distribution).</li>
-                <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that performed poorly before may struggle to regain trust.</li>
+                <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that performed
+                    poorly before may struggle to regain trust.</li>
                 <li>The phase ends. If a project runs out of cash, it goes bankrupt and is eliminated.</li>
             </ul>
 
             <h3>4. End of Game &amp; Winner</h3>
-            <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt). The host sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The score takes into account funding progress, speed, expected ROI, transparency, and a penalty for unrealistic valuation. The project with the highest score wins.</p>
+            <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt). The host
+                sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The score takes into
+                account funding progress, speed, expected ROI, transparency, and a penalty for unrealistic valuation.
+                The project with the highest score wins.</p>
 
             <h3>5. Quick Tips</h3>
             <ul>
                 <li>Balance Aggressive (Hype) and Defensive (Transparency) cards – too much hype hurts credibility.</li>
                 <li>Save energy for impactful cards; don't waste it on weak effects.</li>
-                <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g., bot withdrawals, bad events).</li>
-                <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale, capital efficiency, leverage) – build a solid financial foundation to attract them.</li>
+                <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g., bot
+                    withdrawals, bad events).</li>
+                <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale, capital
+                    efficiency, leverage) – build a solid financial foundation to attract them.</li>
             </ul>
         </div>
     </div>
@@ -522,9 +430,6 @@
     <div class="container">
         <div class="panel">
             <h2>✨ Fun(d) raising - When you have funds you have fun ✨</h2>
-            <div id="apiStatusBar" class="api-status-bar loading">
-                <span class="spinner"></span> Connecting to backend...
-            </div>
         </div>
 
         <!-- ROOM SETUP -->
@@ -535,13 +440,14 @@
                 <input type="text" id="roomName" placeholder="Enter room name">
                 <label style="color:#2e1a47; font-weight:600;">Number of players:</label>
                 <input type="number" id="numPlayers" min="2" max="10" value="4">
-                <button onclick="createRoom()" id="createRoomBtn">🚀 CREATE ROOM</button>
+                <button id="createRoomBtn" onclick="createRoom()">🚀 CREATE ROOM</button>
             </div>
+            <div id="createRoomError" style="color:#dc2626; margin-top:10px; display:none;"></div>
         </div>
 
         <!-- GAME PANEL -->
         <div class="panel" id="gamePanel" style="display:none;">
-            <h2>🏠 <span id="roomNameDisplay">Game Room</span> - Room: <span id="roomId">---</span></h2>
+            <h2>🏠 <span id="roomNameDisplay">Game Room</span> - Room: <span id="roomId">—</span></h2>
 
             <div class="section-panel">
                 <h3>🏁 Game Room</h3>
@@ -557,8 +463,8 @@
             <div class="section-panel">
                 <h3>⏱️ Game Progress</h3>
                 <div class="section-header">
-                    <span>👥 <strong><span id="playerCount">0</span> / <span id="maxPlayers">?</span></strong> joined</span>
-                    <span>🕒 Phase: <strong><span id="currentPhase">1</span></strong> / <strong><span id="maxPhase">7</span></strong></span>
+                    <span>👥 <strong><span id="playerCount">0</span> / <span id="maxPlayers">—</span></strong> joined</span>
+                    <span>🕒 Phase: <strong><span id="currentPhase">—</span></strong> / <strong><span id="maxPhase">—</span></strong></span>
                     <span>🎯 Status: <strong><span id="gameStatus" class="success">IN PROGRESS</span></strong></span>
                 </div>
                 <div class="flex" style="gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
@@ -581,540 +487,508 @@
             </div>
 
             <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
-                <button onclick="runNextPhase()" id="runPhaseBtn">▶ RUN NEXT PHASE</button>
-                <button onclick="resetCurrentPhase()" id="resetCurrentPhaseBtn" style="background: linear-gradient(95deg, #fbbf24, #f59e0b);">🔄 RESET CURRENT PHASE</button>
-                <button onclick="endGame()" id="endGameBtn" style="background: linear-gradient(95deg, #ef4444, #dc2626);">⛔ END GAME</button>
+                <button onclick="runPhase()" id="runPhaseBtn">▶ RUN NEXT PHASE</button>
+                <button onclick="resetCurrentPhase()" id="resetCurrentPhaseBtn"
+                    style="background: linear-gradient(95deg, #fbbf24, #f59e0b);">🔄 RESET CURRENT PHASE</button>
+                <button onclick="endGame()" id="endGameBtn"
+                    style="background: linear-gradient(95deg, #ef4444, #dc2626);">⛔ END GAME</button>
                 <button onclick="resetGame()" id="resetGameBtn">🔄 RESET GAME</button>
             </div>
         </div>
     </div>
 
     <div style="position: fixed; bottom: 16px; right: 16px; z-index: 50;">
-        <button onclick="toggleView()" style="background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff); padding: 10px 20px; border-radius: 40px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; border: none; color: white; font-weight: 600;">
+        <button onclick="toggleView()"
+            style="background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff); padding: 10px 20px; border-radius: 40px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; border: none; color: white; font-weight: 600;">
             <span>👤</span> Switch to Player View
         </button>
     </div>
 
-<script>
-    // ─── CONFIG ────────────────────────────────────────────────────────────────
-    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-        ? `http://${window.location.hostname}:5000`
-        : window.location.origin;
+    <script>
+        // ─── CONFIG ────────────────────────────────────────────────────────────
+        const API_BASE_URL = window.location.origin + '/api';
 
-    // ─── STATE ─────────────────────────────────────────────────────────────────
-    let currentRoom = null;       // full room object from backend
-    let phaseHistory = [];        // [{phase, date, event, summary, players}]
-    let autoUpdateInterval = null;
+        // ─── STATE ────────────────────────────────────────────────────────────
+        let room = null;            // live room object from backend
+        let phaseSnapshots = [];    // local history: [{phase, date, event, summary, players}]
+        let autoUpdateInterval = null;
 
-    // ─── API HELPERS ───────────────────────────────────────────────────────────
-    async function apiFetch(path, options = {}) {
-        const res = await fetch(`${API_BASE}${path}`, {
-            headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-            ...options
-        });
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: res.statusText }));
-            throw new Error(err.error || `HTTP ${res.status}`);
-        }
-        return res.json();
-    }
-
-    async function apiGet(path) { return apiFetch(path); }
-    async function apiPost(path, body) { return apiFetch(path, { method: 'POST', body: JSON.stringify(body) }); }
-
-    // ─── BACKEND HEALTH CHECK ──────────────────────────────────────────────────
-    async function checkBackendConnection() {
-        const bar = document.getElementById('apiStatusBar');
-        try {
-            await apiGet('/health');
-            bar.className = 'api-status-bar connected';
-            bar.innerHTML = '✅ Connected to backend';
-        } catch {
-            bar.className = 'api-status-bar error';
-            bar.innerHTML = '❌ Cannot reach backend at ' + API_BASE + ' — check the server is running.';
-        }
-    }
-
-    // ─── CREATE ROOM ───────────────────────────────────────────────────────────
-    async function createRoom() {
-        const roomName = document.getElementById('roomName').value.trim() || 'Game Room';
-        const numPlayers = parseInt(document.getElementById('numPlayers').value);
-        const btn = document.getElementById('createRoomBtn');
-        btn.disabled = true;
-        btn.textContent = '⏳ Creating…';
-        try {
-            const data = await apiPost('/rooms', { name: roomName, num_players: numPlayers });
-            currentRoom = data;
-            phaseHistory = [];
-            if (data.phase_history) phaseHistory = data.phase_history;
-
-            document.getElementById('roomId').innerText = data.id;
-            document.getElementById('roomNameDisplay').innerText = data.name;
-            document.getElementById('maxPlayers').innerText = data.num_players;
-            document.getElementById('setupPanel').style.display = 'none';
-            document.getElementById('gamePanel').style.display = 'block';
-
-            addPhaseSnapshot(1, 'Room created and game initialized');
-            updateDisplay();
-            startAutoUpdate();
-        } catch (e) {
-            alert('❌ Failed to create room: ' + e.message);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = '🚀 CREATE ROOM';
-        }
-    }
-
-    // ─── FETCH ROOM STATE ──────────────────────────────────────────────────────
-    async function fetchRoomState() {
-        if (!currentRoom) return;
-        try {
-            const data = await apiGet(`/rooms/${currentRoom.id}`);
-            const prevPhase = currentRoom.current_phase;
-            currentRoom = data;
-            if (data.current_phase > prevPhase) {
-                const logs = data.logs || [];
-                const latestEvent = logs.length ? logs[0] : `Phase ${data.current_phase} started`;
-                addPhaseSnapshot(data.current_phase, latestEvent);
+        // ─── API HELPERS ──────────────────────────────────────────────────────
+        async function apiGet(path) {
+            const res = await fetch(API_BASE_URL + path);
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || err.error || `HTTP ${res.status}`);
             }
-            updateDisplay();
-        } catch (e) {
-            console.warn('Poll error:', e.message);
+            return res.json();
         }
-    }
 
-    // ─── RUN NEXT PHASE ────────────────────────────────────────────────────────
-    async function runNextPhase() {
-        if (!currentRoom) return;
-        const btn = document.getElementById('runPhaseBtn');
-        btn.disabled = true;
-        btn.textContent = '⏳ Running…';
-        try {
-            const data = await apiPost(`/rooms/${currentRoom.id}/phase/next`, {});
-            currentRoom = data;
-            const logs = data.logs || [];
-            const latestEvent = logs.length ? logs[0] : `Phase ${data.current_phase} completed`;
-            addPhaseSnapshot(data.current_phase, latestEvent);
-            updateDisplay();
-            if (data.ended) {
-                setGameButtonsDisabled(true);
-                document.getElementById('gameStatus').innerHTML = 'ENDED';
-                document.getElementById('gameStatus').className = 'error';
-                showLeaderboardModal();
+        async function apiPost(path, body = {}) {
+            const res = await fetch(API_BASE_URL + path, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || err.error || `HTTP ${res.status}`);
             }
-        } catch (e) {
-            alert('❌ Failed to run phase: ' + e.message);
-        } finally {
-            btn.disabled = false;
-            btn.textContent = '▶ RUN NEXT PHASE';
+            return res.json();
         }
-    }
 
-    // ─── END GAME ──────────────────────────────────────────────────────────────
-    async function endGame() {
-        if (!currentRoom) return;
-        if (!confirm('Are you sure you want to end the game now?')) return;
-        try {
-            const data = await apiPost(`/rooms/${currentRoom.id}/end`, {});
-            currentRoom = data;
-            addPhaseSnapshot(data.current_phase, 'Game ended by teacher');
-            setGameButtonsDisabled(true);
-            document.getElementById('gameStatus').innerHTML = 'ENDED';
-            document.getElementById('gameStatus').className = 'error';
-            updateDisplay();
-            showLeaderboardModal();
-        } catch (e) {
-            alert('❌ Failed to end game: ' + e.message);
+        // ─── PHASE SNAPSHOT HELPERS ───────────────────────────────────────────
+        function snapshotPlayers() {
+            return (room.players || []).map(p => ({
+                id: p.id,
+                name: p.name,
+                funding: p.funding ?? 0,
+                hype: p.hype ?? 0,
+                transparency: p.transparency ?? 0,
+                score: p.score ?? 0,
+                status: p.status
+            }));
         }
-    }
 
-    // ─── RESET GAME ────────────────────────────────────────────────────────────
-    async function resetGame() {
-        if (!currentRoom) return;
-        if (!confirm('Reset the entire game? All progress will be lost.')) return;
-        try {
-            const data = await apiPost(`/rooms/${currentRoom.id}/reset`, {});
-            currentRoom = data;
-            phaseHistory = [];
-            addPhaseSnapshot(1, 'Game has been RESET! Starting over from the beginning.');
-            setGameButtonsDisabled(false);
-            document.getElementById('gameStatus').innerHTML = 'IN PROGRESS';
-            document.getElementById('gameStatus').className = 'success';
-            updateDisplay();
-            alert('✅ Game reset!');
-        } catch (e) {
-            alert('❌ Failed to reset game: ' + e.message);
+        function recordSnapshot(phaseNum, eventText) {
+            // Only record once per phase number
+            if (phaseSnapshots.find(s => s.phase === phaseNum)) return;
+            phaseSnapshots.push({
+                phase: phaseNum,
+                date: new Date().toLocaleTimeString(),
+                event: eventText,
+                summary: `Results after phase ${phaseNum}`,
+                players: snapshotPlayers()
+            });
         }
-    }
 
-    // ─── RESET CURRENT PHASE ───────────────────────────────────────────────────
-    async function resetCurrentPhase() {
-        if (!currentRoom) return;
-        try {
-            const data = await apiPost(`/rooms/${currentRoom.id}/phase/reset`, {});
-            currentRoom = data;
-            updateDisplay();
-            alert('✅ Current phase reset!');
-        } catch (e) {
-            alert('❌ Failed to reset phase: ' + e.message);
-        }
-    }
+        // ─── JOIN LINKS ───────────────────────────────────────────────────────
+        function updateJoinLinks() {
+            if (!room || !room.join_links) return;
+            const playersById = {};
+            (room.players || []).forEach(p => { playersById[p.id] = p; });
 
-    // ─── UPDATE DISPLAY ────────────────────────────────────────────────────────
-    function updateDisplay() {
-        if (!currentRoom) return;
-        const room = currentRoom;
+            let html = '<div style="display:grid;gap:8px;">';
+            room.join_links.forEach(link => {
+                const player = playersById[link.player_id];
+                const joined = player && player.status !== 'not_joined';
+                const statusLabel = joined ? 'Joined' : 'Not Joined';
+                const statusClass = joined ? 'joined' : 'waiting';
+                const gameEnded = room.ended || room.current_phase >= room.max_phase;
 
-        document.getElementById('roomNameDisplay').innerText = room.name;
-        const joinedPlayers = (room.players || []).filter(p => p.status !== 'not_joined').length;
-        document.getElementById('playerCount').innerText = joinedPlayers;
-        document.getElementById('maxPlayers').innerText = room.num_players;
-        document.getElementById('currentPhase').innerText = room.current_phase;
-        document.getElementById('maxPhase').innerText = room.max_phase;
-
-        // Leaderboard
-        let rankingsHtml = '';
-        (room.players || []).forEach(player => {
-            const joined = player.status === 'active';
-            const statusIcon = joined ? '🟢' : (player.status === 'ended' ? '🏆' : '⚪');
-            const cardClass = joined ? 'player-card-joined' : (player.status === 'ended' ? 'player-card-ended' : 'player-card-not-joined');
-            const statusLabel = joined ? 'Joined' : (player.status === 'ended' ? 'Finished' : 'Not Joined');
-            rankingsHtml += `
-                <div class="rank-card ${cardClass}">
-                    <h3 style="color:#2e1a47;">${statusIcon} ${player.name}
-                        <span class="player-join-tag ${joined ? 'joined' : 'waiting'}">${statusLabel}</span>
-                    </h3>
-                    <div class="player-funding">💰 Funding: <span>${((player.funding || 0) * 100).toFixed(1)}%</span></div>
-                    <div class="funding-bar"><div class="funding-bar-fill" style="width: ${((player.funding || 0) * 100).toFixed(1)}%;"></div></div>
-                    <div class="player-metric-list">
-                        <span class="metric-tag hype-tag">📈 Hype ${player.hype || 0}</span>
-                        <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency || 0}</span>
-                        <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
-                        <span class="metric-tag status-tag">📌 ${player.status}</span>
-                    </div>
-                </div>
-            `;
-        });
-        document.getElementById('rankings').innerHTML = rankingsHtml;
-
-        // Logs
-        const logs = (room.logs || []);
-        const orderedLogs = logs.slice().reverse();
-        document.getElementById('logsArea').innerHTML = orderedLogs
-            .map((log, index) => `<div style="color:#2e1a47;">📌 ${index + 1}. ${log}</div>`)
-            .join('');
-        const logsDiv = document.getElementById('logsArea');
-        if (logsDiv) logsDiv.scrollTop = logsDiv.scrollHeight;
-
-        updateJoinLinks();
-        refreshPhaseSelect();
-        showPhaseDetails();
-        updateRulesButtonVisibility();
-    }
-
-    // ─── JOIN LINKS ────────────────────────────────────────────────────────────
-    function updateJoinLinks() {
-        if (!currentRoom) return;
-        const room = currentRoom;
-        const joinLinks = room.join_links || [];
-        let linksHtml = '<div style="display: grid; gap: 8px;">';
-        joinLinks.forEach(link => {
-            const player = (room.players || []).find(p => p.id === link.player_index);
-            const joined = player && player.status !== 'not_joined';
-            const statusLabel = joined ? 'Joined' : 'Not Joined';
-            const statusClass = joined ? 'joined' : 'waiting';
-            const fullUrl = link.url || `${API_BASE}/play/${room.id}/${link.player_index}`;
-            linksHtml += `
-                <div style="background: rgba(255, 255, 255, 0.8); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                html += `
+                <div style="background:rgba(255,255,255,0.8);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
                     <div>
-                        <span style="font-weight: bold; color: #db2777;">${link.player_name || ('Player ' + (link.player_index + 1))}</span>
-                        <span style="color: #6b21a5; font-size: 12px; margin-left: 8px;">(Index: ${link.player_index})</span>
-                        <span class="join-status-tag ${statusClass}" style="margin-left: 12px;">${statusLabel}</span>
+                        <span style="font-weight:bold;color:#db2777;">${link.player_name}</span>
+                        <span style="color:#6b21a5;font-size:12px;margin-left:8px;">(Index: ${link.player_index})</span>
+                        <span class="join-status-tag ${statusClass}" style="margin-left:12px;">${statusLabel}</span>
                     </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                        <input type="text" value="${fullUrl}" style="background: #f3e8ff; font-size: 12px; padding: 6px; border-radius: 8px; width: 300px; color: #1e1b2b; border: 1px solid #c9b1e6;" readonly id="link_${link.player_index}">
-                        <button onclick="copyLink('${fullUrl}')" ${room.ended || room.current_phase >= room.max_phase ? 'disabled' : ''} style="background: #ec4899; padding: 6px 12px; border-radius: 8px; font-size: 12px; border: none; color: white; cursor: pointer; margin-top:0;">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                        <input type="text" value="${link.url}" style="background:#f3e8ff;font-size:12px;padding:6px;border-radius:8px;width:300px;color:#1e1b2b;border:1px solid #c9b1e6;" readonly>
+                        <button onclick="copyLink('${link.url}')" ${gameEnded ? 'disabled' : ''} style="background:#ec4899;padding:6px 12px;border-radius:8px;font-size:12px;border:none;color:white;cursor:pointer;margin-top:0;">
                             Copy
                         </button>
                     </div>
-                </div>
-            `;
-        });
-        linksHtml += '</div>';
-        document.getElementById('joinLinksList').innerHTML = linksHtml;
-    }
+                </div>`;
+            });
+            html += '</div>';
+            document.getElementById('joinLinksList').innerHTML = html;
+        }
 
-    function copyLink(link) {
-        navigator.clipboard.writeText(link).then(() => alert(`✅ Link copied:\n${link}`));
-    }
+        // ─── LEADERBOARD CARDS ────────────────────────────────────────────────
+        function updateRankings() {
+            const players = room.players || [];
+            let html = '';
+            players.forEach(player => {
+                const joined   = player.status === 'active';
+                const ended    = player.status === 'ended';
+                const icon     = joined ? '🟢' : (ended ? '🏆' : '⚪');
+                const cardCls  = joined ? 'player-card-joined' : (ended ? 'player-card-ended' : 'player-card-not-joined');
+                const tagCls   = joined ? 'joined' : 'waiting';
+                const label    = joined ? 'Joined' : (ended ? 'Finished' : 'Not Joined');
+                const pct      = ((player.funding ?? 0) * 100).toFixed(1);
+                html += `
+                <div class="rank-card ${cardCls}">
+                    <h3 style="color:#2e1a47;">${icon} ${player.name}
+                        <span class="player-join-tag ${tagCls}">${label}</span>
+                    </h3>
+                    <div class="player-funding">💰 Funding: <span>${pct}%</span></div>
+                    <div class="funding-bar"><div class="funding-bar-fill" style="width:${pct}%;"></div></div>
+                    <div class="player-metric-list">
+                        <span class="metric-tag hype-tag">📈 Hype ${player.hype ?? 0}</span>
+                        <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
+                        <span class="metric-tag score-tag">🏅 Score ${(player.score ?? 0).toFixed(2)}</span>
+                        <span class="metric-tag status-tag">📌 ${player.status}</span>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('rankings').innerHTML = html || '<p style="color:#6b21a5;">No players yet.</p>';
+        }
 
-    // ─── PHASE SNAPSHOTS (local history for phase details viewer) ──────────────
-    function addPhaseSnapshot(phase, eventText) {
-        if (!currentRoom) return;
-        const existing = phaseHistory.find(d => d.phase === phase);
-        if (!existing) {
-            phaseHistory.push({
-                phase,
-                date: new Date().toLocaleTimeString(),
-                event: eventText,
-                summary: `Results after phase ${phase}`,
-                players: (currentRoom.players || []).map(p => ({
-                    id: p.id,
-                    name: p.name,
-                    funding: p.funding || 0,
-                    hype: p.hype || 0,
-                    transparency: p.transparency || 0,
-                    score: p.score || 0,
-                    status: p.status
-                }))
+        // ─── EVENT LOG ────────────────────────────────────────────────────────
+        function updateLogs() {
+            const logs = (room.logs || []).slice().reverse();
+            document.getElementById('logsArea').innerHTML =
+                logs.map((log, i) => `<div style="color:#2e1a47;">📌 ${i + 1}. ${log}</div>`).join('');
+            const el = document.getElementById('logsArea');
+            if (el) el.scrollTop = el.scrollHeight;
+        }
+
+        // ─── PHASE SELECT ─────────────────────────────────────────────────────
+        function refreshPhaseSelect() {
+            const select = document.getElementById('phaseSelect');
+            if (!select || phaseSnapshots.length === 0) return;
+            const prev = select.value;
+            select.innerHTML = phaseSnapshots
+                .map(s => `<option value="${s.phase}">Phase ${s.phase}</option>`)
+                .join('');
+            const still = phaseSnapshots.some(s => s.phase === parseInt(prev, 10));
+            select.value = still ? prev : phaseSnapshots[phaseSnapshots.length - 1].phase;
+        }
+
+        function showPhaseDetails() {
+            const select = document.getElementById('phaseSelect');
+            if (!select || phaseSnapshots.length === 0) return;
+            const snap = phaseSnapshots.find(s => s.phase === parseInt(select.value, 10));
+            const div  = document.getElementById('phaseDetails');
+            if (!snap || !div) return;
+            div.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div><strong style="color:#2e1a47;">Phase ${snap.phase}</strong></div>
+                <div style="color:#6b21a5;">${snap.date}</div>
+            </div>
+            <div style="margin:8px 0;color:#4a2b7a;">${snap.summary}</div>
+            <div style="margin-bottom:12px;"><strong style="color:#2e1a47;">Main Event:</strong> <span style="color:#4a2b7a;">${snap.event}</span></div>
+            <div style="display:grid;gap:10px;">
+                ${snap.players.map(p => `
+                <div style="background:rgba(255,255,240,0.6);padding:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <div style="font-weight:700;color:#2e1a47;">${p.name}</div>
+                        <div style="color:#6b21a5;font-size:13px;margin-top:4px;">${p.status}</div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <span class="metric-tag">💰 ${(p.funding * 100).toFixed(1)}%</span>
+                        <span class="metric-tag hype-tag">📈 ${p.hype}</span>
+                        <span class="metric-tag transparency-tag">🔍 ${p.transparency}</span>
+                        <span class="metric-tag score-tag">🏅 ${p.score.toFixed(2)}</span>
+                    </div>
+                </div>`).join('')}
+            </div>`;
+        }
+
+        // ─── MASTER DISPLAY ───────────────────────────────────────────────────
+        function updateDisplay() {
+            if (!room) return;
+            document.getElementById('roomNameDisplay').innerText = room.name;
+            document.getElementById('roomId').innerText         = room.id;
+            document.getElementById('maxPlayers').innerText     = room.num_players;
+            document.getElementById('currentPhase').innerText   = room.current_phase;
+            document.getElementById('maxPhase').innerText       = room.max_phase;
+
+            const joined = (room.players || []).filter(p => p.status !== 'not_joined').length;
+            document.getElementById('playerCount').innerText = joined;
+
+            updateJoinLinks();
+            updateRankings();
+            updateLogs();
+            refreshPhaseSelect();
+            showPhaseDetails();
+            updateRulesButtonVisibility();
+        }
+
+        // ─── CREATE ROOM ──────────────────────────────────────────────────────
+        async function createRoom() {
+            const name       = document.getElementById('roomName').value.trim() || 'Game Room';
+            const numPlayers = parseInt(document.getElementById('numPlayers').value) || 4;
+            const btn        = document.getElementById('createRoomBtn');
+            const errDiv     = document.getElementById('createRoomError');
+
+            btn.disabled    = true;
+            btn.textContent = '⏳ Creating…';
+            errDiv.style.display = 'none';
+
+            try {
+                room = await apiPost('/rooms', { name, num_players: numPlayers });
+                phaseSnapshots = [];
+                recordSnapshot(room.current_phase, 'Room created and game initialized');
+
+                document.getElementById('setupPanel').style.display = 'none';
+                document.getElementById('gamePanel').style.display  = 'block';
+                updateDisplay();
+                startAutoUpdate();
+            } catch (e) {
+                errDiv.textContent   = '❌ ' + e.message;
+                errDiv.style.display = 'block';
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = '🚀 CREATE ROOM';
+            }
+        }
+
+        // ─── RUN NEXT PHASE ───────────────────────────────────────────────────
+        async function runPhase() {
+            if (!room) return;
+            const btn = document.getElementById('runPhaseBtn');
+            btn.disabled    = true;
+            btn.textContent = '⏳ Running…';
+            try {
+                room = await apiPost(`/rooms/${room.id}/run-phase`);
+                const latestLog = (room.logs || [])[0] || `Phase ${room.current_phase} completed`;
+                recordSnapshot(room.current_phase, latestLog);
+                updateDisplay();
+                if (room.ended) {
+                    onGameEnded();
+                    showLeaderboardModal();
+                }
+            } catch (e) {
+                alert('❌ ' + e.message);
+            } finally {
+                btn.disabled    = false;
+                btn.textContent = '▶ RUN NEXT PHASE';
+            }
+        }
+
+        // ─── END GAME ─────────────────────────────────────────────────────────
+        async function endGame() {
+            if (!room || room.ended) return;
+            if (!confirm('End the game now? This cannot be undone.')) return;
+            try {
+                room = await apiPost(`/rooms/${room.id}/end-game`);
+                recordSnapshot(room.current_phase, 'Game ended by teacher');
+                onGameEnded();
+                updateDisplay();
+                showLeaderboardModal();
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+
+        // ─── RESET GAME ───────────────────────────────────────────────────────
+        async function resetGame() {
+            if (!room) return;
+            if (!confirm('Reset the entire game? All player progress will be lost.')) return;
+            try {
+                room = await apiPost(`/rooms/${room.id}/reset-game`);
+                phaseSnapshots = [];
+                recordSnapshot(room.current_phase, 'Game has been RESET! Starting over.');
+                setGameButtonsDisabled(false);
+                document.getElementById('gameStatus').innerHTML  = 'IN PROGRESS';
+                document.getElementById('gameStatus').className  = 'success';
+                updateDisplay();
+                startAutoUpdate();
+                alert('✅ Game reset!');
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+
+        // ─── RESET CURRENT PHASE ──────────────────────────────────────────────
+        async function resetCurrentPhase() {
+            if (!room) return;
+            try {
+                room = await apiPost(`/rooms/${room.id}/reset-phase`);
+                updateDisplay();
+                alert('✅ Current phase reset!');
+            } catch (e) {
+                alert('❌ ' + e.message);
+            }
+        }
+
+        // ─── AUTO-POLL ────────────────────────────────────────────────────────
+        async function pollRoom() {
+            if (!room) return;
+            try {
+                const updated = await apiGet(`/rooms/${room.id}`);
+                const prevPhase = room.current_phase;
+                room = updated;
+                if (room.current_phase > prevPhase) {
+                    const latestLog = (room.logs || [])[0] || `Phase ${room.current_phase} updated`;
+                    recordSnapshot(room.current_phase, latestLog);
+                }
+                updateDisplay();
+                if (room.ended) {
+                    clearInterval(autoUpdateInterval);
+                    onGameEnded();
+                }
+            } catch (e) {
+                console.warn('Poll error:', e.message);
+            }
+        }
+
+        function startAutoUpdate() {
+            if (autoUpdateInterval) clearInterval(autoUpdateInterval);
+            autoUpdateInterval = setInterval(() => {
+                if (document.getElementById('gamePanel').style.display === 'block' && room && !room.ended) {
+                    pollRoom();
+                }
+            }, 5000);
+        }
+
+        // ─── GAME ENDED HELPERS ───────────────────────────────────────────────
+        function onGameEnded() {
+            clearInterval(autoUpdateInterval);
+            setGameButtonsDisabled(true);
+            document.getElementById('gameStatus').innerHTML = 'ENDED';
+            document.getElementById('gameStatus').className = 'error';
+        }
+
+        function setGameButtonsDisabled(disabled, preserveReset = false) {
+            document.querySelectorAll('#gamePanel button').forEach(btn => {
+                if (preserveReset && btn.id === 'resetGameBtn') return;
+                btn.disabled = disabled;
             });
         }
-    }
 
-    function refreshPhaseSelect() {
-        const select = document.getElementById('phaseSelect');
-        if (!select || phaseHistory.length === 0) return;
-        const currentValue = select.value;
-        select.innerHTML = phaseHistory
-            .map(detail => `<option value="${detail.phase}">Phase ${detail.phase}</option>`)
-            .join('');
-        const preserved = phaseHistory.some(d => d.phase === parseInt(currentValue, 10));
-        select.value = preserved ? currentValue : phaseHistory[phaseHistory.length - 1].phase;
-    }
+        // ─── LEADERBOARD MODAL ────────────────────────────────────────────────
+        function showLeaderboardModal() {
+            const players = room.players || [];
 
-    function showPhaseDetails() {
-        const select = document.getElementById('phaseSelect');
-        if (!select || phaseHistory.length === 0) return;
-        const phase = parseInt(select.value, 10);
-        const detail = phaseHistory.find(d => d.phase === phase);
-        const detailsDiv = document.getElementById('phaseDetails');
-        if (!detail || !detailsDiv) return;
-        detailsDiv.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-                <div><strong style="color:#2e1a47;">Phase ${detail.phase}</strong></div>
-                <div style="color:#6b21a5;">${detail.date}</div>
-            </div>
-            <div style="margin: 8px 0; color: #4a2b7a;">${detail.summary}</div>
-            <div style="margin-bottom: 12px;"><strong style="color:#2e1a47;">Main Event:</strong> <span style="color:#4a2b7a;">${detail.event}</span></div>
-            <div style="display:grid;gap:10px;">
-                ${detail.players.map(player => `
-                    <div style="background:rgba(255,255,240,0.6); padding: 12px; border-radius: 12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap: 8px;">
-                        <div>
-                            <div style="font-weight:700; color:#2e1a47;">${player.name}</div>
-                            <div style="color:#6b21a5; font-size:13px; margin-top:4px;">${player.status}</div>
-                        </div>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <span class="metric-tag">💰 ${(player.funding * 100).toFixed(1)}%</span>
-                            <span class="metric-tag hype-tag">📈 ${player.hype}</span>
-                            <span class="metric-tag transparency-tag">🔍 ${player.transparency}</span>
-                            <span class="metric-tag score-tag">🏅 ${player.score.toFixed(2)}</span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
+            const bySize = {
+                S: { name: '🟢 Small (5 phases)', color: 'small', players: [] },
+                M: { name: '🟠 Medium (7 phases)', color: 'medium', players: [] },
+                L: { name: '🔴 Large (9 phases)', color: 'large', players: [] }
+            };
 
-    // ─── LEADERBOARD MODAL ────────────────────────────────────────────────────
-    function showLeaderboardModal() {
-        const room = currentRoom;
-        const players = room.players || [];
-        const scaleFundingMap = {
-            'S': { min: 100000, max: 200000, default: 150000, name: 'Small (5 phases)', icon: '🟢' },
-            'M': { min: 200000, max: 350000, default: 250000, name: 'Medium (7 phases)', icon: '🟠' },
-            'L': { min: 350000, max: 500000, default: 400000, name: 'Large (9 phases)', icon: '🔴' }
-        };
+            players.forEach(p => {
+                const sz = p.project_size || 'M';
+                (bySize[sz] || bySize.M).players.push(p);
+            });
 
-        // Compute display fields
-        players.forEach(player => {
-            if (!player.projectSize) player.projectSize = 'M';
-            const scaleData = scaleFundingMap[player.projectSize] || scaleFundingMap['M'];
-            const targetAmount = player.custom_target_funding || scaleData.default;
-            player.fundingAmount = targetAmount * (player.funding || 0);
-            player.fundingTarget = targetAmount;
-            player.fundingPercentage = (player.funding || 0) * 100;
-            player.projectTypeName = scaleData.name;
-            player.projectTypeIcon = scaleData.icon;
-        });
+            Object.values(bySize).forEach(cat => {
+                cat.players.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+                cat.players.forEach((p, i) => { p.categoryRank = i + 1; });
+            });
 
-        const playersBySize = {
-            'S': { name: '🟢 Small (5 phases)', players: [], color: 'small' },
-            'M': { name: '🟠 Medium (7 phases)', players: [], color: 'medium' },
-            'L': { name: '🔴 Large (9 phases)', players: [], color: 'large' }
-        };
-
-        players.forEach(player => {
-            const size = player.projectSize || 'M';
-            (playersBySize[size] || playersBySize['M']).players.push(player);
-        });
-
-        Object.keys(playersBySize).forEach(size => {
-            playersBySize[size].players.sort((a, b) => b.score - a.score);
-            playersBySize[size].players.forEach((p, i) => { p.categoryRank = i + 1; });
-        });
-
-        let modalHtml = `
+            let html = `
             <div class="modal-overlay" id="leaderboardModal">
                 <div class="modal-content">
                     <button class="close-modal" onclick="closeLeaderboardModal()">✕ Close</button>
-                    <h2 style="color: #2e1a47; margin-bottom: 20px; text-align: center;">🏆 GAME OVER - FINAL LEADERBOARD 🏆</h2>
-                    <div style="text-align: center; margin-bottom: 20px; color: #6b21a5;">
+                    <h2 style="color:#2e1a47;margin-bottom:20px;text-align:center;">🏆 GAME OVER - FINAL LEADERBOARD 🏆</h2>
+                    <div style="text-align:center;margin-bottom:20px;color:#6b21a5;">
                         📊 Rankings by Project Type | 💰 Funding shown as % and actual amount
-                    </div>
-        `;
+                    </div>`;
 
-        for (const [size, category] of Object.entries(playersBySize)) {
-            if (category.players.length === 0) continue;
-            modalHtml += `
+            Object.entries(bySize).forEach(([, cat]) => {
+                if (!cat.players.length) return;
+                html += `
                 <div class="leaderboard-category">
-                    <div class="category-header ${category.color}">
-                        <span>${category.name}</span>
-                        <span>${category.players.length} player(s)</span>
+                    <div class="category-header ${cat.color}">
+                        <span>${cat.name}</span><span>${cat.players.length} player(s)</span>
                     </div>
                     <table class="leaderboard-table">
                         <thead><tr><th>Rank</th><th>Player</th><th>Funding (% & $)</th><th>Hype</th><th>Transparency</th><th>Final Score</th></tr></thead>
-                        <tbody>
-            `;
-            category.players.forEach((player, idx) => {
-                const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
-                const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
-                modalHtml += `
-                    <tr class="${rankClass}">
-                        <td style="font-weight: bold;">${medal}</td>
-                        <td><strong>${player.name}</strong></td>
+                        <tbody>`;
+                cat.players.forEach((p, i) => {
+                    const rankCls = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+                    const medal   = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+                    const pct     = ((p.funding ?? 0) * 100).toFixed(1);
+                    const fa      = (p.funding_amount  ?? 0).toLocaleString();
+                    const ft      = (p.funding_target  ?? 0).toLocaleString();
+                    html += `
+                    <tr class="${rankCls}">
+                        <td style="font-weight:bold;">${medal}</td>
+                        <td><strong>${p.name}</strong></td>
                         <td>
-                            <div>${player.fundingPercentage.toFixed(1)}%</div>
-                            <div class="funding-amount">$${player.fundingAmount?.toLocaleString() || 0}</div>
-                            <div style="font-size: 11px; color: #666;">of $${player.fundingTarget?.toLocaleString() || 0}</div>
+                            <div>${pct}%</div>
+                            <div class="funding-amount">$${fa}</div>
+                            <div style="font-size:11px;color:#666;">of $${ft}</div>
                         </td>
-                        <td>${player.hype}</td>
-                        <td>${player.transparency}</td>
-                        <td><strong style="color: #f59e0b; font-size: 18px;">${(player.score || 0).toFixed(2)}</strong></td>
-                    </tr>
-                `;
+                        <td>${p.hype ?? 0}</td>
+                        <td>${p.transparency ?? 0}</td>
+                        <td><strong style="color:#f59e0b;font-size:18px;">${(p.score ?? 0).toFixed(2)}</strong></td>
+                    </tr>`;
+                });
+                html += `</tbody></table></div>`;
             });
-            modalHtml += `</tbody></table></div>`;
-        }
 
-        const allPlayers = [...players].sort((a, b) => b.score - a.score);
-        modalHtml += `
-            <div class="leaderboard-category" style="margin-top: 20px;">
-                <div class="category-header" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                    <span>🌟 OVERALL RANKINGS (All Types)</span>
-                    <span>${allPlayers.length} total players</span>
+            const allSorted = [...players].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+            html += `
+            <div class="leaderboard-category" style="margin-top:20px;">
+                <div class="category-header" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);">
+                    <span>🌟 OVERALL RANKINGS (All Types)</span><span>${allSorted.length} total players</span>
                 </div>
                 <table class="leaderboard-table">
                     <thead><tr><th>Overall Rank</th><th>Player</th><th>📐 Project Type</th><th>Funding</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead>
-                    <tbody>
-        `;
-        allPlayers.forEach((player, idx) => {
-            const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
-            const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
-            modalHtml += `
-                <tr class="${rankClass}">
-                    <td style="font-weight: bold;">${medal}</td>
-                    <td><strong>${player.name}</strong></td>
-                    <td><span style="font-weight: 600;">${player.projectTypeIcon} ${player.projectTypeName}</span></td>
-                    <td>
-                        ${player.fundingPercentage?.toFixed(1) || 0}%<br>
-                        <span class="funding-amount">$${player.fundingAmount?.toLocaleString() || 0}</span>
-                    </td>
-                    <td>${player.hype || 0}</td>
-                    <td>${player.transparency || 0}</td>
-                    <td><strong style="color: #f59e0b;">${(player.score || 0).toFixed(2)}</strong></td>
-                </tr>
-            `;
-        });
-        modalHtml += `
-                    </tbody>
-                </table>
-            </div>
-            <div style="text-align: center; margin-top: 20px; padding: 12px; background: #f3e8ff; border-radius: 12px;">
+                    <tbody>`;
+            allSorted.forEach((p, i) => {
+                const rankCls  = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
+                const medal    = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+                const sz       = p.project_size || 'M';
+                const typeIcon = sz === 'S' ? '🟢' : sz === 'L' ? '🔴' : '🟠';
+                const typeName = sz === 'S' ? 'Small (5 phases)' : sz === 'L' ? 'Large (9 phases)' : 'Medium (7 phases)';
+                const pct      = ((p.funding ?? 0) * 100).toFixed(1);
+                const fa       = (p.funding_amount ?? 0).toLocaleString();
+                html += `
+                <tr class="${rankCls}">
+                    <td style="font-weight:bold;">${medal}</td>
+                    <td><strong>${p.name}</strong></td>
+                    <td><span style="font-weight:600;">${typeIcon} ${typeName}</span></td>
+                    <td>${pct}%<br><span class="funding-amount">$${fa}</span></td>
+                    <td>${p.hype ?? 0}</td>
+                    <td>${p.transparency ?? 0}</td>
+                    <td><strong style="color:#f59e0b;">${(p.score ?? 0).toFixed(2)}</strong></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div>
+            <div style="text-align:center;margin-top:20px;padding:12px;background:#f3e8ff;border-radius:12px;">
                 <strong>🎮 Game Complete!</strong> 📐 Project types: 🟢 Small | 🟠 Medium | 🔴 Large
             </div>
-                </div>
-            </div>
-        `;
+            </div></div>`;
 
-        const existingModal = document.getElementById('leaderboardModal');
-        if (existingModal) existingModal.remove();
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-    }
+            const existing = document.getElementById('leaderboardModal');
+            if (existing) existing.remove();
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
 
-    function closeLeaderboardModal() {
-        const modal = document.getElementById('leaderboardModal');
-        if (modal) modal.remove();
+        function closeLeaderboardModal() {
+            const modal = document.getElementById('leaderboardModal');
+            if (modal) modal.remove();
+            updateRulesButtonVisibility();
+        }
+
+        // ─── COPY LINK ────────────────────────────────────────────────────────
+        function copyLink(url) {
+            navigator.clipboard.writeText(url)
+                .then(() => alert(`✅ Link copied:\n${url}`))
+                .catch(() => alert('⚠️ Could not copy. Please copy manually:\n' + url));
+        }
+
+        // ─── SWITCH TO PLAYER VIEW ────────────────────────────────────────────
+        function toggleView() {
+            const id = room ? room.id : '';
+            window.open(`play.html?room=${id}&player=0`, '_blank');
+        }
+
+        // ─── RULES SIDEBAR ────────────────────────────────────────────────────
+        function initRulesSidebar() {
+            const btn     = document.getElementById('rulesButton');
+            const sidebar = document.getElementById('rulesSidebar');
+            const overlay = document.getElementById('rulesOverlay');
+            const close   = document.getElementById('closeRulesBtn');
+
+            const open  = () => { sidebar.classList.add('open'); overlay.classList.add('show'); document.body.style.overflow = 'hidden'; };
+            const shut  = () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); document.body.style.overflow = ''; };
+
+            if (btn)     btn.addEventListener('click', open);
+            if (close)   close.addEventListener('click', shut);
+            if (overlay) overlay.addEventListener('click', shut);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape' && sidebar.classList.contains('open')) shut(); });
+        }
+
+        function updateRulesButtonVisibility() {
+            const btn   = document.getElementById('rulesButton');
+            const setup = document.getElementById('setupPanel');
+            const game  = document.getElementById('gamePanel');
+            const modal = document.getElementById('leaderboardModal');
+            if (!btn) return;
+            const hide = (setup && setup.style.display !== 'none') ||
+                         (game  && game.style.display  === 'none') ||
+                         !!modal;
+            btn.style.display = hide ? 'none' : 'flex';
+        }
+
+        // ─── INIT ─────────────────────────────────────────────────────────────
+        initRulesSidebar();
         updateRulesButtonVisibility();
-    }
-
-    // ─── HELPERS ───────────────────────────────────────────────────────────────
-    function setGameButtonsDisabled(disabled, preserveReset = false) {
-        document.querySelectorAll('#gamePanel button').forEach(btn => {
-            if (preserveReset && btn.id === 'resetGameBtn') return;
-            btn.disabled = disabled;
-        });
-    }
-
-    function startAutoUpdate() {
-        if (autoUpdateInterval) clearInterval(autoUpdateInterval);
-        autoUpdateInterval = setInterval(() => {
-            if (document.getElementById('gamePanel').style.display === 'block' && currentRoom && !currentRoom.ended) {
-                fetchRoomState();
-            }
-        }, 5000);
-    }
-
-    function toggleView() {
-        const roomId = currentRoom ? currentRoom.id : '';
-        const url = `play.html?room=${roomId}&player=0`;
-        window.open(url, '_blank');
-    }
-
-    // ─── RULES SIDEBAR ─────────────────────────────────────────────────────────
-    function initRulesSidebar() {
-        const rulesButton = document.getElementById('rulesButton');
-        const rulesSidebar = document.getElementById('rulesSidebar');
-        const rulesOverlay = document.getElementById('rulesOverlay');
-        const closeRulesBtn = document.getElementById('closeRulesBtn');
-
-        function openRules() {
-            rulesSidebar.classList.add('open');
-            rulesOverlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-        function closeRules() {
-            rulesSidebar.classList.remove('open');
-            rulesOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        if (rulesButton) rulesButton.addEventListener('click', openRules);
-        if (closeRulesBtn) closeRulesBtn.addEventListener('click', closeRules);
-        if (rulesOverlay) rulesOverlay.addEventListener('click', closeRules);
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) closeRules();
-        });
-    }
-
-    function updateRulesButtonVisibility() {
-        const rulesButton = document.getElementById('rulesButton');
-        if (!rulesButton) return;
-        const setupPanel = document.getElementById('setupPanel');
-        const gamePanel = document.getElementById('gamePanel');
-        const leaderboardModal = document.getElementById('leaderboardModal');
-        if ((setupPanel && setupPanel.style.display !== 'none') ||
-            (gamePanel && gamePanel.style.display === 'none') ||
-            (leaderboardModal && leaderboardModal.parentElement)) {
-            rulesButton.style.display = 'none';
-        } else {
-            rulesButton.style.display = 'flex';
-        }
-    }
-
-    // ─── INIT ──────────────────────────────────────────────────────────────────
-    initRulesSidebar();
-    checkBackendConnection();
-    console.log('✅ Host dashboard loaded — connected to backend at', API_BASE);
-</script>
+    </script>
 </body>
 </html>
