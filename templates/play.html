@@ -897,6 +897,10 @@
             let phaseInterval = null;
             let isReadyForPhase = false;
             let allPlayers = [];
+            // ===== ĐỒNG BỘ KẾT THÚC GAME =====
+            let playerCompleted = false;
+            let completionPollingInterval = null;
+            let gameResultsShown = false;
 
             // Helper Functions
             function getTargetFundingFromScale(scale, overrideValue) {
@@ -998,7 +1002,176 @@
                 document.getElementById('modalContent').innerHTML = `<div class="space-y-2">${data.content}</div>`;
                 modal.classList.remove('hidden');
             }
-
+            // ===== GỌI API KHI PLAYER HOÀN THÀNH =====
+async function reportPlayerCompletion() {
+    if (playerCompleted) return;
+    
+    const finalData = {
+        funding_progress: myPlayer.fundingProgress,
+        hype: myPlayer.hype,
+        transparency: myPlayer.transparency,
+        runway: myPlayer.metrics.runway,
+        score: (myPlayer.fundingProgress * 100) + (myPlayer.hype * 0.4) + (myPlayer.transparency * 0.3) + ((myPlayer.metrics.runway || 5) * 2)
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/player_complete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                room_id: currentRoomId,
+                player_index: playerIndexFromUrl,
+                final_data: finalData
+            })
+        });
+        
+        const data = await response.json();
+        playerCompleted = true;
+        
+        if (data.all_completed) {
+            if (data.final_ranking) {
+                displayFinalRanking(data.final_ranking);
+            }
+        } else {
+            showWaitingMessage(data.completed_count, data.total_players);
+            startCompletionPolling();
+        }
+    } catch (error) {
+        console.error('Error reporting completion:', error);
+        endGame();
+    }
+}
+            // ===== POLLING KIỂM TRA KHI TẤT CẢ HOÀN THÀNH =====
+function startCompletionPolling() {
+    if (completionPollingInterval) clearInterval(completionPollingInterval);
+    
+    completionPollingInterval = setInterval(async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/game_status?room_id=${currentRoomId}`);
+            const data = await response.json();
+            
+            if (data.game_ended && data.final_ranking && !gameResultsShown) {
+                clearInterval(completionPollingInterval);
+                displayFinalRanking(data.final_ranking);
+            }
+        } catch (error) {
+            console.error('Polling error:', error);
+        }
+    }, 3000);
+}
+// ===== HIỂN THỊ THÔNG BÁO CHỜ PLAYER KHÁC =====
+function showWaitingMessage(completedCount, totalPlayers) {
+    document.getElementById('scenarioDisplay').innerHTML = `
+        <div class="text-center">
+            <div class="text-lg font-bold text-purple-800">🎉 BẠN ĐÃ HOÀN THÀNH GAME! 🎉</div>
+            <div class="text-md mt-2">Đang chờ ${totalPlayers - completedCount} người chơi khác kết thúc...</div>
+            <div class="text-sm text-gray-500 mt-1">Kết quả sẽ hiển thị khi tất cả hoàn thành.</div>
+        </div>
+    `;
+    
+    // Disable các nút action
+    const playBtn = document.getElementById('playCardBtn');
+    const mulliganBtn = document.getElementById('mulliganBtn');
+    const readyBtn = document.getElementById('readyBtn');
+    if (playBtn) playBtn.disabled = true;
+    if (mulliganBtn) mulliganBtn.disabled = true;
+    if (readyBtn) readyBtn.disabled = true;
+}
+            // ===== HIỂN THỊ BẢNG XẾP HẠNG CUỐI CÙNG TỪ SERVER =====
+function displayFinalRanking(rankings) {
+    if (gameResultsShown) return;
+    gameResultsShown = true;
+    
+    if (phaseInterval) clearInterval(phaseInterval);
+    if (completionPollingInterval) clearInterval(completionPollingInterval);
+    
+    // Tìm thông tin của player hiện tại
+    const myRanking = rankings.find(r => r.player_index === playerIndexFromUrl);
+    
+    if (myRanking) {
+        const fundingAmountElem = document.getElementById('finalFundingAmount');
+        document.getElementById('finalScore').innerText = myRanking.score.toFixed(1);
+        document.getElementById('finalFunding').innerText = myRanking.funding_percent.toFixed(1);
+        if (fundingAmountElem) {
+            fundingAmountElem.innerText = Math.floor(myRanking.funding_amount).toLocaleString();
+        }
+        document.getElementById('finalHype').innerText = myRanking.hype;
+        document.getElementById('finalTrans').innerText = myRanking.transparency;
+    }
+    
+    // Phân loại ranking theo scale
+    const playersByScale = { S: [], M: [], L: [] };
+    
+    rankings.forEach(p => {
+        playersByScale[p.scale].push(p);
+    });
+    
+    // Sắp xếp từng nhóm
+    for (let scale in playersByScale) {
+        playersByScale[scale].sort((a, b) => b.score - a.score);
+    }
+    
+    // Tạo HTML ranking
+    const scaleNames = {
+        S: { name: "Small Scale (5 phases)", icon: "🌱", color: "text-green-600", targetRange: "$30k-100k" },
+        M: { name: "Medium Scale (7 phases)", icon: "📊", color: "text-blue-600", targetRange: "$100k-252k" },
+        L: { name: "Large Scale (9 phases)", icon: "🚀", color: "text-purple-600", targetRange: "$252k-500k" }
+    };
+    
+    let rankingHtml = '';
+    
+    for (let scale of ['S', 'M', 'L']) {
+        const players = playersByScale[scale];
+        if (players.length > 0) {
+            rankingHtml += `
+                <div class="mb-6">
+                    <div class="flex items-center gap-2 mb-3 pb-2 border-b-2 ${scale === 'S' ? 'border-green-200' : scale === 'M' ? 'border-blue-200' : 'border-purple-200'}">
+                        <span class="text-2xl">${scaleNames[scale].icon}</span>
+                        <h4 class="font-bold ${scaleNames[scale].color}">${scaleNames[scale].name}</h4>
+                        <span class="text-xs text-gray-400 ml-2">Target: ${scaleNames[scale].targetRange}</span>
+                    </div>
+                    <div class="space-y-2">
+            `;
+            
+            players.forEach((p, idx) => {
+                const medalIcon = idx === 0 ? '🏆' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : '📌';
+                const isYou = p.player_index === playerIndexFromUrl;
+                const rowClass = isYou ? 'bg-yellow-100 border-2 border-yellow-400' : 'bg-white/80';
+                
+                rankingHtml += `
+                    <div class="flex justify-between items-center p-3 rounded-xl ${rowClass}">
+                        <div class="flex items-center gap-3 min-w-[120px]">
+                            <span class="text-xl">${medalIcon}</span>
+                            <span class="font-bold ${isYou ? 'text-purple-800' : ''}">${p.player_name}</span>
+                            ${isYou ? '<span class="text-xs bg-yellow-200 px-2 py-0.5 rounded-full">YOU</span>' : ''}
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <div class="font-bold text-pink-600">${p.score.toFixed(1)} pts</div>
+                            <div class="flex gap-3 text-xs text-gray-500">
+                                <span>💰 ${p.funding_percent.toFixed(1)}%</span>
+                                <span class="font-mono">$${Math.floor(p.funding_amount).toLocaleString()}</span>
+                            </div>
+                            <div class="flex gap-2 text-xs text-gray-400">
+                                <span>🔥 ${p.hype}</span>
+                                <span>🔍 ${p.transparency}</span>
+                                <span>🛫 ${p.runway} mo</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            rankingHtml += `
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    document.getElementById('finalRanking').innerHTML = rankingHtml;
+    document.getElementById('gamePanel').classList.add('hidden');
+    document.getElementById('endgamePanel').classList.remove('hidden');
+}
             function closeModal() {
                 modal.classList.add('hidden');
             }
