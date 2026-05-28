@@ -572,9 +572,8 @@ function updateJoinLinks() {
         const statusLabel = joined ? 'Joined' : 'Not Joined';
         const statusClass = joined ? 'joined' : 'waiting';
         
-        // Lấy max_phase từ player hoặc dùng giá trị mặc định
-        const currentMaxPhase = player?.max_phase || room.max_phase || 7;
-        const gameEnded = room.ended || room.current_phase >= currentMaxPhase;
+        // gameEnded is determined by room.ended flag only (don't guess max_phase here)
+        const gameEnded = room.ended;
 
         html += `
         <div style="background:rgba(255,255,255,0.8);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
@@ -704,11 +703,11 @@ function updateDisplay() {
     document.getElementById('currentPhase').innerText = room.current_phase;
     
     // ===== QUAN TRỌNG: Hiển thị max_phase của phòng (giá trị lớn nhất) =====
-    // Việc này chỉ để host biết game kéo dài bao lâu, KHÔNG ảnh hưởng logic end game
-    let displayMaxPhase = 7; // default
+    // Chỉ tính từ players đã join VÀ đã chọn project_size
+    let displayMaxPhase = '—'; // default: chưa có ai chọn size
     if (room.players && room.players.length > 0) {
         const allMaxPhases = room.players
-            .filter(p => p && p.max_phase)
+            .filter(p => p && p.max_phase && p.status !== 'not_joined')
             .map(p => p.max_phase);
         if (allMaxPhases.length > 0) {
             displayMaxPhase = Math.max(...allMaxPhases);
@@ -768,7 +767,7 @@ async function createRoom() {
             name: data.name,
             num_players: data.maxPlayers,
             current_phase: 0,
-            max_phase: 7,  // temporary, sẽ được cập nhật từ players sau
+            max_phase: null,  // will be determined by the largest player's chosen size
             ended: false,
             players: [],
             logs: ["🎮 Room created! Waiting for players to submit projects..."],
@@ -1026,22 +1025,27 @@ async function pollRoom() {
         updateDisplay();
         
         // KIỂM TRA END GAME: Tất cả players đã kết thúc phase cuối của mình
-        const allPlayersEnded = room.players.every(p => {
-            // Bỏ qua player chưa join
-            if (!p || p.status === 'not_joined') return true;
-            // Player đã ended hoặc đã đạt max_phase
-            if (p.status === 'ended') return true;
-            // Kiểm tra current_phase >= max_phase
-            const maxPhase = p.max_phase || 7;
-            const currentPhase = p.current_phase || 0;
-            return currentPhase >= maxPhase;
-        });
+        const joinedPlayers = room.players.filter(p => p && p.status !== 'not_joined');
         
-        // Nếu tất cả đã kết thúc và phòng chưa đánh dấu ended
-        if (allPlayersEnded && !room.ended) {
-            room.ended = true;
-            onGameEnded();
-            showLeaderboardModal();
+        // Only check end condition if at least one player has actually joined
+        if (joinedPlayers.length > 0) {
+            const allPlayersEnded = joinedPlayers.every(p => {
+                // Player đã ended
+                if (p.status === 'ended') return true;
+                // Player phải có max_phase hợp lệ (đã chọn size) mới tính
+                if (!p.max_phase) return false;
+                // Kiểm tra current_phase >= max_phase
+                const maxPhase = p.max_phase;
+                const currentPhase = p.current_phase || 0;
+                return currentPhase >= maxPhase;
+            });
+            
+            // Nếu tất cả đã kết thúc và phòng chưa đánh dấu ended
+            if (allPlayersEnded && !room.ended) {
+                room.ended = true;
+                onGameEnded();
+                showLeaderboardModal();
+            }
         }
         
     } catch (e) {
