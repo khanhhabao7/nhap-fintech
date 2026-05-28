@@ -14,6 +14,7 @@ import random
 import math
 import uuid
 import os
+import time  # Thêm dòng này
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
