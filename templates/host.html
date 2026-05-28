@@ -957,91 +957,60 @@ async function resetCurrentPhase() {
 
         // ─── AUTO-POLL ────────────────────────────────────────────────────────
 async function pollRoom() {
-    if (!room || !room.id) {
-        console.warn('Cannot poll: room or room.id is undefined');
-        return;
-    }
+    if (!room || !room.id) return;
 
     try {
-        const response = await fetch(`/api/rooms/${room.id}`);
+        // Lấy thông tin phòng
+        const roomResponse = await fetch(`/api/rooms/${room.id}`);
+        if (!roomResponse.ok) throw new Error(`HTTP ${roomResponse.status}`);
+        const roomData = await roomResponse.json();
         
-        if (!response.ok) {
-            if (response.status === 404) {
-                console.warn('Room not found on server');
-                return;
-            }
-            throw new Error(`HTTP ${response.status}`);
+        // Lấy thông tin chi tiết players (bao gồm trạng thái join, project_size, ready...)
+        const playersResponse = await fetch(`${API_BASE_URL}/rooms/${room.id}/players`);
+        let playersData = [];
+        if (playersResponse.ok) {
+            playersData = await playersResponse.json();
         }
-
-        const data = await response.json();
         
-        // Cập nhật logs
-        if (data.logs) room.logs = data.logs;
+        // Cập nhật room
+        room.ended = roomData.ended || false;
+        room.current_phase = roomData.currentPhase || room.current_phase || 0;
+        if (roomData.logs) room.logs = roomData.logs;
         
-        // Cập nhật trạng thái ended của phòng
-        room.ended = data.ended || false;
-        
-        // Cập nhật current_phase của phòng (nếu có)
-        if (data.currentPhase !== undefined) room.current_phase = data.currentPhase;
-        
-        // Cập nhật players với đầy đủ thông tin
-        if (data.players && Array.isArray(data.players)) {
+        // Cập nhật players từ API
+        if (playersData.length > 0) {
             room.players = room.players.map((existingPlayer, idx) => {
-                const updatedPlayer = data.players[idx];
-                if (updatedPlayer) {
+                const updated = playersData.find(p => p.player_index === idx || p.id === idx);
+                if (updated) {
                     return {
                         ...existingPlayer,
-                        id: updatedPlayer.id ?? existingPlayer.id,
-                        name: updatedPlayer.name ?? existingPlayer.name,
-                        funding: updatedPlayer.funding ?? existingPlayer.funding ?? 0,
-                        hype: updatedPlayer.hype ?? existingPlayer.hype ?? 50,
-                        transparency: updatedPlayer.transparency ?? existingPlayer.transparency ?? 50,
-                        score: updatedPlayer.score ?? existingPlayer.score ?? 0,
-                        status: updatedPlayer.status ?? existingPlayer.status ?? 'not_joined',
-                        // QUAN TRỌNG: Các field riêng của từng player
-                        project_size: updatedPlayer.project_size || updatedPlayer.scale || existingPlayer.project_size,
-                        max_phase: updatedPlayer.max_phase || updatedPlayer.maxPhase || existingPlayer.max_phase,
-                        current_phase: updatedPlayer.current_phase || updatedPlayer.currentPhase || existingPlayer.current_phase || 0,
-                        funding_target: updatedPlayer.funding_target || updatedPlayer.targetFunding || existingPlayer.funding_target,
-                        funding_amount: updatedPlayer.funding_amount || updatedPlayer.fundingAmount || existingPlayer.funding_amount,
-                        ready_for_next_phase: updatedPlayer.ready_for_next_phase ?? existingPlayer.ready_for_next_phase ?? false
+                        status: updated.status || existingPlayer.status,
+                        project_size: updated.project_size || updated.scale || existingPlayer.project_size,
+                        max_phase: updated.max_phase || updated.maxPhase || existingPlayer.max_phase,
+                        current_phase: updated.current_phase || updated.currentPhase || existingPlayer.current_phase || 0,
+                        funding: updated.funding || existingPlayer.funding || 0,
+                        hype: updated.hype || existingPlayer.hype || 50,
+                        transparency: updated.transparency || existingPlayer.transparency || 50,
+                        funding_target: updated.funding_target || updated.targetFunding || existingPlayer.funding_target,
+                        ready_for_next_phase: updated.ready_for_next_phase ?? existingPlayer.ready_for_next_phase ?? false
                     };
                 }
                 return existingPlayer;
             });
         }
         
-        // Cập nhật join links nếu có
-        if (data.joinLinks && Array.isArray(data.joinLinks)) {
-            room.join_links = data.joinLinks.map(link => ({
-                player_index: link.playerIndex,
-                player_id: link.playerIndex,
-                player_name: link.playerName,
-                url: link.realLink
-            }));
-        }
-        
-        // Cập nhật UI
         updateDisplay();
         
-        // KIỂM TRA END GAME: Tất cả players đã kết thúc phase cuối của mình
+        // Kiểm tra kết thúc game (tất cả players đã hoàn thành phase cuối)
         const joinedPlayers = room.players.filter(p => p && p.status !== 'not_joined');
-        
-        // Only check end condition if at least one player has actually joined
-        if (joinedPlayers.length > 0) {
+        if (joinedPlayers.length > 0 && !room.ended) {
             const allPlayersEnded = joinedPlayers.every(p => {
-                // Player đã ended
                 if (p.status === 'ended') return true;
-                // Player phải có max_phase hợp lệ (đã chọn size) mới tính
                 if (!p.max_phase) return false;
-                // Kiểm tra current_phase >= max_phase
-                const maxPhase = p.max_phase;
-                const currentPhase = p.current_phase || 0;
-                return currentPhase >= maxPhase;
+                return (p.current_phase || 0) >= p.max_phase;
             });
             
-            // Nếu tất cả đã kết thúc và phòng chưa đánh dấu ended
-            if (allPlayersEnded && !room.ended) {
+            if (allPlayersEnded) {
                 room.ended = true;
                 onGameEnded();
                 showLeaderboardModal();
