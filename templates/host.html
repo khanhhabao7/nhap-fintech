@@ -960,39 +960,32 @@ async function pollRoom() {
     if (!room || !room.id) return;
 
     try {
-        // Lấy thông tin phòng
-        const roomResponse = await fetch(`/api/rooms/${room.id}`);
-        if (!roomResponse.ok) throw new Error(`HTTP ${roomResponse.status}`);
-        const roomData = await roomResponse.json();
+        // Chỉ gọi API lấy thông tin phòng
+        const response = await fetch(`/api/rooms/${room.id}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
-        // Lấy thông tin chi tiết players (bao gồm trạng thái join, project_size, ready...)
-        const playersResponse = await fetch(`${API_BASE_URL}/rooms/${room.id}/players`);
-        let playersData = [];
-        if (playersResponse.ok) {
-            playersData = await playersResponse.json();
-        }
+        const data = await response.json();
         
         // Cập nhật room
-        room.ended = roomData.ended || false;
-        room.current_phase = roomData.currentPhase || room.current_phase || 0;
-        if (roomData.logs) room.logs = roomData.logs;
+        room.ended = data.ended || false;
+        room.current_phase = data.currentPhase || room.current_phase || 0;
+        if (data.logs) room.logs = data.logs;
         
-        // Cập nhật players từ API
-        if (playersData.length > 0) {
+        // Cập nhật players từ data.players (backend đã trả về đủ thông tin)
+        if (data.players && Array.isArray(data.players)) {
             room.players = room.players.map((existingPlayer, idx) => {
-                const updated = playersData.find(p => p.player_index === idx || p.id === idx);
+                const updated = data.players[idx];
                 if (updated) {
                     return {
                         ...existingPlayer,
                         status: updated.status || existingPlayer.status,
-                        project_size: updated.project_size || updated.scale || existingPlayer.project_size,
-                        max_phase: updated.max_phase || updated.maxPhase || existingPlayer.max_phase,
-                        current_phase: updated.current_phase || updated.currentPhase || existingPlayer.current_phase || 0,
-                        funding: updated.funding || existingPlayer.funding || 0,
-                        hype: updated.hype || existingPlayer.hype || 50,
-                        transparency: updated.transparency || existingPlayer.transparency || 50,
-                        funding_target: updated.funding_target || updated.targetFunding || existingPlayer.funding_target,
-                        ready_for_next_phase: updated.ready_for_next_phase ?? existingPlayer.ready_for_next_phase ?? false
+                        project_size: updated.scale || updated.project_size || existingPlayer.project_size,
+                        max_phase: updated.max_phase || existingPlayer.max_phase,
+                        current_phase: updated.current_phase || existingPlayer.current_phase || 0,
+                        funding: updated.funding ?? existingPlayer.funding ?? 0,
+                        hype: updated.hype ?? existingPlayer.hype ?? 50,
+                        transparency: updated.transparency ?? existingPlayer.transparency ?? 50,
+                        ready_for_next_phase: updated.ready_for_next_phase ?? false
                     };
                 }
                 return existingPlayer;
@@ -1001,7 +994,7 @@ async function pollRoom() {
         
         updateDisplay();
         
-        // Kiểm tra kết thúc game (tất cả players đã hoàn thành phase cuối)
+        // Kiểm tra kết thúc game
         const joinedPlayers = room.players.filter(p => p && p.status !== 'not_joined');
         if (joinedPlayers.length > 0 && !room.ended) {
             const allPlayersEnded = joinedPlayers.every(p => {
