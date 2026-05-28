@@ -209,6 +209,30 @@ def calculate_metrics(proj):
         "reg_risk": reg_risk
     }
 
+def final_score(proj, max_phase, metrics):
+    """Tính điểm cuối cùng cho player"""
+    funding_score = proj.get('funding_progress', 0) * 50
+    hype_score = proj.get('hype', 50) * 0.3
+    trans_score = proj.get('transparency', 50) * 0.2
+    roi_score = min(20, metrics.get('roi_norm', 0) * 0.2)
+    return funding_score + hype_score + trans_score + roi_score
+
+def attractiveness(proj, bot, metrics, card_boost=0):
+    """Tính attractiveness của dự án đối với bot"""
+    w = bot['weights']
+    score = 0
+    score += w.get('intrinsic', 0) * (metrics.get('intrinsic', 0) / 100)
+    score += w.get('valuation', 0) * (metrics.get('valuation_sanity', 0) / 100)
+    score += w.get('roi_norm', 0) * (metrics.get('roi_norm', 0) / 100)
+    score += w.get('transparency', 0) * (proj.get('transparency', 50) / 100)
+    score += w.get('hype', 0) * (proj.get('hype', 50) / 100) * bot.get('hype_sens', 1)
+    score += w.get('funding_prog', 0) * proj.get('funding_progress', 0)
+    
+    # Thêm card boost
+    score += card_boost
+    
+    return min(100, max(0, score * 100))
+
 # ==================== JIN: AI BOT GENERATION ====================
 random.seed(42)
 BOTS = []
@@ -1250,6 +1274,49 @@ def api_get_room(room_id):
         'status': room['status'],
         'game_started': room['status'] == 'playing'
     })
+
+@app.route('/api/rooms/<room_id>/players', methods=['GET'])
+def api_get_players(room_id):
+    """Lấy danh sách players với đầy đủ thông tin cho host poll"""
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    
+    room = rooms[room_id]
+    players_data = []
+    
+    for i, proj in enumerate(room.get('players', [])):
+        if proj is None:
+            players_data.append({
+                'player_index': i,
+                'id': i,
+                'status': 'not_joined',
+                'project_size': None,
+                'scale': None,
+                'max_phase': None,
+                'current_phase': 0,
+                'funding': 0,
+                'hype': 50,
+                'transparency': 50,
+                'funding_target': None,
+                'ready_for_next_phase': room.get('player_ready', [False])[i] if i < len(room.get('player_ready', [])) else False
+            })
+        else:
+            players_data.append({
+                'player_index': i,
+                'id': i,
+                'status': proj.get('status', 'active'),
+                'project_size': proj.get('scale', None),
+                'scale': proj.get('scale', None),
+                'max_phase': proj.get('max_phase', 7),
+                'current_phase': proj.get('current_phase', 0),
+                'funding': proj.get('funding_progress', 0),
+                'hype': proj.get('hype', 50),
+                'transparency': proj.get('transparency', 50),
+                'funding_target': proj.get('target_funding', None),
+                'ready_for_next_phase': room.get('player_ready', [False])[i] if i < len(room.get('player_ready', [])) else False
+            })
+    
+    return jsonify(players_data)
 
 @app.route('/api/rooms/<room_id>/next-phase', methods=['POST'])
 def api_next_phase(room_id):
