@@ -1771,13 +1771,6 @@ document.getElementById('readyBtn').onclick = async () => {
         alert(`❌ ${error.message}`);
     }
 };
-                // Kiểm tra nếu game đã kết thúc (funding đạt 100% hoặc đã qua maxPhase)
-                if (myPlayer.currentPhase >= myPlayer.maxPhase || myPlayer.fundingProgress >= 1.0) {
-                    endGame();
-                }
-                isReadyForPhase = true;
-                alert('✅ Ready! Phase will start automatically.');
-            };
 
             document.getElementById('backToGameBtn').onclick = () => {
                 if (!myPlayer.gameEnded) {
