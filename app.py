@@ -1357,6 +1357,111 @@ def api_reset_game(room_id):
     
     return jsonify({'success': True})
 
+# ==================== API CHO ĐỒNG BỘ KẾT THÚC GAME ====================
+
+@app.route('/api/player_complete', methods=['POST'])
+def player_complete():
+    """Player báo hiệu đã hoàn thành game (đạt maxPhase)"""
+    data = request.json
+    room_id = data['room_id']
+    player_index = data['player_index']
+    final_data = data.get('final_data', {})  # funding, hype, transparency, score
+    
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    
+    room = rooms[room_id]
+    
+    # Lưu thông tin hoàn thành của player
+    if 'completed_players' not in room:
+        room['completed_players'] = {}
+    
+    room['completed_players'][player_index] = {
+        'completed_at': time.time(),
+        'final_data': final_data
+    }
+    
+    # Kiểm tra xem tất cả players đã hoàn thành chưa
+    total_players = len([p for p in room['players'] if p is not None])
+    completed_count = len(room['completed_players'])
+    
+    all_completed = (completed_count >= total_players)
+    
+    if all_completed:
+        # Tính toán bảng xếp hạng cuối cùng
+        final_ranking = calculate_final_ranking(room)
+        room['final_ranking'] = final_ranking
+        room['game_ended'] = True
+    
+    return jsonify({
+        'all_completed': all_completed,
+        'completed_count': completed_count,
+        'total_players': total_players,
+        'final_ranking': room.get('final_ranking', None)
+    })
+
+@app.route('/api/game_status', methods=['GET'])
+def game_status():
+    """Lấy trạng thái game (đã hoàn thành chưa, ranking cuối)"""
+    room_id = request.args.get('room_id')
+    
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    
+    room = rooms[room_id]
+    
+    return jsonify({
+        'game_ended': room.get('game_ended', False),
+        'final_ranking': room.get('final_ranking', None),
+        'completed_players': room.get('completed_players', {}),
+        'total_players': len([p for p in room['players'] if p is not None])
+    })
+
+def calculate_final_ranking(room):
+    """Tính toán bảng xếp hạng cuối cùng dựa trên dữ liệu của tất cả players"""
+    rankings = []
+    
+    for idx, player in enumerate(room['players']):
+        if player is None:
+            continue
+        
+        # Lấy dữ liệu cuối cùng (từ completed_players hoặc từ player hiện tại)
+        completed_data = room.get('completed_players', {}).get(idx, {})
+        
+        if completed_data and completed_data.get('final_data'):
+            final = completed_data['final_data']
+        else:
+            # Fallback: tính từ dữ liệu hiện tại
+            final = {
+                'funding_progress': player.get('funding_progress', 0),
+                'hype': player.get('hype', 0),
+                'transparency': player.get('transparency', 0),
+                'runway': calculate_metrics(player).get('runway', 0)
+            }
+        
+        # Tính điểm
+        score = (final.get('funding_progress', 0) * 100) + \
+                (final.get('hype', 0) * 0.4) + \
+                (final.get('transparency', 0) * 0.3) + \
+                (final.get('runway', 5) * 2)
+        
+        rankings.append({
+            'player_index': idx,
+            'player_name': f"Player {idx + 1}",
+            'scale': player.get('scale', 'M'),
+            'funding_percent': final.get('funding_progress', 0) * 100,
+            'funding_amount': player.get('target_funding', 0) * final.get('funding_progress', 0),
+            'hype': final.get('hype', 0),
+            'transparency': final.get('transparency', 0),
+            'runway': final.get('runway', 0),
+            'score': score
+        })
+    
+    # Sắp xếp theo điểm
+    rankings.sort(key=lambda x: x['score'], reverse=True)
+    
+    return rankings
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
