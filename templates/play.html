@@ -897,6 +897,7 @@
             let phaseInterval = null;
             let isReadyForPhase = false;
             let allPlayers = [];
+            let pollingInterval = null;
             // ===== ĐỒNG BỘ KẾT THÚC GAME =====
             let playerCompleted = false;
             let completionPollingInterval = null;
@@ -1002,6 +1003,59 @@
                 document.getElementById('modalContent').innerHTML = `<div class="space-y-2">${data.content}</div>`;
                 modal.classList.remove('hidden');
             }
+// ===== POLLING LẤY DỮ LIỆU TỪ SERVER =====
+function startGamePolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    
+    pollingInterval = setInterval(async () => {
+        if (myPlayer.gameEnded) return;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/player_state?room_id=${currentRoomId}&player_index=${playerIndexFromUrl}`);
+            
+            if (!response.ok) {
+                console.warn('Polling failed:', response.status);
+                return;
+            }
+            
+            const data = await response.json();
+            
+            // Cập nhật myPlayer từ dữ liệu server
+            if (data.funding_progress !== undefined) myPlayer.fundingProgress = data.funding_progress;
+            if (data.hype !== undefined) myPlayer.hype = data.hype;
+            if (data.transparency !== undefined) myPlayer.transparency = data.transparency;
+            if (data.current_phase !== undefined) myPlayer.currentPhase = data.current_phase;
+            if (data.energy_left !== undefined) myPlayer.energyLeft = data.energy_left;
+            if (data.hand) myPlayer.currentHand = data.hand;
+            if (data.investors) myPlayer.investors = data.investors;
+            if (data.metrics) myPlayer.metrics = data.metrics;
+            if (data.last_scenario) myPlayer.lastScenario = data.last_scenario;
+            
+            // Cập nhật UI
+            updateGameUI();
+            
+            // Kiểm tra kết thúc game
+            if (data.game_ended && !gameResultsShown) {
+                gameResultsShown = true;
+                if (data.final_ranking) {
+                    displayFinalRanking(data.final_ranking);
+                } else {
+                    endGame();
+                }
+            }
+            
+        } catch (error) {
+            console.error('Polling error:', error);
+        }
+    }, 2000); // Poll mỗi 2 giây
+}
+            function stopGamePolling() {
+    if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+    }
+}
+            
             // ===== GỌI API KHI PLAYER HOÀN THÀNH =====
 async function reportPlayerCompletion() {
     if (playerCompleted) return;
@@ -1462,95 +1516,14 @@ function displayFinalRanking(rankings) {
 
                     updateGameUI();
                     alert('🎮 Game started! Play cards, then click READY FOR PHASE to advance to next phase!');
+                    startGamePolling();
                 };
             }
-
-            // Phase Simulation
-            function runPhase() {
-                // Nếu game đã kết thúc, không làm gì cả
-                if (myPlayer.gameEnded) return;
-
-                // Kiểm tra nên kết thúc game trước khi chạy phase mới
-                if (myPlayer.currentPhase >= myPlayer.maxPhase || myPlayer.fundingProgress >= 1.0) {
-                    endGame();
-                    return;
-                }
-
-                // Nếu phase hiện tại đã là phase cuối, không chạy phase mới
-                if (myPlayer.currentPhase === myPlayer.maxPhase) {
-                    endGame();
-                    return;
-                }
-
-                const scenario = SCENARIOS[Math.floor(Math.random() * SCENARIOS.length)];
-                myPlayer.lastScenario = scenario.name;
-                let hypeChange = scenario.hype + (Math.random() * 10 - 5);
-                let transChange = scenario.trans + (Math.random() * 8 - 4);
-                myPlayer.hype = Math.min(100, Math.max(0, myPlayer.hype + hypeChange));
-                myPlayer.transparency = Math.min(100, Math.max(0, myPlayer.transparency + transChange));
-
-                let fundingChange = (scenario.funding || 0) + (Math.random() * 0.08);
-                myPlayer.fundingProgress = Math.min(1.0, myPlayer.fundingProgress + fundingChange);
-
-                myPlayer.metrics.intrinsic = Math.min(100, myPlayer.metrics.intrinsic + (Math.random() * 12 - 4));
-                myPlayer.metrics.valuation_sanity = Math.min(100, myPlayer.metrics.valuation_sanity + (Math.random() * 10 - 3));
-                myPlayer.metrics.roi_norm = Math.min(100, myPlayer.metrics.roi_norm + (Math.random() * 15 - 5));
-                myPlayer.metrics.runway = Math.max(0, myPlayer.metrics.runway + (Math.random() > 0.7 ? -1 : 1));
-
-                if (Math.random() > 0.6 && myPlayer.investors.length < 8) {
-                    const investorTypes = ['FOMO Capital', 'Value Hunter Fund', 'Whale Ventures', 'Angel Syndicate', 'Growth Equity'];
-                    myPlayer.investors.push({
-                        type: investorTypes[Math.floor(Math.random() * investorTypes.length)],
-                        amount: Math.floor(Math.random() * 120000) + 30000
-                    });
-                }
-
-                allPlayers.forEach((p, i) => {
-                    if (i > 0) {
-                        p.funding = Math.min(1.0, p.funding + (Math.random() * 0.12 - 0.03));
-                        p.hype = Math.min(100, Math.max(0, p.hype + (Math.random() * 18 - 9)));
-                        p.transparency = Math.min(100, Math.max(0, p.transparency + (Math.random() * 14 - 7)));
-                    }
-                });
-                allPlayers[0] = {
-                    name: "YOU",
-                    funding: myPlayer.fundingProgress,
-                    hype: myPlayer.hype,
-                    transparency: myPlayer.transparency,
-                    runway: myPlayer.metrics.runway,
-                    score: 0
-                };
-
-                document.getElementById('scenarioDisplay').innerHTML = `📢 ${scenario.name}`;
-                myPlayer.currentPhase++;
-                isReadyForPhase = false;
-                myPlayer.currentHand = [...myPlayer.activeDeck.slice(0, 5)];
-                myPlayer.energyLeft = 3;
-                selectedCardIndex = null;
-                updateGameUI();
-
-                // Kiểm tra kết thúc game sau khi tăng phase
-                if (myPlayer.currentPhase >= myPlayer.maxPhase || myPlayer.fundingProgress >= 1.0) {
-                    endGame();
-                } else {
-                    alert(`✅ Phase ${myPlayer.currentPhase - 1} complete! Draw new hand. Click READY when ready for next phase.`);
-                }
-            }
-
-            function startPhaseSimulation() {
-                if (phaseInterval) clearInterval(phaseInterval);
-                phaseInterval = setInterval(() => {
-                    if (myPlayer.gameEnded) return;
-                    if (isReadyForPhase && myPlayer.gameStarted && myPlayer.deckConfirmed) {
-                        isReadyForPhase = false;
-                        runPhase();
-                    }
-                }, 1000);
-            }
-
+            
             // End Game with Detailed Ranking by Project Scale
             function endGame() {
                 if (myPlayer.gameEnded) return;
+                stopGamePolling(); 
                 if (myPlayer.currentPhase > myPlayer.maxPhase) {
                     myPlayer.currentPhase = myPlayer.maxPhase;
                     updateGameUI();  // Cập nhật lại giao diện
@@ -1772,12 +1745,32 @@ function displayFinalRanking(rankings) {
                 alert('🃏 Mulligan complete! Hand refreshed. -2 Transparency');
             };
 
-            document.getElementById('readyBtn').onclick = () => {
-                if (!myPlayer.gameStarted) { alert('Please confirm your deck first!'); return; }
-                if (myPlayer.gameEnded) {
-                    alert('Game already ended!');
-                    return;
-                }
+document.getElementById('readyBtn').onclick = async () => {
+    if (!myPlayer.gameStarted) { alert('Please confirm your deck first!'); return; }
+    if (myPlayer.gameEnded) { alert('Game already ended!'); return; }
+    
+    // Chỉ gửi signal "ready" lên server, KHÔNG tự động chạy phase
+    try {
+        const response = await fetch(`${API_BASE_URL}/player_ready_phase`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                room_id: currentRoomId, 
+                player_index: playerIndexFromUrl 
+            })
+        });
+        
+        if (response.ok) {
+            alert('✅ Ready! Waiting for host to start next phase.');
+            document.getElementById('readyBtn').disabled = true;
+            document.getElementById('readyBtn').innerText = '✅ READY (Waiting)';
+        } else {
+            throw new Error('Failed to set ready');
+        }
+    } catch (error) {
+        alert(`❌ ${error.message}`);
+    }
+};
                 // Kiểm tra nếu game đã kết thúc (funding đạt 100% hoặc đã qua maxPhase)
                 if (myPlayer.currentPhase >= myPlayer.maxPhase || myPlayer.fundingProgress >= 1.0) {
                     endGame();
@@ -1793,10 +1786,6 @@ function displayFinalRanking(rankings) {
                     document.getElementById('gamePanel').classList.remove('hidden');
                 }
             };
-
-            // Start simulation
-            startPhaseSimulation();
-            console.log("✅ Full Demo Ready - All 42 Active Cards + 10 Reaction Cards - All features working!");
 
             // ===== KÍCH HOẠT VALIDATION REALTIME =====
             // Đợi DOM load xong rồi mới gán sự kiện
