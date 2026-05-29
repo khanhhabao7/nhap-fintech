@@ -838,17 +838,6 @@
                 { "id": "R10", "name": "Runway Boost", "trigger": "on_runway_low", "type": "mint", "desc": "+3 Runway", "cost_percent": 10, "effect": { "runway": 3 } }
             ];
 
-            const SCENARIOS = [
-                { name: "🎉 MARKET BOOM! +20 Hype", hype: 20, trans: 0, funding: 0.05 },
-                { name: "⚠️ REGULATORY SCRUTINY -15 Transparency", hype: 0, trans: -15, funding: -0.02 },
-                { name: "📊 COMPETITOR LAUNCH -10 Hype, -5% Funding", hype: -10, trans: 0, funding: -0.05 },
-                { name: "🔒 SECURITY AUDIT PASSED +15 Transparency, +10 Hype", hype: 10, trans: 15, funding: 0.03 },
-                { name: "💎 STRATEGIC INVESTOR +25% Funding", hype: 5, trans: 5, funding: 0.25 },
-                { name: "📉 MARKET DIP -15 Hype", hype: -15, trans: 0, funding: -0.03 },
-                { name: "🏆 AWARD WINNING +30 Hype, +10 Transparency", hype: 30, trans: 10, funding: 0.08 },
-                { name: "🔍 MEDIA INVESTIGATION -20 Transparency", hype: -5, trans: -20, funding: -0.04 }
-            ];
-
             // URL params
             const urlParams = new URLSearchParams(window.location.search);
             const currentRoomId = urlParams.get('room') || 'DEMO_ROOM';
@@ -931,8 +920,9 @@
                 document.getElementById('valuation').innerText = Math.floor(myPlayer.metrics.valuation_sanity);
                 document.getElementById('roi').innerText = Math.floor(myPlayer.metrics.roi_norm);
                 document.getElementById('runway').innerText = Math.floor(myPlayer.metrics.runway);
-
+                document.getElementById('scenarioDisplay').innerHTML = `📢 ${myPlayer.lastScenario || 'Waiting for host to run phase...'}`;
                 const investorsDiv = document.getElementById('investorsList');
+                
                 if (myPlayer.investors.length > 0) {
                     investorsDiv.innerHTML = myPlayer.investors.slice(-5).map(i =>
                         `<div class="flex justify-between items-center border-b border-purple-100 py-1">
@@ -1002,7 +992,10 @@ function startGamePolling() {
         if (myPlayer.gameEnded) return;
         
         try {
-            const response = await fetch(`${API_BASE_URL}/player_state?room_id=${currentRoomId}&player_index=${playerIndexFromUrl}`);
+            const url = `${API_BASE_URL}/player_state?room_id=${currentRoomId}&player_index=${playerIndexFromUrl}`;
+            console.log('Polling URL:', url);
+
+            const response = await fetch(url);
             
             if (!response.ok) {
                 console.warn('Polling failed:', response.status);
@@ -1010,6 +1003,7 @@ function startGamePolling() {
             }
             
             const data = await response.json();
+            console.log('Player state received:', data); 
             
             // Cập nhật myPlayer từ dữ liệu server
             if (data.funding_progress !== undefined) myPlayer.fundingProgress = data.funding_progress;
