@@ -794,8 +794,10 @@ def player_state():
         return jsonify({'error': 'Invalid player_index'}), 400
     
     room = rooms[room_id]
-    if player_index < 0 or player_index >= len(room['players']) or room['players'][player_index] is None:
+    if player_index >= len(room['players']) or room['players'][player_index] is None:
         return jsonify({'error': 'Player not found'}), 404
+    
+    player = room['players'][player_index]
     
     proj = room['players'][player_index]
     metrics = calculate_metrics(proj)
