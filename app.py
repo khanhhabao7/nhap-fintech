@@ -210,13 +210,26 @@ def calculate_metrics(proj):
         "reg_risk": reg_risk
     }
 
-def final_score(proj, max_phase, metrics):
-    """Tính điểm cuối cùng cho player"""
-    funding_score = proj.get('funding_progress', 0) * 50
-    hype_score = proj.get('hype', 50) * 0.3
-    trans_score = proj.get('transparency', 50) * 0.2
-    roi_score = min(20, metrics.get('roi_norm', 0) * 0.2)
-    return funding_score + hype_score + trans_score + roi_score
+def final_score(proj, phases_used, metrics):
+    if proj["funding_progress"] < 0.5:
+        return 0
+
+    funding_score = proj["funding_progress"] * 30
+    speed_score = (100 - phases_used) * 0.2
+    roi_score = min(30, max(0, (metrics["roi_norm"] / 100) * 30))
+    trans_score = (proj["transparency"] / 100) * 20
+    raw = funding_score + speed_score + roi_score + trans_score
+
+    max_phase = proj.get("max_phase", 1)  # lấy số phase tối đa của scale (5,7,9)
+    if phases_used > 0:
+        # Công thức chuẩn hóa: nhân với max_phase trước khi chia
+        perf_phase_norm = (raw * max_phase) / phases_used
+    else:
+        perf_phase_norm = 0
+
+    raw_final = perf_phase_norm * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
+    return clamp(raw_final, 0, 100)
+
 
 def attractiveness(proj, bot, metrics, card_boost=0):
     """Tính attractiveness của dự án đối với bot"""
