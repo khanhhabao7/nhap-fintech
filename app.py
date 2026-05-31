@@ -14,7 +14,7 @@ import random
 import math
 import uuid
 import os
-
+import time
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
 
@@ -462,7 +462,6 @@ def play_page(room_id, player_index):
         return "Chỉ số người chơi không hợp lệ", 400
     return render_template('play.html', room_id=room_id, player_index=player_index, max_players=room['num_players'])
 
-import time
 
 @app.route('/api/submit_project', methods=['POST'])
 def submit_project():
@@ -1170,13 +1169,17 @@ def api_create_room():
     
     join_links = []
     for i in range(max_players):
-        join_links = [f"{base_url}/play/{room_id}/{i}" for i in range(max_players)]
+        join_links.append({
+            'playerIndex': i,
+            'playerName': f'Player {i+1}',
+            'realLink': f"{base_url}/play/{room_id}/{i}"
+        })
     
     return jsonify({
         'id': room_id,
         'name': room_name,
         'maxPlayers': max_players,
-        'joinLinks': join_links   # bây giờ là mảng string
+        'joinLinks': join_links
     })
 
 @app.route('/api/rooms/<room_id>', methods=['GET'])
