@@ -666,14 +666,14 @@
         const numPlayers = playerCountOverride || parseInt(document.getElementById('numPlayers').value, 10);
         if (numPlayers < 2 || numPlayers > 10) { alert('Số lượng người chơi phải từ 2 đến 10'); return null; }
         try {
-            const response = await fetch(`${API_BASE_URL}/create_room`, {
+            const response = await fetch(`${API_BASE_URL}/rooms`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ num_players: numPlayers })
             });
             if (!response.ok) throw new Error(`Tạo phòng thất bại: ${response.status}`);
             const roomData = await response.json();
-            const newRoomId = roomData.room_id;
+            const newRoomId = roomData.id;
             const newRoomInfo = { id: newRoomId, name: roomName, maxPlayers: numPlayers, createdAt: new Date().toISOString() };
             hostRooms.push(newRoomInfo);
             saveRoomsToStorage();
