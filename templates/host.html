@@ -688,7 +688,7 @@
             const response = await fetch(`${API_BASE_URL}/rooms`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ num_players: numPlayers })
+                body: JSON.stringify({ name: roomName, maxPlayers: numPlayers })
             });
             if (!response.ok) throw new Error(`Tạo phòng thất bại: ${response.status}`);
             const roomData = await response.json();
