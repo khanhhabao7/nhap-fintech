@@ -3,8 +3,8 @@
 # PHÂN CÔNG:
 # - MINH: Dữ liệu cố định, Card Engine, Utils
 # - PHÚC: Metrics, Game Controller (process_phase, reset_for_next_phase)
-# - JIN: Attractiveness, Bot AI, Reaction Manager
-# - KHANH: API Routing, Flask app, Rooms management
+# - KHANH: Attractiveness, Bot AI, Reaction Manager
+# - JIN: API Routing, Flask app, Rooms management
 # - DƯƠNG: templates/host.html, templates/play.html (riêng)
 # ===================================================================
 
@@ -14,7 +14,6 @@ import random
 import math
 import uuid
 import os
-import time  # Thêm dòng này
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
@@ -210,65 +209,28 @@ def calculate_metrics(proj):
         "reg_risk": reg_risk
     }
 
-def final_score(proj, phases_used, metrics):
-    if proj["funding_progress"] < 0.5:
-        return 0
-
-    funding_score = proj["funding_progress"] * 30
-    speed_score = (100 - phases_used) * 0.2
-    roi_score = min(30, max(0, (metrics["roi_norm"] / 100) * 30))
-    trans_score = (proj["transparency"] / 100) * 20
-    raw = funding_score + speed_score + roi_score + trans_score
-
-    max_phase = proj.get("max_phase", 1)  # lấy số phase tối đa của scale (5,7,9)
-    if phases_used > 0:
-        # Công thức chuẩn hóa: nhân với max_phase trước khi chia
-        perf_phase_norm = (raw * max_phase) / phases_used
-    else:
-        perf_phase_norm = 0
-
-    raw_final = perf_phase_norm * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
-    return clamp(raw_final, 0, 100)
-
-
-def attractiveness(proj, bot, metrics, card_boost=0):
-    """Tính attractiveness của dự án đối với bot"""
-    w = bot['weights']
-    score = 0
-    score += w.get('intrinsic', 0) * (metrics.get('intrinsic', 0) / 100)
-    score += w.get('valuation', 0) * (metrics.get('valuation_sanity', 0) / 100)
-    score += w.get('roi_norm', 0) * (metrics.get('roi_norm', 0) / 100)
-    score += w.get('transparency', 0) * (proj.get('transparency', 50) / 100)
-    score += w.get('hype', 0) * (proj.get('hype', 50) / 100) * bot.get('hype_sens', 1)
-    score += w.get('funding_prog', 0) * proj.get('funding_progress', 0)
-    
-    # Thêm card boost
-    score += card_boost
-    
-    return min(100, max(0, score * 100))
-
-# ==================== JIN: AI BOT GENERATION ====================
+# ==================== KHANH: AI BOT GENERATION ====================
 random.seed(42)
 BOTS = []
 for i in range(1, 201):
     bot_type = random.choices(["FOMO", "Value Hunter", "Whale", "Random"], weights=[50, 30, 10, 10])[0]
     wealth_class = random.choices(["small", "medium", "large"], weights=[40, 40, 20])[0]
     wealth = {
-        "small": random.randint(1000, 5000),
-        "medium": random.randint(10000, 50000),
-        "large": random.randint(50000, 200000)
+        "small": random.randint(50, 200),
+        "medium": random.randint(500, 2000),
+        "large": random.randint(2000, 8000)
     }[wealth_class]
-    hype_sens = round(random.uniform(0.5, 2.5), 2)
-    trans_sens = round(random.uniform(0.5, 1.2), 2)
+    hype_sens = round(random.uniform(0.2, 1.0), 2) if bot_type != "FOMO" else round(random.uniform(0.8, 1.5), 2)
+    trans_sens = round(random.uniform(0.8, 2.0), 2)
 
     if bot_type == "FOMO":
-        decay = round(random.uniform(0.05, 0.15), 2)
+        decay = round(random.uniform(0.02, 0.08), 2)
     elif bot_type == "Value Hunter":
-        decay = round(random.uniform(0.2, 0.35), 2)
+        decay = round(random.uniform(0.1, 0.2), 2)
     elif bot_type == "Whale":
-        decay = round(random.uniform(0.4, 0.6), 2)
+        decay = round(random.uniform(0.2, 0.4), 2)
     else:
-        decay = round(random.uniform(0.15, 0.4), 2)
+        decay = round(random.uniform(0.1, 0.3), 2)
 
     if bot_type == "FOMO":
         weights = {
@@ -305,16 +267,58 @@ def get_bots_for_phase(phase, total_bots=200):
     count = int(total_bots * ratio)
     return BOTS[:count]
 
-def process_phase(room, phase, players, logs, card_boosts=None):
-    if card_boosts is None:
-        card_boosts = {}
-    
+def attractiveness(project, bot, metrics):
+    raw = 0
+    total_w = 0
+    for key, w in bot["weights"].items():
+        if key == "intrinsic":
+            val = metrics["intrinsic"]
+        elif key == "valuation":
+            val = metrics["valuation_sanity"]
+        elif key == "roi_norm":
+            val = metrics["roi_norm"]
+        elif key == "scalability":
+            val = clamp(metrics["growth"] * 100, 0, 100)
+        elif key == "transparency":
+            val = project["transparency"]
+        elif key == "hype":
+            val = project["hype"]
+        elif key == "visibility":
+            val = project.get("visibility", 50)
+        elif key == "funding_prog":
+            val = metrics["funding_progress"] * 100
+        else:
+            continue
+        sens = bot["hype_sens"] if key == "hype" else (bot["trans_sens"] if key == "transparency" else 1.0)
+        raw += val * w * sens
+        total_w += w
+    if total_w == 0:
+        return 0
+    raw_A = (raw / total_w) * 100
+    if metrics["valuation_sanity"] < 40:
+        raw_A = max(0, raw_A - (40 - metrics["valuation_sanity"]) * 1.5)
+    trust = project["trust_scores"].get(bot["id"], 50)
+    noise = random.uniform(-5, 5) if bot["type"] != "Random" else random.uniform(-10, 10)
+    return raw_A * (trust / 100) + noise
+
+def final_score(proj, phases_used, metrics):
+    if proj["funding_progress"] < 0.5:
+        return 0
+    funding_score = proj["funding_progress"] * 30
+    speed_score = (100 - phases_used) * 0.2
+    roi_score = min(30, max(0, (metrics["roi_norm"] / 100) * 30))
+    trans_score = (proj["transparency"] / 100) * 20
+    raw = funding_score + speed_score + roi_score + trans_score
+    perf_phase = raw / phases_used if phases_used > 0 else 0
+    raw_final = perf_phase * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
+    return clamp(raw_final, 0, 100)
+
+def process_phase(room, phase, players, logs):
     active_bots = get_bots_for_phase(phase)
     logs.append(f"Phase {phase}: Có {len(active_bots)} bot hoạt động")
     bot_alloc = room['bot_alloc']
     A = {}
 
-    # Tính attractiveness cho từng bot và dự án
     for bot in active_bots:
         for idx, proj in enumerate(players):
             if not proj or proj.get('status') != 'active' or proj['funding_progress'] >= 1 or proj.get('current_phase', 0) >= proj['max_phase']:
@@ -322,8 +326,7 @@ def process_phase(room, phase, players, logs, card_boosts=None):
             else:
                 metrics = calculate_metrics(proj)   
                 hist = room['bot_memory'][bot['id']]['attractiveness_history'][idx]
-                card_boost = card_boosts.get(idx, 0)
-                current_attr = attractiveness(proj, bot, metrics, card_boost)
+                current_attr = attractiveness(proj, bot, metrics)
                 if hist:
                     weighted_avg = sum((i+1)*val for i, val in enumerate(hist)) / sum(range(1, len(hist)+1))
                     decay = bot['memory_decay_rate']
@@ -335,7 +338,6 @@ def process_phase(room, phase, players, logs, card_boosts=None):
                     hist.pop(0)
                 A[(bot['id'], idx)] = final_attr
 
-    # Xử lý rút vốn
     for bot in active_bots:
         best_idx = max(range(len(players)), key=lambda i: A.get((bot['id'], i), -1e9))
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
@@ -372,45 +374,36 @@ def process_phase(room, phase, players, logs, card_boosts=None):
                     players[idx]['funding_progress'] = 0
                     logs.append(f"Dự án {idx+1} PHÁ SẢN!")
 
-    # Xử lý đầu tư mới - CHỈ ĐẦU TƯ VÀO DỰ ÁN TỐT NHẤT
     for bot in active_bots:
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
         idle = alloc_entry['idle']
         if idle <= 0:
             continue
-        
-        # Tìm dự án tốt nhất để đầu tư
         candidates = [i for i, p in enumerate(players) if p and p['status'] == 'active' and p['funding_progress'] < 1 and p.get('current_phase', 0) < p['max_phase']]
         if not candidates:
             continue
-        
-        # Chỉ đầu tư vào dự án có attractiveness cao nhất
-        best_idx = max(candidates, key=lambda i: A.get((bot['id'], i), -1e9))
-        best_attr = A.get((bot['id'], best_idx), -1e9)
-        
-        if best_attr < 30:  # Nếu attractiveness quá thấp, không đầu tư
-            continue
-            
-        invested_by_bot = alloc_entry['perProject'][best_idx]
-        max_per_bot = players[best_idx]['target_funding'] * 0.3  # Mỗi bot chỉ đầu tư tối đa 30% target funding
-        
-        # Tính số tiền muốn đầu tư (dựa trên tỷ lệ attractiveness)
-        invest_ratio = min(0.3, best_attr / 100)  # Tối đa 30% idle vốn
-        desired = idle * invest_ratio
-        cap = min(desired, max_per_bot - invested_by_bot)
-        
-        if cap > 0 and cap <= players[best_idx]['available_cash']:
-            old_funding = players[best_idx]['funding_progress']
-            players[best_idx]['total_invested'] += cap
-            players[best_idx]['available_cash'] += cap
-            # ĐẢM BẢO KHÔNG VƯỢT QUÁ 100%
-            players[best_idx]['funding_progress'] = min(1.0, players[best_idx]['total_invested'] / players[best_idx]['target_funding'])
-            alloc_entry['perProject'][best_idx] += cap
-            alloc_entry['idle'] -= cap
-            logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {best_idx+1} (Funding: {old_funding*100:.1f}% -> {players[best_idx]['funding_progress']*100:.1f}%)")
-        elif cap > 0:
-            logs.append(f"Bot {bot['type']} muốn đầu tư {cap:.0f} nhưng dự án {best_idx+1} không đủ khả năng nhận")
-
+        attrs = [A.get((bot['id'], i), -1e9) for i in candidates]
+        min_a = min(attrs)
+        shifted = [max(0, a - min_a + 0.01) for a in attrs]
+        sum_exp = sum(math.exp(a / 20) for a in shifted)
+        probs = [math.exp(a / 20) / sum_exp for a in shifted]
+        remaining = idle
+        for _ in range(5):
+            if remaining <= 0:
+                break
+            for j, idx in enumerate(candidates):
+                invest = remaining * probs[j]
+                invested_by_bot = alloc_entry['perProject'][idx]
+                max_per_bot = players[idx]['target_funding'] * (0.2 if phase == 1 else 0.25)
+                cap = min(invest, max_per_bot - invested_by_bot)
+                if cap > 0:
+                    players[idx]['total_invested'] += cap
+                    players[idx]['available_cash'] += cap
+                    players[idx]['funding_progress'] = min(1.0, players[idx]['total_invested'] / players[idx]['target_funding'])
+                    alloc_entry['perProject'][idx] += cap
+                    remaining -= cap
+                    logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
+        alloc_entry['idle'] = remaining
 
 # ==================== FLASK APP & ROOMS ====================
 rooms = {}
@@ -469,62 +462,8 @@ def play_page(room_id, player_index):
         return "Chỉ số người chơi không hợp lệ", 400
     return render_template('play.html', room_id=room_id, player_index=player_index, max_players=room['num_players'])
 
-@app.route('/api/create_room', methods=['POST'])
-def create_room():
-    data = request.json
-    num_players = int(data.get('num_players', 4))
-    if not 2 <= num_players <= 10:
-        return jsonify({'error': 'Số người chơi phải từ 2 đến 10'}), 400
-    
-    room_id = str(uuid.uuid4())[:8]
-    base_url = request.host_url.rstrip('/')
-    
-    rooms[room_id] = {
-        'num_players': num_players,
-        'players': [None] * num_players,
-        'phase': 0,
-        'max_phase': 0,
-        'status': 'waiting_for_projects',
-        'bot_alloc': None,
-        'logs': ["Phòng đã tạo. Chờ người chơi submit dự án..."],
-        'player_ready': [False] * num_players,
-        'deck_ready': [False] * num_players,
-        'pending_cards': {},
-        'phase_energy': [3] * num_players,
-        'mulligan_used': [False] * num_players,
-        'game_ended': False,
-        'player_triggers': [{} for _ in range(num_players)],
-        'bot_memory': {bot['id']: {'attractiveness_history': [[] for _ in range(num_players)]} for bot in BOTS},
-        'submitted_players': 0,
-        'name': None,
-        'phase_details': []
-    }
-    
-    join_links = [f"{base_url}/play/{room_id}/{i}" for i in range(num_players)]
-    
-    return jsonify({
-        'room_id': room_id, 
-        'join_links': join_links,
-        'status': 'waiting_for_projects'
-    })
+import time
 
-@app.route('/api/submit_project', methods=['POST'])
-def submit_project():
-    data = request.json
-    room_id = data['room_id']
-    player_index = data['player_index']
-    project_data = data['project']
-
-    if room_id not in rooms:
-        return jsonify({'error': 'Room not found'}), 404
-    
-    room = rooms[room_id]
-
-    if player_index >= len(room['players']):
-        return jsonify({'error': 'Player index không hợp lệ'}), 400
-
-    if room['players'][player_index] is not None:
-        return jsonify({'error': 'Bạn đã submit dự án rồi'}), 400
 
     # Lưu tên phòng nếu chưa có
     if room.get('name') is None and 'project_name' in project_data:
@@ -807,10 +746,8 @@ def player_state():
         return jsonify({'error': 'Invalid player_index'}), 400
     
     room = rooms[room_id]
-    if player_index >= len(room['players']) or room['players'][player_index] is None:
+    if player_index < 0 or player_index >= len(room['players']) or room['players'][player_index] is None:
         return jsonify({'error': 'Player not found'}), 404
-    
-    player = room['players'][player_index]
     
     proj = room['players'][player_index]
     metrics = calculate_metrics(proj)
@@ -1215,17 +1152,13 @@ def api_create_room():
     
     join_links = []
     for i in range(max_players):
-        join_links.append({
-            'playerIndex': i,
-            'playerName': f'Player {i+1}',
-            'realLink': f"{base_url}/play/{room_id}/{i}"
-        })
+        join_links = [f"{base_url}/play/{room_id}/{i}" for i in range(max_players)]
     
     return jsonify({
         'id': room_id,
         'name': room_name,
         'maxPlayers': max_players,
-        'joinLinks': join_links
+        'joinLinks': join_links   # bây giờ là mảng string
     })
 
 @app.route('/api/rooms/<room_id>', methods=['GET'])
@@ -1290,49 +1223,6 @@ def api_get_room(room_id):
         'status': room['status'],
         'game_started': room['status'] == 'playing'
     })
-
-@app.route('/api/rooms/<room_id>/players', methods=['GET'])
-def api_get_players(room_id):
-    """Lấy danh sách players với đầy đủ thông tin cho host poll"""
-    if room_id not in rooms:
-        return jsonify({'error': 'Room not found'}), 404
-    
-    room = rooms[room_id]
-    players_data = []
-    
-    for i, proj in enumerate(room.get('players', [])):
-        if proj is None:
-            players_data.append({
-                'player_index': i,
-                'id': i,
-                'status': 'not_joined',
-                'project_size': None,
-                'scale': None,
-                'max_phase': None,
-                'current_phase': 0,
-                'funding': 0,
-                'hype': 50,
-                'transparency': 50,
-                'funding_target': None,
-                'ready_for_next_phase': room.get('player_ready', [False])[i] if i < len(room.get('player_ready', [])) else False
-            })
-        else:
-            players_data.append({
-                'player_index': i,
-                'id': i,
-                'status': proj.get('status', 'active'),
-                'project_size': proj.get('scale', None),
-                'scale': proj.get('scale', None),
-                'max_phase': proj.get('max_phase', 7),
-                'current_phase': proj.get('current_phase', 0),
-                'funding': proj.get('funding_progress', 0),
-                'hype': proj.get('hype', 50),
-                'transparency': proj.get('transparency', 50),
-                'funding_target': proj.get('target_funding', None),
-                'ready_for_next_phase': room.get('player_ready', [False])[i] if i < len(room.get('player_ready', [])) else False
-            })
-    
-    return jsonify(players_data)
 
 @app.route('/api/rooms/<room_id>/next-phase', methods=['POST'])
 def api_next_phase(room_id):
@@ -1439,43 +1329,38 @@ def api_reset_game(room_id):
         room['bot_memory'][bot_id]['attractiveness_history'] = [[] for _ in range(room.get('num_players', 4))]
     
     return jsonify({'success': True})
-
-# ==================== API CHO ĐỒNG BỘ KẾT THÚC GAME ====================
+# ==================== API ĐỒNG BỘ KẾT THÚC GAME ====================
 
 @app.route('/api/player_complete', methods=['POST'])
 def player_complete():
-    """Player báo hiệu đã hoàn thành game (đạt maxPhase)"""
     data = request.json
     room_id = data['room_id']
     player_index = data['player_index']
-    final_data = data.get('final_data', {})  # funding, hype, transparency, score
-    
+    final_data = data.get('final_data', {})
+
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
-    
+
     room = rooms[room_id]
-    
-    # Lưu thông tin hoàn thành của player
+
     if 'completed_players' not in room:
         room['completed_players'] = {}
-    
+
     room['completed_players'][player_index] = {
         'completed_at': time.time(),
         'final_data': final_data
     }
-    
-    # Kiểm tra xem tất cả players đã hoàn thành chưa
+
     total_players = len([p for p in room['players'] if p is not None])
     completed_count = len(room['completed_players'])
-    
+
     all_completed = (completed_count >= total_players)
-    
+
     if all_completed:
-        # Tính toán bảng xếp hạng cuối cùng
         final_ranking = calculate_final_ranking(room)
         room['final_ranking'] = final_ranking
         room['game_ended'] = True
-    
+
     return jsonify({
         'all_completed': all_completed,
         'completed_count': completed_count,
@@ -1485,14 +1370,10 @@ def player_complete():
 
 @app.route('/api/game_status', methods=['GET'])
 def game_status():
-    """Lấy trạng thái game (đã hoàn thành chưa, ranking cuối)"""
     room_id = request.args.get('room_id')
-    
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
-    
     room = rooms[room_id]
-    
     return jsonify({
         'game_ended': room.get('game_ended', False),
         'final_ranking': room.get('final_ranking', None),
@@ -1501,36 +1382,27 @@ def game_status():
     })
 
 def calculate_final_ranking(room):
-    """Tính toán bảng xếp hạng cuối cùng dựa trên dữ liệu của tất cả players"""
     rankings = []
-    
     for idx, player in enumerate(room['players']):
         if player is None:
             continue
-        
-        # Lấy dữ liệu cuối cùng (từ completed_players hoặc từ player hiện tại)
         completed_data = room.get('completed_players', {}).get(idx, {})
-        
         if completed_data and completed_data.get('final_data'):
             final = completed_data['final_data']
         else:
-            # Fallback: tính từ dữ liệu hiện tại
             final = {
                 'funding_progress': player.get('funding_progress', 0),
                 'hype': player.get('hype', 0),
                 'transparency': player.get('transparency', 0),
                 'runway': calculate_metrics(player).get('runway', 0)
             }
-        
-        # Tính điểm
         score = (final.get('funding_progress', 0) * 100) + \
                 (final.get('hype', 0) * 0.4) + \
                 (final.get('transparency', 0) * 0.3) + \
                 (final.get('runway', 5) * 2)
-        
         rankings.append({
             'player_index': idx,
-            'player_name': f"Player {idx + 1}",
+            'player_name': f"Player {idx+1}",
             'scale': player.get('scale', 'M'),
             'funding_percent': final.get('funding_progress', 0) * 100,
             'funding_amount': player.get('target_funding', 0) * final.get('funding_progress', 0),
@@ -1539,14 +1411,9 @@ def calculate_final_ranking(room):
             'runway': final.get('runway', 0),
             'score': score
         })
-    
-    # Sắp xếp theo điểm
     rankings.sort(key=lambda x: x['score'], reverse=True)
-    
     return rankings
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-
