@@ -541,6 +541,7 @@
 <div class="container">
     <div class="panel">
         <h2>✨ Fun(d) raising - When you have funds you have fun ✨</h2>
+        <div id="connectionStatus" style="margin-top:12px; background:rgba(236,72,153,0.1); border-radius:16px; padding:12px;">🔌 Đang kết nối đến Backend...</div>
     </div>
 
     <!-- ROOM SETUP -->
@@ -609,6 +610,260 @@
         </div>
     </div>
 </div>
+<script>
+    // ==================== BACKEND CONFIGURATION ====================
+    const API_BASE_URL = window.location.origin + '/api';
+    let currentRoomId = null;
+    let pollingInterval = null;
+    let isConnected = false;
+    let hostRooms = [];
+
+    function loadRoomsFromStorage() {
+        const saved = sessionStorage.getItem('hostRoomsList');
+        if (saved) {
+            try { hostRooms = JSON.parse(saved); } catch(e) { hostRooms = []; }
+        }
+        updateRoomSelector();
+    }
+    function saveRoomsToStorage() { sessionStorage.setItem('hostRoomsList', JSON.stringify(hostRooms)); }
+    function updateRoomSelector() {
+        const selector = document.getElementById('roomSelector');
+        if (!selector) return;
+        selector.innerHTML = '<option value="">-- Chọn phòng --</option>';
+        hostRooms.forEach(room => {
+            const selected = (currentRoomId === room.id) ? 'selected' : '';
+            selector.innerHTML += `<option value="${room.id}" ${selected}>🏠 ${room.name} (${room.id})</option>`;
+        });
+        if (hostRooms.length === 0 && document.getElementById('gamePanel') && document.getElementById('gamePanel').style.display === 'block') {
+            document.getElementById('gamePanel').style.display = 'none';
+            document.getElementById('setupPanel').style.display = 'block';
+            if (pollingInterval) clearInterval(pollingInterval);
+            currentRoomId = null;
+        }
+    }
+    function switchToRoom() {
+        const selector = document.getElementById('roomSelector');
+        const newRoomId = selector.value;
+        if (!newRoomId || currentRoomId === newRoomId) return;
+        if (pollingInterval) clearInterval(pollingInterval);
+        currentRoomId = newRoomId;
+        sessionStorage.setItem('currentRoomId', currentRoomId);
+        const roomInfo = hostRooms.find(r => r.id === currentRoomId);
+        if (roomInfo) {
+            document.getElementById('roomNameDisplay').innerText = roomInfo.name;
+            document.getElementById('maxPlayers').innerText = roomInfo.maxPlayers;
+        }
+        document.getElementById('roomId').innerText = currentRoomId;
+        document.getElementById('rankings').innerHTML = '<div class="loading-placeholder">Đang tải dữ liệu người chơi...</div>';
+        document.getElementById('logsArea').innerHTML = '<div class="data-empty">⏳ Đang tải log...</div>';
+        document.getElementById('joinLinksList').innerHTML = '<div class="loading-placeholder">Đang tải link tham gia...</div>';
+        document.getElementById('playerCount').innerText = '0';
+        document.getElementById('currentPhase').innerText = '?';
+        startPolling();
+    }
+    async function createNewRoom(isAdditional = false, roomNameOverride = null, playerCountOverride = null) {
+        const roomName = roomNameOverride || document.getElementById('roomName').value.trim() || 'Startup Game';
+        const numPlayers = playerCountOverride || parseInt(document.getElementById('numPlayers').value, 10);
+        if (numPlayers < 2 || numPlayers > 10) { alert('Số lượng người chơi phải từ 2 đến 10'); return null; }
+        try {
+            const response = await fetch(`${API_BASE_URL}/create_room`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num_players: numPlayers })
+            });
+            if (!response.ok) throw new Error(`Tạo phòng thất bại: ${response.status}`);
+            const roomData = await response.json();
+            const newRoomId = roomData.room_id;
+            const newRoomInfo = { id: newRoomId, name: roomName, maxPlayers: numPlayers, createdAt: new Date().toISOString() };
+            hostRooms.push(newRoomInfo);
+            saveRoomsToStorage();
+            if (!isAdditional) {
+                currentRoomId = newRoomId;
+                sessionStorage.setItem('currentRoomId', currentRoomId);
+                document.getElementById('setupPanel').style.display = 'none';
+                document.getElementById('gamePanel').style.display = 'block';
+                document.getElementById('roomId').innerText = currentRoomId;
+                document.getElementById('roomNameDisplay').innerText = roomName;
+                document.getElementById('maxPlayers').innerText = numPlayers;
+                updateRoomSelector();
+                startPolling();
+                alert(`✅ Phòng "${roomName}" đã được tạo thành công!\nRoom ID: ${currentRoomId}`);
+            } else {
+                updateRoomSelector();
+                currentRoomId = newRoomId;
+                sessionStorage.setItem('currentRoomId', currentRoomId);
+                document.getElementById('roomId').innerText = currentRoomId;
+                document.getElementById('roomNameDisplay').innerText = roomName;
+                document.getElementById('maxPlayers').innerText = numPlayers;
+                if (pollingInterval) clearInterval(pollingInterval);
+                startPolling();
+                alert(`✅ Đã tạo thêm phòng "${roomName}". Bạn đang xem phòng mới này.`);
+            }
+            return roomData;
+        } catch (error) {
+            console.error('Create room error:', error);
+            alert(`❌ Không thể tạo phòng: ${error.message}`);
+            updateConnectionStatus(false, error.message);
+            return null;
+        }
+    }
+    function showCreateRoomModal() {
+        document.getElementById('quickRoomModal').style.display = 'flex';
+        document.getElementById('newRoomName').value = 'Startup Game ' + (hostRooms.length + 1);
+        document.getElementById('newRoomPlayers').value = 4;
+    }
+    function closeRoomModal() { document.getElementById('quickRoomModal').style.display = 'none'; }
+    async function createAdditionalRoom() {
+        const name = document.getElementById('newRoomName').value.trim() || 'Startup Game';
+        const players = parseInt(document.getElementById('newRoomPlayers').value, 10);
+        closeRoomModal();
+        await createNewRoom(true, name, players);
+    }
+    function updateConnectionStatus(connected, message) {
+        const statusDiv = document.getElementById('connectionStatus');
+        if (!statusDiv) return;
+        if (connected) {
+            statusDiv.innerHTML = '✅ Đã kết nối đến Backend | Dữ liệu real-time';
+            statusDiv.style.background = 'rgba(34, 197, 94, 0.15)';
+            statusDiv.style.color = '#16a34a';
+        } else {
+            statusDiv.innerHTML = `⚠️ ${message || 'Không thể kết nối đến Backend'}<br><small>Vui lòng kiểm tra API URL: ${API_BASE_URL}</small>`;
+            statusDiv.style.background = 'rgba(220, 38, 38, 0.15)';
+            statusDiv.style.color = '#dc2626';
+        }
+    }
+    async function fetchRoomData() {
+        if (!currentRoomId) return null;
+        try {
+            const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}`);
+            if (!response.ok) { if (response.status === 404) return null; throw new Error(`HTTP ${response.status}`); }
+            const data = await response.json();
+            updateConnectionStatus(true, 'Connected');
+            return data;
+        } catch (error) {
+            console.error('Fetch room data error:', error);
+            updateConnectionStatus(false, error.message);
+            return null;
+        }
+    }
+    function startPolling() {
+        if (pollingInterval) clearInterval(pollingInterval);
+        fetchAndUpdateUI();
+        pollingInterval = setInterval(() => { if (currentRoomId) fetchAndUpdateUI(); }, 2000);
+    }
+    async function fetchAndUpdateUI() { const roomData = await fetchRoomData(); if (roomData) renderGameData(roomData); }
+    function renderGameData(roomData) {
+        if (!roomData) return;
+        document.getElementById('roomNameDisplay').innerText = roomData.name || 'Game Room';
+        document.getElementById('playerCount').innerText = roomData.joinedPlayers || 0;
+        document.getElementById('maxPlayers').innerText = roomData.maxPlayers || '?';
+        document.getElementById('currentPhase').innerText = roomData.currentPhase ?? '?';
+        document.getElementById('maxPhase').innerText = roomData.maxPhase ?? 7;
+        const gameStatusSpan = document.getElementById('gameStatus');
+        const canStartDeck = roomData.can_start_deck === true;
+        const isGameActive = roomData.status === 'playing' && !roomData.ended;
+        if (roomData.ended) { gameStatusSpan.innerHTML = '🏁 ENDED'; gameStatusSpan.className = 'error'; }
+        else if (roomData.status === 'playing') { gameStatusSpan.innerHTML = '🔥 IN PROGRESS'; gameStatusSpan.className = 'success'; }
+        else if (roomData.status === 'choosing_deck') { gameStatusSpan.innerHTML = '📦 CHOOSING DECKS'; gameStatusSpan.className = 'success'; }
+        else if (roomData.status === 'waiting_for_projects') { gameStatusSpan.innerHTML = '📝 WAITING FOR PROJECTS'; gameStatusSpan.className = 'loading-placeholder'; }
+        else { gameStatusSpan.innerHTML = '⏳ WAITING'; gameStatusSpan.className = 'loading-placeholder'; }
+        document.getElementById('runPhaseBtn').disabled = !isGameActive;
+        document.getElementById('forceStartDeckBtn').disabled = roomData.status !== 'waiting_for_projects' || !canStartDeck;
+        document.getElementById('endGameBtn').disabled = roomData.ended;
+        document.getElementById('resetGameBtn').disabled = false;
+        // Leaderboard (giữ nguyên cấu trúc cũ)
+        if (roomData.players && roomData.players.length) {
+            const sorted = [...roomData.players].sort((a,b)=>(b.score||0)-(a.score||0));
+            let rankingsHtml = '';
+            sorted.forEach((player,idx)=>{
+                const isJoined = player.status === 'active';
+                const isEnded = player.status === 'ended';
+                const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
+                const fundingPercent = ((player.funding||0)*100).toFixed(1);
+                rankingsHtml += `<div class="rank-card ${cardClass}"><h3>${idx+1}. ${player.name||`Player ${player.id+1}`}<span class="player-join-tag ${isJoined?'joined':(isEnded?'joined':'waiting')}">${player.status==='active'?'Active':(player.status==='ended'?'Finished':'Not Joined')}</span></h3><div class="player-funding">💰 Funding: ${fundingPercent}%</div><div class="funding-bar"><div class="funding-bar-fill" style="width: ${fundingPercent}%;"></div></div><div class="player-metric-list"><span class="metric-tag hype-tag">📈 Hype ${player.hype??0}</span><span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency??0}</span><span class="metric-tag score-tag">🏅 Score ${(player.score||0).toFixed(2)}</span></div></div>`;
+            });
+            document.getElementById('rankings').innerHTML = rankingsHtml;
+        } else { document.getElementById('rankings').innerHTML = '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>'; }
+        // Logs
+        if (roomData.logs && roomData.logs.length) {
+            document.getElementById('logsArea').innerHTML = [...roomData.logs].reverse().map(log=>`<div>📌 ${log}</div>`).join('');
+        } else { document.getElementById('logsArea').innerHTML = '<div class="data-empty">📭 Chưa có sự kiện nào</div>'; }
+        // Join Links
+        if (roomData.joinLinks && roomData.joinLinks.length) {
+            let linksHtml = '<div style="display: flex; flex-direction: column; gap: 12px;">';
+            roomData.joinLinks.forEach(link=>{
+                const player = roomData.players?.find(p=>p.id===link.playerIndex);
+                const isJoined = player && player.status !== 'not_joined';
+                linksHtml += `<div style="background: rgba(255, 255, 255, 0.85); border-radius: 16px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;"><div><span style="font-weight: 800; color:#db2777;">${link.playerName}</span><span class="join-status-tag ${isJoined?'joined':'waiting'}">${isJoined?'✅ Joined':'⌛ Waiting'}</span></div><div style="display: flex; gap: 8px;"><input type="text" value="${link.realLink}" style="background:#f3e8ff; font-size:12px; width: 260px;" readonly><button onclick="copyToClipboard('${link.realLink}')">Copy</button></div></div>`;
+            });
+            linksHtml += '</div>';
+            document.getElementById('joinLinksList').innerHTML = linksHtml;
+        } else { document.getElementById('joinLinksList').innerHTML = '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>'; }
+        // Phase details
+        if (roomData.phaseDetails && roomData.phaseDetails.length) {
+            const select = document.getElementById('phaseSelect');
+            select.innerHTML = roomData.phaseDetails.map(d=>`<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date||''})</option>`).join('');
+        }
+    }
+    function showPhaseDetails() { if (currentRoomId) fetchAndUpdateUI(); }
+    async function runPhase() {
+        if (!currentRoomId) return;
+        try {
+            const response = await fetch(`${API_BASE_URL}/run_phase`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({room_id:currentRoomId}) });
+            if (!response.ok) { const err=await response.json(); throw new Error(err.error||'Cannot run phase'); }
+            await fetchAndUpdateUI();
+        } catch(error) { alert(`❌ Lỗi: ${error.message}`); }
+    }
+    async function forceStartDeckPhase() {
+        if (!currentRoomId) return;
+        if (confirm('Force bắt đầu giai đoạn chọn Deck? (Chỉ dùng khi đã có ít nhất 2 người chơi submit dự án)')) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/start_deck_phase`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({room_id:currentRoomId}) });
+                if (!response.ok) { const err=await response.json(); throw new Error(err.error||'Cannot force start deck phase'); }
+                await fetchAndUpdateUI();
+                alert('✅ Đã chuyển sang giai đoạn chọn Deck!');
+            } catch(error) { alert(`❌ Lỗi: ${error.message}`); }
+        }
+    }
+    async function endGame() {
+        if (!currentRoomId) return;
+        if (confirm('Bạn có chắc muốn kết thúc game ngay bây giờ?')) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/end`, { method:'POST', headers:{'Content-Type':'application/json'} });
+                if (!response.ok) throw new Error('Cannot end game');
+                await fetchAndUpdateUI();
+            } catch(error) { alert(`❌ Lỗi: ${error.message}`); }
+        }
+    }
+    async function resetGame() {
+        if (!currentRoomId) return;
+        if (confirm('RESET toàn bộ game? Dữ liệu hiện tại sẽ bị mất.')) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/reset`, { method:'POST', headers:{'Content-Type':'application/json'} });
+                if (!response.ok) throw new Error('Cannot reset game');
+                await fetchAndUpdateUI();
+            } catch(error) { alert(`❌ Lỗi: ${error.message}`); }
+        }
+    }
+    function copyToClipboard(text) { navigator.clipboard.writeText(text).then(()=>alert('✅ Đã copy link!')); }
+    // Khởi tạo
+    loadRoomsFromStorage();
+    const savedRoomId = sessionStorage.getItem('currentRoomId');
+    if (savedRoomId && hostRooms.some(r=>r.id===savedRoomId)) {
+        currentRoomId = savedRoomId;
+        document.getElementById('setupPanel').style.display = 'none';
+        document.getElementById('gamePanel').style.display = 'block';
+        const roomInfo = hostRooms.find(r=>r.id===currentRoomId);
+        if (roomInfo) {
+            document.getElementById('roomNameDisplay').innerText = roomInfo.name;
+            document.getElementById('maxPlayers').innerText = roomInfo.maxPlayers;
+        }
+        document.getElementById('roomId').innerText = currentRoomId;
+        startPolling();
+        updateRoomSelector();
+    }
+    fetch(`${API_BASE_URL}/health`).catch(err=>updateConnectionStatus(false,'Backend không khả dụng.'));
+</script>
     
 <script>
     function toggleView() {
