@@ -464,6 +464,24 @@ def play_page(room_id, player_index):
 
 import time
 
+@app.route('/api/submit_project', methods=['POST'])
+def submit_project():
+    data = request.json
+    room_id = data['room_id']
+    player_index = data['player_index']
+    project_data = data['project']
+
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    
+    room = rooms[room_id]
+
+    if player_index >= len(room['players']):
+        return jsonify({'error': 'Player index không hợp lệ'}), 400
+
+    if room['players'][player_index] is not None:
+        return jsonify({'error': 'Bạn đã submit dự án rồi'}), 400
+
 
     # Lưu tên phòng nếu chưa có
     if room.get('name') is None and 'project_name' in project_data:
