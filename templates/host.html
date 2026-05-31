@@ -755,12 +755,16 @@ async function createRoom() {
 
         // Backend trả về: { id, name, maxPlayers, joinLinks }
         // Chuyển đổi joinLinks từ camelCase sang snake_case cho frontend dùng
-        const joinLinks = (data.joinLinks || []).map(link => ({
-            player_index: link.playerIndex,
-            player_id: link.playerIndex,
-            player_name: link.playerName,
-            url: link.realLink
-        }));
+        const baseUrl = window.location.origin;
+        const joinLinks = [];
+        for (let i = 0; i < data.maxPlayers; i++) {
+            joinLinks.push({
+                player_index: i,
+                player_id: i,
+                player_name: `Player ${i+1}`,
+                url: `${baseUrl}/play/${data.id}/${i}`
+            });
+        }
 
         room = {
             id: data.id,
