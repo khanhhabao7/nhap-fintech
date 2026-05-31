@@ -787,7 +787,6 @@
         else if (roomData.status === 'waiting_for_projects') { gameStatusSpan.innerHTML = '📝 WAITING FOR PROJECTS'; gameStatusSpan.className = 'loading-placeholder'; }
         else { gameStatusSpan.innerHTML = '⏳ WAITING'; gameStatusSpan.className = 'loading-placeholder'; }
         document.getElementById('runPhaseBtn').disabled = !isGameActive;
-        document.getElementById('forceStartDeckBtn').disabled = roomData.status !== 'waiting_for_projects' || !canStartDeck;
         document.getElementById('endGameBtn').disabled = roomData.ended;
         document.getElementById('resetGameBtn').disabled = false;
         // Leaderboard (giữ nguyên cấu trúc cũ)
