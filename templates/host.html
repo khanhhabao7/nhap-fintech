@@ -1,78 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <title>Startup Game - Host Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
+        body { 
             font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #fce4ec 0%, #e1d5e7 50%, #c5d9f0 100%);
             color: #1e1b2b;
-            padding: 20px;
+            padding: 20px; 
             min-height: 100vh;
         }
-
         .container { max-width: 1200px; margin: auto; }
-
-        .panel {
+        .panel { 
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
             border-radius: 1.5rem;
-            padding: 20px;
+            padding: 20px; 
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.6);
             box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
         }
-
-        button {
+        button { 
             background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff);
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 40px;
-            cursor: pointer;
+            color: white; 
+            border: none; 
+            padding: 10px 24px; 
+            border-radius: 40px; 
+            cursor: pointer; 
             font-size: 16px;
             font-weight: 600;
             margin-top: 10px;
             transition: all 0.25s;
         }
-
-        button:hover {
+        button:hover { 
             background: linear-gradient(95deg, #ff80ab, #c47eff, #7eaeff);
             transform: scale(0.98);
             box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
         }
-
         button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-        input, select {
+        input, select { 
             background-color: rgba(255, 255, 255, 0.9);
             border: 1px solid #c9b1e6;
-            padding: 8px 12px;
-            border-radius: 12px;
-            color: #1e1b2b;
+            padding: 8px 12px; 
+            border-radius: 12px; 
+            color: #1e1b2b; 
             margin: 0 5px;
         }
-
-        input:focus, select:focus { outline: none; border-color: #b77eff; }
-
-        .rankings { display: grid; gap: 12px; margin-top: 15px; }
-
-        .rank-card {
+        input:focus, select:focus {
+            outline: none;
+            ring: 2px solid #b77eff;
+            border-color: #b77eff;
+        }
+        .rankings { 
+            display: grid; 
+            gap: 12px; 
+            margin-top: 15px; 
+        }
+        .rank-card { 
             background: rgba(255, 255, 255, 0.75);
-            border-radius: 1rem;
-            padding: 12px;
+            border-radius: 1rem; 
+            padding: 12px; 
             border-left: 4px solid #ec4899;
             transition: all 0.2s;
         }
-
-        .player-card-joined  { background: rgba(34, 197, 94, 0.15); border-left-color: #22c55e; }
-        .player-card-not-joined { background: #ffffffdd; border-left-color: #94a3b8; }
-        .player-card-ended   { background: rgba(245, 158, 11, 0.15); border-left-color: #f59e0b; }
-
+        .player-card-joined { 
+            background: rgba(34, 197, 94, 0.15);
+            border-left-color: #22c55e;
+        }
+        .player-card-not-joined {
+            background: #ffffffdd;
+            border-left-color: #94a3b8;
+        }
+        .player-card-ended {
+            background: rgba(245, 158, 11, 0.15);
+            border-left-color: #f59e0b;
+        }
         .player-join-tag {
             display: inline-block;
             margin-left: 10px;
@@ -81,10 +85,14 @@
             font-size: 12px;
             font-weight: 700;
         }
-
-        .player-join-tag.joined  { background: #16a34a; color: #ecfdf5; }
-        .player-join-tag.waiting { background: #cbd5e1; color: #1e293b; }
-
+        .player-join-tag.joined {
+            background: #16a34a;
+            color: #ecfdf5;
+        }
+        .player-join-tag.waiting {
+            background: #cbd5e1;
+            color: #1e293b;
+        }
         .join-status-tag {
             display: inline-flex;
             align-items: center;
@@ -94,15 +102,22 @@
             font-size: 12px;
             font-weight: 600;
         }
-
-        .join-status-tag.joined  { background: #16a34a; color: #ecfdf5; }
-        .join-status-tag.waiting { background: #cbd5e1; color: #1e293b; }
-
-        .player-funding { font-size: 18px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; }
-        .player-funding span { color: #1e1b2b; font-weight: 600; }
-
-        .player-metric-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 8px; }
-
+        .player-funding {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f59e0b;
+            margin-bottom: 6px;
+        }
+        .player-funding span {
+            color: #1e1b2b;
+            font-weight: 600;
+        }
+        .player-metric-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 8px;
+        }
         .metric-tag {
             display: inline-flex;
             align-items: center;
@@ -115,44 +130,74 @@
             color: #4a2b7a;
             border: 1px solid #e2c6ff;
         }
-
-        .metric-tag.hype-tag         { background: rgba(59,130,246,0.15); color: #2563eb; border-color: rgba(59,130,246,0.3); }
-        .metric-tag.transparency-tag { background: rgba(16,185,129,0.12); color: #059669; border-color: rgba(16,185,129,0.3); }
-        .metric-tag.score-tag        { background: rgba(168,85,247,0.12);  color: #7c3aed; border-color: rgba(168,85,247,0.3); }
-        .metric-tag.status-tag       { background: rgba(148,163,184,0.14); color: #475569; border-color: rgba(148,163,184,0.3); }
-
-        .funding-bar { width: 100%; height: 10px; background: #e2d4f0; border-radius: 999px; overflow: hidden; margin-top: 6px; }
-        .funding-bar-fill { height: 100%; background: linear-gradient(90deg, #facc15 0%, #f59e0b 100%); border-radius: 999px; }
-
-        .logs {
-            background: rgba(0,0,0,0.05);
-            border-radius: 1rem;
-            padding: 12px;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 13px;
+        .metric-tag.hype-tag { background: rgba(59, 130, 246, 0.15); color: #2563eb; border-color: rgba(59, 130, 246, 0.3); }
+        .metric-tag.transparency-tag { background: rgba(16, 185, 129, 0.12); color: #059669; border-color: rgba(16, 185, 129, 0.3); }
+        .metric-tag.score-tag { background: rgba(168, 85, 247, 0.12); color: #7c3aed; border-color: rgba(168, 85, 247, 0.3); }
+        .metric-tag.status-tag { background: rgba(148, 163, 184, 0.14); color: #475569; border-color: rgba(148, 163, 184, 0.3); }
+        .funding-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2d4f0;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .funding-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #facc15 0%, #f59e0b 100%);
+            border-radius: 999px;
+        }
+        .join-status-tag.joined {
+            background: #16a34a;
+            color: #ecfdf5;
+        }
+        .join-status-tag.waiting {
+            background: #cbd5e1;
+            color: #1e293b;
+        }
+        .logs { 
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 1rem; 
+            padding: 12px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+            font-family: monospace; 
+            font-size: 13px; 
             margin-top: 15px;
             border: 1px solid #e2d4f0;
         }
-
         .flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-
-        .link-item { background: rgba(255,255,255,0.6); padding: 10px; border-radius: 12px; margin-bottom: 8px; word-break: break-all; }
-
+        .link-item { 
+            background: rgba(255, 255, 255, 0.6);
+            padding: 10px; 
+            border-radius: 12px; 
+            margin-bottom: 8px; 
+            word-break: break-all; 
+        }
         .success { color: #16a34a; font-weight: 600; }
-        .error   { color: #dc2626; font-weight: 600; }
-
+        .error { color: #dc2626; font-weight: 600; }
+        .reactive-demo {
+            background: rgba(236, 72, 153, 0.15);
+            border: 1px solid #ec4899;
+            border-radius: 12px;
+            padding: 8px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 14px;
+            color: #9d4edd;
+        }
         .section-panel {
-            background: rgba(255,255,255,0.7);
+            background: rgba(255, 255, 255, 0.7);
             border-radius: 1rem;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid rgba(210,180,255,0.5);
+            border: 1px solid rgba(210, 180, 255, 0.5);
         }
-
-        .section-panel h3 { margin-bottom: 14px; color: #2e1a47; font-weight: 700; }
-
+        .section-panel h3 {
+            margin-bottom: 14px;
+            color: #2e1a47;
+            font-weight: 700;
+        }
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -161,1041 +206,492 @@
             margin-bottom: 16px;
             color: #2e1a47;
         }
-
-        .section-header span { display: inline-flex; align-items: center; gap: 6px; }
-
-        h2 { color: #2e1a47; }
-
+        .section-header span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        h2 {
+            color: #2e1a47;
+        }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #edd9ff; border-radius: 20px; }
         ::-webkit-scrollbar-thumb { background: #a569e6; border-radius: 20px; }
 
         /* Leaderboard & End Game Styles */
-        .leaderboard-container { max-height: 500px; overflow-y: auto; }
+.leaderboard-container {
+    max-height: 500px;
+    overflow-y: auto;
+}
+.leaderboard-category {
+    margin-bottom: 24px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.6);
+}
+.category-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.category-header.small { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e1b2b; }
+.category-header.medium { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #1e1b2b; }
+.category-header.large { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #1e1b2b; }
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.leaderboard-table th,
+.leaderboard-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.leaderboard-table th {
+    background: rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    color: #2e1a47;
+}
+.leaderboard-table tr:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+.rank-1 { background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), transparent); font-weight: bold; }
+.rank-2 { background: linear-gradient(90deg, rgba(192, 192, 192, 0.2), transparent); }
+.rank-3 { background: linear-gradient(90deg, rgba(205, 127, 50, 0.2), transparent); }
+.funding-amount {
+    font-weight: 600;
+    color: #f59e0b;
+}
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+.modal-content {
+    background: white;
+    border-radius: 24px;
+    max-width: 90vw;
+    width: 800px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+    from { transform: translateY(50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.close-modal {
+    float: right;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: -10px;
+}
+.close-modal:hover {
+    background: #dc2626;
+}
+/* Game Rules Sidebar Styles */
+.rules-button {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    z-index: 999;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    border: none;
+    color: white;
+    width: 56px;
+    height: 56px;
+    border-radius: 28px;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        .leaderboard-category { margin-bottom: 24px; border-radius: 16px; overflow: hidden; background: rgba(255,255,255,0.6); }
+.rules-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
 
-        .category-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 20px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.rules-sidebar {
+    position: fixed;
+    top: 0;
+    right: -500px;
+    width: 500px;
+    max-width: 90vw;
+    height: 100vh;
+    background: linear-gradient(135deg, #1e1b2b 0%, #2d2a44 100%);
+    color: #f0f0f0;
+    z-index: 1000;
+    transition: right 0.3s ease;
+    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+    font-family: 'Inter', sans-serif;
+}
 
-        .category-header.small  { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #1e1b2b; }
-        .category-header.medium { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: #1e1b2b; }
-        .category-header.large  { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #1e1b2b; }
+.rules-sidebar.open {
+    right: 0;
+}
 
-        .leaderboard-table { width: 100%; border-collapse: collapse; }
+.rules-sidebar-header {
+    padding: 24px;
+    background: linear-gradient(135deg, #ec4899, #8b5cf6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 
-        .leaderboard-table th,
-        .leaderboard-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.1); }
+.rules-sidebar-header h2 {
+    color: white;
+    margin: 0;
+    font-size: 1.5rem;
+}
 
-        .leaderboard-table th { background: rgba(0,0,0,0.05); font-weight: 600; color: #2e1a47; }
-        .leaderboard-table tr:hover { background: rgba(255,255,255,0.5); }
+.close-rules {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
 
-        .rank-1 { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); font-weight: bold; }
-        .rank-2 { background: linear-gradient(90deg, rgba(192,192,192,0.2), transparent); }
-        .rank-3 { background: linear-gradient(90deg, rgba(205,127,50,0.2), transparent); }
+.close-rules:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
 
-        .funding-amount { font-weight: 600; color: #f59e0b; }
+.rules-sidebar-content {
+    padding: 24px;
+}
 
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.3s ease;
-        }
+.rules-sidebar-content h3 {
+    color: #f472b6;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.25rem;
+}
 
-        .modal-content {
-            background: white;
-            border-radius: 24px;
-            max-width: 90vw;
-            width: 800px;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            animation: slideUp 0.3s ease;
-        }
+.rules-sidebar-content h4 {
+    color: #a78bfa;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
 
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-        }
+.rules-sidebar-content p, 
+.rules-sidebar-content li {
+    color: #e0e0e0;
+    line-height: 1.6;
+    font-size: 0.9rem;
+}
 
-        .close-modal {
-            float: right;
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: -10px;
-        }
+.rules-sidebar-content ul, 
+.rules-sidebar-content ol {
+    padding-left: 20px;
+    margin: 10px 0;
+}
 
-        .close-modal:hover { background: #dc2626; }
+.rules-sidebar-content li {
+    margin: 6px 0;
+}
 
-        /* Game Rules Sidebar */
-        .rules-button {
-            position: fixed;
-            bottom: 24px;
-            left: 24px;
-            z-index: 999;
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
-            border: none;
-            color: white;
-            width: 56px;
-            height: 56px;
-            border-radius: 28px;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+.rules-sidebar-content .highlight {
+    background: rgba(236, 72, 153, 0.2);
+    padding: 2px 6px;
+    border-radius: 6px;
+    color: #f472b6;
+    font-weight: 600;
+}
 
-        .rules-button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(139,92,246,0.4); }
+.rules-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    display: none;
+}
 
-        .rules-sidebar {
-            position: fixed;
-            top: 0; right: -500px;
-            width: 500px;
-            max-width: 90vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #1e1b2b 0%, #2d2a44 100%);
-            color: #f0f0f0;
-            z-index: 1000;
-            transition: right 0.3s ease;
-            box-shadow: -5px 0 30px rgba(0,0,0,0.3);
-            overflow-y: auto;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .rules-sidebar.open { right: 0; }
-
-        .rules-sidebar-header {
-            padding: 24px;
-            background: linear-gradient(135deg, #ec4899, #8b5cf6);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .rules-sidebar-header h2 { color: white; margin: 0; font-size: 1.5rem; }
-
-        .close-rules {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            width: 36px; height: 36px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .close-rules:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
-
-        .rules-sidebar-content { padding: 24px; }
-        .rules-sidebar-content h3 { color: #f472b6; margin-top: 20px; margin-bottom: 10px; font-size: 1.25rem; }
-        .rules-sidebar-content h4 { color: #a78bfa; margin-top: 15px; margin-bottom: 8px; font-size: 1rem; }
-        .rules-sidebar-content p, .rules-sidebar-content li { color: #e0e0e0; line-height: 1.6; font-size: 0.9rem; }
-        .rules-sidebar-content ul, .rules-sidebar-content ol { padding-left: 20px; margin: 10px 0; }
-        .rules-sidebar-content li { margin: 6px 0; }
-        .rules-sidebar-content .highlight { background: rgba(236,72,153,0.2); padding: 2px 6px; border-radius: 6px; color: #f472b6; font-weight: 600; }
-
-        .rules-sidebar-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 998;
-            display: none;
-        }
-
-        .rules-sidebar-overlay.show { display: block; }
+.rules-sidebar-overlay.show {
+    display: block;
+}
     </style>
 </head>
-
 <body>
+<!-- Modal tạo phòng nhanh -->
+<div id="quickRoomModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:32px; padding:24px; max-width:500px; margin:20px;">
+        <h3 style="margin-bottom:16px;">➕ Tạo phòng mới</h3>
+        <input type="text" id="newRoomName" placeholder="Tên phòng" style="width:100%; margin-bottom:12px;" value="Startup Game">
+        <input type="number" id="newRoomPlayers" min="2" max="10" value="4" style="width:100%; margin-bottom:20px;">
+        <div class="flex" style="justify-content: flex-end;">
+            <button onclick="closeRoomModal()" style="background:#94a3b8;">Hủy</button>
+            <button onclick="createAdditionalRoom()" style="background:#10b981;">Tạo phòng</button>
+        </div>
+    </div>
+</div>
+    
     <!-- Game Rules Sidebar -->
-    <button class="rules-button" id="rulesButton" style="display: none;">📖</button>
-    <div class="rules-sidebar-overlay" id="rulesOverlay"></div>
-    <div class="rules-sidebar" id="rulesSidebar">
-        <div class="rules-sidebar-header">
-            <h2>📖 Fun(d) Raising - Game Guide</h2>
-            <button class="close-rules" id="closeRulesBtn">&times;</button>
-        </div>
-        <div class="rules-sidebar-content">
-            <h3>1. Overview</h3>
-            <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the most
-                attractive project. Each player creates a startup, chooses a custom deck of cards, and navigates random
-                events. Investors (our system) decide where to put their money. The host controls the game flow. After
-                several rounds (phases), a final score determines the winner.</p>
+<button class="rules-button" id="rulesButton" style="display: none;">📖</button>
 
-            <h3>2. Setup</h3>
-            <h4>2.1 Host creates a room</h4>
-            <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create Room</span>. The
-                system generates unique join links – one per player. The host sends each link to the corresponding
-                player.</p>
+<div class="rules-sidebar-overlay" id="rulesOverlay"></div>
 
-            <h4>2.2 Players enter project details</h4>
-            <p>Each player opens their link and fills in the required information about their startup (price, costs,
-                production forecast, capital structure, etc.). All fields have reasonable limits to keep the game
-                balanced.</p>
+<div class="rules-sidebar" id="rulesSidebar">
+    <div class="rules-sidebar-header">
+        <h2>📖 Fun(d) Raising - Game Guide</h2>
+        <button class="close-rules" id="closeRulesBtn">&times;</button>
+    </div>
+    <div class="rules-sidebar-content">
+        <h3>1. Overview</h3>
+        <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the most attractive project. Each player creates a startup, chooses a custom deck of cards, and navigates random events. Investors (our system) decide where to put their money. The host controls the game flow. After several rounds (phases), a final score determines the winner.</p>
 
-            <h4>2.3 Players build their deck</h4>
-            <p>After submitting the project, each player selects:</p>
-            <ul>
-                <li><strong>19 Active Cards (mandatory)</strong> – three types:
-                    <ul>
-                        <li><span class="highlight">Aggressive</span>: boosts Hype, often lowers Transparency.</li>
-                        <li><span class="highlight">Defensive</span>: increases Transparency, reduces legal risk.</li>
-                        <li><span class="highlight">Capital</span>: affects funding, trust, or financial structure.</li>
-                    </ul>
-                </li>
-                <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a specific
-                    condition is met.</li>
-            </ul>
-            <p><em>Note: Cards are selected by clicking on them (no "highlight" step). The host decides when the deck
-                    selection phase ends and the game starts.</em></p>
+        <h3>2. Setup</h3>
+        <h4>2.1 Host creates a room</h4>
+        <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create Room</span>. The system generates unique join links – one per player. The host sends each link to the corresponding player.</p>
+        
+        <h4>2.2 Players enter project details</h4>
+        <p>Each player opens their link and fills in the required information about their startup (price, costs, production forecast, capital structure, etc.). All fields have reasonable limits to keep the game balanced.</p>
+        
+        <h4>2.3 Players build their deck</h4>
+        <p>After submitting the project, each player selects:</p>
+        <ul>
+            <li><strong>19 Active Cards (mandatory)</strong> – three types:
+                <ul>
+                    <li><span class="highlight">Aggressive</span>: boosts Hype, often lowers Transparency.</li>
+                    <li><span class="highlight">Defensive</span>: increases Transparency, reduces legal risk.</li>
+                    <li><span class="highlight">Capital</span>: affects funding, trust, or financial structure.</li>
+                </ul>
+            </li>
+            <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a specific condition is met.</li>
+        </ul>
+        <p><em>Note: Cards are selected by clicking on them (no "highlight" step). The host decides when the deck selection phase ends and the game starts.</em></p>
 
-            <h3>3. Game Flow – Phases</h3>
-            <p>The number of phases depends on the chosen scale:</p>
-            <ul>
-                <li>Small → 5 phases</li>
-                <li>Medium → 7 phases</li>
-                <li>Large → 9 phases</li>
-            </ul>
-            <p>The host controls the progression: after each phase, the host decides when to move to the next one.</p>
+        <h3>3. Game Flow – Phases</h3>
+        <p>The number of phases depends on the chosen scale:</p>
+        <ul>
+            <li>Small → 5 phases</li>
+            <li>Medium → 7 phases</li>
+            <li>Large → 9 phases</li>
+        </ul>
+        <p>The host controls the progression: after each phase, the host decides when to move to the next one.</p>
+        
+        <h4>During a phase:</h4>
+        <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including market, internal, external, or regulatory events.</p>
+        
+        <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their deck. They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and then clicking the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new cards) – costs 1 energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards that are triggered will appear as clickable buttons; they can be used at any time during the phase (each only once). The host decides when the phase ends and proceeds to the next one.</p>
+        
+        <p><strong>c. Host runs the phase</strong><br>When the host clicks Run Phase, the system:</p>
+        <ul>
+            <li>Applies all played cards and event effects.</li>
+            <li>Updates project stats (funding progress, runway, etc.).</li>
+            <li>Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random) evaluate all active projects.</li>
+            <li>Bots may withdraw money from less attractive projects.</li>
+            <li>Bots may invest new money into attractive projects (softmax distribution).</li>
+            <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that performed poorly before may struggle to regain trust.</li>
+            <li>The phase ends. If a project runs out of cash, it goes bankrupt and is eliminated.</li>
+        </ul>
 
-            <h4>During a phase:</h4>
-            <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including market,
-                internal, external, or regulatory events.</p>
+        <h3>4. End of Game &amp; Winner</h3>
+        <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt). The host sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The score takes into account funding progress, speed, expected ROI, transparency, and a penalty for unrealistic valuation. The project with the highest score wins.</p>
 
-            <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their deck.
-                They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and then clicking
-                the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new cards) – costs 1
-                energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards that are triggered will
-                appear as clickable buttons; they can be used at any time during the phase (each only once). The host
-                decides when the phase ends and proceeds to the next one.</p>
+        <h3>5. Quick Tips</h3>
+        <ul>
+            <li>Balance Aggressive (Hype) and Defensive (Transparency) cards – too much hype hurts credibility.</li>
+            <li>Save energy for impactful cards; don't waste it on weak effects.</li>
+            <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g., bot withdrawals, bad events).</li>
+            <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale, capital efficiency, leverage) – build a solid financial foundation to attract them.</li>
+        </ul>
+    </div>
+</div>
+<div class="container">
+    <div class="panel">
+        <h2>✨ Fun(d) raising - When you have funds you have fun ✨</h2>
+    </div>
 
-            <p><strong>c. Host runs the phase</strong><br>When the host clicks Run Phase, the system:</p>
-            <ul>
-                <li>Applies all played cards and event effects.</li>
-                <li>Updates project stats (funding progress, runway, etc.).</li>
-                <li>Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random) evaluate all active projects.</li>
-                <li>Bots may withdraw money from less attractive projects.</li>
-                <li>Bots may invest new money into attractive projects (softmax distribution).</li>
-                <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that performed
-                    poorly before may struggle to regain trust.</li>
-                <li>The phase ends. If a project runs out of cash, it goes bankrupt and is eliminated.</li>
-            </ul>
-
-            <h3>4. End of Game &amp; Winner</h3>
-            <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt). The host
-                sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The score takes into
-                account funding progress, speed, expected ROI, transparency, and a penalty for unrealistic valuation.
-                The project with the highest score wins.</p>
-
-            <h3>5. Quick Tips</h3>
-            <ul>
-                <li>Balance Aggressive (Hype) and Defensive (Transparency) cards – too much hype hurts credibility.</li>
-                <li>Save energy for impactful cards; don't waste it on weak effects.</li>
-                <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g., bot
-                    withdrawals, bad events).</li>
-                <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale, capital
-                    efficiency, leverage) – build a solid financial foundation to attract them.</li>
-            </ul>
+    <!-- ROOM SETUP -->
+    <div class="panel" id="setupPanel">
+        <h2>Create New Room</h2>
+        <div class="flex">
+            <label style="color:#2e1a47; font-weight:600;">Room name:</label>
+            <input type="text" id="roomName" placeholder="Enter room name">
+            <label style="color:#2e1a47; font-weight:600;">Number of players:</label>
+            <input type="number" id="numPlayers" min="2" max="10" value="4">
+            <button onclick="createNewRoom()">🚀 CREATE ROOM & START GAME</button>
         </div>
     </div>
 
-    <div class="container">
-        <div class="panel">
-            <h2>✨ Fun(d) raising - When you have funds you have fun ✨</h2>
+    <!-- GAME PANEL -->
+    <div class="panel" id="gamePanel" style="display:none;">
+        <h2>🏠 <span id="roomNameDisplay">Game Room</span> - Room: <span id="roomId">MOCK-001</span></h2>
+
+        <div class="room-selector">
+            <span>📋 Đang xem phòng:</span>
+            <select id="roomSelector" onchange="switchToRoom()"></select>
+            <button onclick="showCreateRoomModal()" class="create-additional-btn" style="padding: 6px 16px; margin-top:0;">+ Tạo phòng mới</button>
+        </div>
+        
+        <div class="section-panel">
+            <h3>🏁 Game Room</h3>
+            <div style="margin-bottom: 16px;">
+                <strong style="color:#2e1a47;">🔗 JOIN LINKS</strong>
+                <div style="color: #6b21a5; font-size: 13px; margin-top: 6px;">Each player has their own unique link to join.</div>
+            </div>
+            <div id="joinLinksList" class="link-item" style="background: transparent; padding: 0; border: none; margin-bottom: 0;">
+                Loading...
+            </div>
         </div>
 
-        <!-- ROOM SETUP -->
-        <div class="panel" id="setupPanel">
-            <h2>Create New Room</h2>
-            <div class="flex">
-                <label style="color:#2e1a47; font-weight:600;">Room name:</label>
-                <input type="text" id="roomName" placeholder="Enter room name">
-                <label style="color:#2e1a47; font-weight:600;">Number of players:</label>
-                <input type="number" id="numPlayers" min="2" max="10" value="4">
-                <button id="createRoomBtn" onclick="createRoom()">🚀 CREATE ROOM</button>
+        <div class="section-panel">
+            <h3>⏱️ Game Progress</h3>
+            <div class="section-header">
+                <span>👥 <strong><span id="playerCount">2</span> / <span id="maxPlayers">4</span></strong> joined</span>
+                <span>🕒 Phase: <strong><span id="currentPhase">1</span></strong> / <strong><span id="maxPhase">7</span></strong></span>
+                <span>🎯 Status: <strong><span id="gameStatus" class="success">IN PROGRESS</span></strong></span>
             </div>
-            <div id="createRoomError" style="color:#dc2626; margin-top:10px; display:none;"></div>
+            <div class="flex" style="gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                <label for="phaseSelect" style="color:#2e1a47; font-weight:600;">🔢 View phase details:</label>
+                <select id="phaseSelect" onchange="showPhaseDetails()"></select>
+            </div>
+            <div id="phaseDetails" class="panel" style="background: rgba(255,255,240,0.5); margin-bottom: 0;">
+                <strong style="color:#2e1a47;">Select a phase to view detailed results.</strong>
+            </div>
         </div>
 
-        <!-- GAME PANEL -->
-        <div class="panel" id="gamePanel" style="display:none;">
-            <h2>🏠 <span id="roomNameDisplay">Game Room</span> - Room: <span id="roomId">—</span></h2>
+        <div class="section-panel">
+            <h3>📜 Event Log</h3>
+            <div id="logsArea" class="logs"></div>
+        </div>
 
-            <div class="section-panel">
-                <h3>🏁 Game Room</h3>
-                <div style="margin-bottom: 16px;">
-                    <strong style="color:#2e1a47;">🔗 JOIN LINKS</strong>
-                    <div style="color: #6b21a5; font-size: 13px; margin-top: 6px;">Each player has their own unique link to join.</div>
-                </div>
-                <div id="joinLinksList" class="link-item" style="background: transparent; padding: 0; border: none; margin-bottom: 0;">
-                    Loading...
-                </div>
-            </div>
+        <div class="section-panel">
+            <h3>🏆 Leaderboard</h3>
+            <div id="rankings" class="rankings">Loading...</div>
+        </div>
 
-            <div class="section-panel">
-                <h3>⏱️ Game Progress</h3>
-                <div class="section-header">
-                    <span>👥 <strong><span id="playerCount">0</span> / <span id="maxPlayers">—</span></strong> joined</span>
-                    <span>🕒 Phase: <strong><span id="currentPhase">—</span></strong> / <strong><span id="maxPhase">—</span></strong></span>
-                    <span>🎯 Status: <strong><span id="gameStatus" class="success">IN PROGRESS</span></strong></span>
-                </div>
-                <div class="flex" style="gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
-                    <label for="phaseSelect" style="color:#2e1a47; font-weight:600;">🔢 View phase details:</label>
-                    <select id="phaseSelect" onchange="showPhaseDetails()"></select>
-                </div>
-                <div id="phaseDetails" class="panel" style="background: rgba(255,255,240,0.5); margin-bottom: 0;">
-                    <strong style="color:#2e1a47;">Select a phase to view detailed results.</strong>
-                </div>
-            </div>
-
-            <div class="section-panel">
-                <h3>📜 Event Log</h3>
-                <div id="logsArea" class="logs"></div>
-            </div>
-
-            <div class="section-panel">
-                <h3>🏆 Leaderboard</h3>
-                <div id="rankings" class="rankings">Loading...</div>
-            </div>
-
-            <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
-                <button onclick="runPhase()" id="runPhaseBtn">▶ RUN NEXT PHASE</button>
-                <button onclick="resetCurrentPhase()" id="resetCurrentPhaseBtn"
-                    style="background: linear-gradient(95deg, #fbbf24, #f59e0b);">🔄 RESET CURRENT PHASE</button>
-                <button onclick="endGame()" id="endGameBtn"
-                    style="background: linear-gradient(95deg, #ef4444, #dc2626);">⛔ END GAME</button>
-                <button onclick="resetGame()" id="resetGameBtn">🔄 RESET GAME</button>
-            </div>
+        <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
+            <button onclick="resetCurrentPhase()" id="resetCurrentPhaseBtn" style="background: linear-gradient(95deg, #fbbf24, #f59e0b);">🔄 RESET CURRENT PHASE</button>
+            <button onclick="endGame()" id="endGameBtn" style="background: linear-gradient(95deg, #ef4444, #dc2626);">⛔ END GAME</button>
+            <button onclick="resetGame()" id="resetGameBtn">🔄 RESET GAME</button>
         </div>
     </div>
-
-    <div style="position: fixed; bottom: 16px; right: 16px; z-index: 50;">
-        <button onclick="toggleView()"
-            style="background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff); padding: 10px 20px; border-radius: 40px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; border: none; color: white; font-weight: 600;">
-            <span>👤</span> Switch to Player View
-        </button>
-    </div>
-
-    <script>
-        // ─── CONFIG ────────────────────────────────────────────────────────────
-        const API_BASE_URL = window.location.origin + '/api';
-
-        // ─── STATE ────────────────────────────────────────────────────────────
-        let room = null;            // live room object from backend
-        let phaseSnapshots = [];    // local history: [{phase, date, event, summary, players}]
-        let autoUpdateInterval = null;
-
-        // ─── API HELPERS ──────────────────────────────────────────────────────
-        async function apiGet(path) {
-            const res = await fetch(API_BASE_URL + path);
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.message || err.error || `HTTP ${res.status}`);
-            }
-            return res.json();
-        }
-
-        async function apiPost(path, body = {}) {
-            const res = await fetch(API_BASE_URL + path, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.message || err.error || `HTTP ${res.status}`);
-            }
-            return res.json();
-        }
-
-        // ─── PHASE SNAPSHOT HELPERS ───────────────────────────────────────────
-        function snapshotPlayers() {
-            return (room.players || []).map(p => ({
-                id: p.id,
-                name: p.name,
-                funding: p.funding ?? 0,
-                hype: p.hype ?? 0,
-                transparency: p.transparency ?? 0,
-                score: p.score ?? 0,
-                status: p.status
-            }));
-        }
-
-        function recordSnapshot(phaseNum, eventText) {
-            // Only record once per phase number
-            if (phaseSnapshots.find(s => s.phase === phaseNum)) return;
-            phaseSnapshots.push({
-                phase: phaseNum,
-                date: new Date().toLocaleTimeString(),
-                event: eventText,
-                summary: `Results after phase ${phaseNum}`,
-                players: snapshotPlayers()
-            });
-        }
-
-        // ─── JOIN LINKS ───────────────────────────────────────────────────────
-function updateJoinLinks() {
-    if (!room || !room.join_links) return;
+</div>
     
-    let html = '<div style="display:grid;gap:8px;">';
-    room.join_links.forEach(link => {
-        const player = room.players?.find(p => p.id === link.player_id || p.id === link.player_index);
-        const joined = player && player.status !== 'not_joined';
-        const statusLabel = joined ? 'Joined' : 'Not Joined';
-        const statusClass = joined ? 'joined' : 'waiting';
-        
-        // gameEnded is determined by room.ended flag only (don't guess max_phase here)
-        const gameEnded = room.ended;
-
-        html += `
-        <div style="background:rgba(255,255,255,0.8);border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-            <div>
-                <span style="font-weight:bold;color:#db2777;">${link.player_name}</span>
-                <span style="color:#6b21a5;font-size:12px;margin-left:8px;">(Index: ${link.player_index})</span>
-                <span class="join-status-tag ${statusClass}" style="margin-left:12px;">${statusLabel}</span>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                <input type="text" value="${link.url}" style="background:#f3e8ff;font-size:12px;padding:6px;border-radius:8px;width:300px;color:#1e1b2b;border:1px solid #c9b1e6;" readonly>
-                <button onclick="copyLink('${link.url}')" ${gameEnded ? 'disabled' : ''} style="background:#ec4899;padding:6px 12px;border-radius:8px;font-size:12px;border:none;color:white;cursor:pointer;margin-top:0;">
-                    Copy
-                </button>
-            </div>
-        </div>`;
-    });
-    html += '</div>';
-    document.getElementById('joinLinksList').innerHTML = html;
-}
-
-        // ─── LEADERBOARD CARDS ────────────────────────────────────────────────
-function updateRankings() {
-    const players = room.players || [];
-    let html = '';
-    players.forEach(player => {
-        const joined = player.status === 'active';
-        const ended = player.status === 'ended';
-        const icon = joined ? '🟢' : (ended ? '🏆' : '⚪');
-        const cardCls = joined ? 'player-card-joined' : (ended ? 'player-card-ended' : 'player-card-not-joined');
-        const tagCls = joined ? 'joined' : 'waiting';
-        const label = joined ? 'Joined' : (ended ? 'Finished' : 'Not Joined');
-        const pct = ((player.funding ?? 0) * 100).toFixed(1);
-        
-        // ===== LẤY ĐÚNG max_phase CỦA TỪNG PLAYER =====
-        const currentPhase = player.current_phase || 0;
-        const maxPhase = player.max_phase || 7;  // Dùng max_phase riêng của player
-        const phaseText = joined ? `Phase: ${currentPhase}/${maxPhase}` : '';
-        const readyText = player.ready_for_next_phase ? '✅ Ready' : '⏳ Waiting';
-        
-        // Hiển thị scale (Small/Medium/Large)
-        let scaleText = '';
-        if (player.project_size) {
-            const scaleNames = { S: 'Small', M: 'Medium', L: 'Large' };
-            scaleText = `📐 ${scaleNames[player.project_size] || 'Medium'} (${maxPhase} phases)`;
-        }
-        
-        html += `
-        <div class="rank-card ${cardCls}">
-            <h3 style="color:#2e1a47;">${icon} ${player.name}
-                <span class="player-join-tag ${tagCls}">${label}</span>
-                ${joined ? `<span style="font-size: 11px; margin-left: 8px; color: ${player.ready_for_next_phase ? '#16a34a' : '#f59e0b'}">${readyText}</span>` : ''}
-            </h3>
-            ${scaleText ? `<div style="font-size: 11px; color: #6b21a5; margin-bottom: 4px;">${scaleText}</div>` : ''}
-            ${phaseText ? `<div style="font-size: 12px; color: #4a2b7a; margin-bottom: 4px;">🕒 ${phaseText}</div>` : ''}
-            <div class="player-funding">💰 Funding: <span>${pct}%</span></div>
-            <div class="funding-bar"><div class="funding-bar-fill" style="width:${pct}%;"></div></div>
-            <div class="player-metric-list">
-                <span class="metric-tag hype-tag">📈 Hype ${player.hype ?? 0}</span>
-                <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
-                <span class="metric-tag score-tag">🏅 Score ${(player.score ?? 0).toFixed(2)}</span>
-                <span class="metric-tag status-tag">📌 ${player.status}</span>
-            </div>
-        </div>`;
-    });
-    document.getElementById('rankings').innerHTML = html || '<p style="color:#6b21a5;">No players yet.</p>';
-}
-
-        // ─── EVENT LOG ────────────────────────────────────────────────────────
-        function updateLogs() {
-            const logs = (room.logs || []).slice().reverse();
-            document.getElementById('logsArea').innerHTML =
-                logs.map((log, i) => `<div style="color:#2e1a47;">📌 ${i + 1}. ${log}</div>`).join('');
-            const el = document.getElementById('logsArea');
-            if (el) el.scrollTop = el.scrollHeight;
-        }
-
-        // ─── PHASE SELECT ─────────────────────────────────────────────────────
-        function refreshPhaseSelect() {
-            const select = document.getElementById('phaseSelect');
-            if (!select || phaseSnapshots.length === 0) return;
-            const prev = select.value;
-            select.innerHTML = phaseSnapshots
-                .map(s => `<option value="${s.phase}">Phase ${s.phase}</option>`)
-                .join('');
-            const still = phaseSnapshots.some(s => s.phase === parseInt(prev, 10));
-            select.value = still ? prev : phaseSnapshots[phaseSnapshots.length - 1].phase;
-        }
-
-        function showPhaseDetails() {
-            const select = document.getElementById('phaseSelect');
-            if (!select || phaseSnapshots.length === 0) return;
-            const snap = phaseSnapshots.find(s => s.phase === parseInt(select.value, 10));
-            const div  = document.getElementById('phaseDetails');
-            if (!snap || !div) return;
-            div.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">
-                <div><strong style="color:#2e1a47;">Phase ${snap.phase}</strong></div>
-                <div style="color:#6b21a5;">${snap.date}</div>
-            </div>
-            <div style="margin:8px 0;color:#4a2b7a;">${snap.summary}</div>
-            <div style="margin-bottom:12px;"><strong style="color:#2e1a47;">Main Event:</strong> <span style="color:#4a2b7a;">${snap.event}</span></div>
-            <div style="display:grid;gap:10px;">
-                ${snap.players.map(p => `
-                <div style="background:rgba(255,255,240,0.6);padding:12px;border-radius:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                    <div>
-                        <div style="font-weight:700;color:#2e1a47;">${p.name}</div>
-                        <div style="color:#6b21a5;font-size:13px;margin-top:4px;">${p.status}</div>
-                    </div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <span class="metric-tag">💰 ${(p.funding * 100).toFixed(1)}%</span>
-                        <span class="metric-tag hype-tag">📈 ${p.hype}</span>
-                        <span class="metric-tag transparency-tag">🔍 ${p.transparency}</span>
-                        <span class="metric-tag score-tag">🏅 ${p.score.toFixed(2)}</span>
-                    </div>
-                </div>`).join('')}
-            </div>`;
-        }
-
-        // ─── MASTER DISPLAY ───────────────────────────────────────────────────
-function updateDisplay() {
-    if (!room) return;
-    
-    // Thông tin chung của phòng
-    document.getElementById('roomNameDisplay').innerText = room.name;
-    document.getElementById('roomId').innerText = room.id;
-    document.getElementById('maxPlayers').innerText = room.num_players;
-    document.getElementById('currentPhase').innerText = room.current_phase;
-    
-    // ===== QUAN TRỌNG: Hiển thị max_phase của phòng (giá trị lớn nhất) =====
-    // Chỉ tính từ players đã join VÀ đã chọn project_size
-    let displayMaxPhase = '—'; // default: chưa có ai chọn size
-    if (room.players && room.players.length > 0) {
-        const allMaxPhases = room.players
-            .filter(p => p && p.max_phase && p.status !== 'not_joined')
-            .map(p => p.max_phase);
-        if (allMaxPhases.length > 0) {
-            displayMaxPhase = Math.max(...allMaxPhases);
-        }
+<script>
+    function toggleView() {
+        const roomId = document.getElementById('roomId')?.innerText || 'MOCK_ROOM';
+        const url = `/play/${roomId}/0`;
+        window.open(url, '_blank');
     }
-    document.getElementById('maxPhase').innerText = displayMaxPhase;
+
+    // Game Rules Sidebar Controller
+function initRulesSidebar() {
+    const rulesButton = document.getElementById('rulesButton');
+    const rulesSidebar = document.getElementById('rulesSidebar');
+    const rulesOverlay = document.getElementById('rulesOverlay');
+    const closeRulesBtn = document.getElementById('closeRulesBtn');
     
-    // Số người đã join
-    const joined = (room.players || []).filter(p => p && p.status !== 'not_joined').length;
-    document.getElementById('playerCount').innerText = joined;
+    function openRules() {
+        rulesSidebar.classList.add('open');
+        rulesOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
     
-    // Cập nhật các thành phần khác
-    updateJoinLinks();      // Link join (lấy từ room.join_links)
-    updateRankings();       // Bảng xếp hạng (hiển thị max_phase của từng player)
-    updateLogs();
-    refreshPhaseSelect();
-    showPhaseDetails();
+    function closeRules() {
+        rulesSidebar.classList.remove('open');
+        rulesOverlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+    
+    if (rulesButton) {
+        rulesButton.addEventListener('click', openRules);
+    }
+    if (closeRulesBtn) {
+        closeRulesBtn.addEventListener('click', closeRules);
+    }
+    if (rulesOverlay) {
+        rulesOverlay.addEventListener('click', closeRules);
+    }
+    
+    // ESC key to close
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
+            closeRules();
+        }
+    });
+    
+    return { openRules, closeRules };
+}
+
+// Function to show/hide rules button based on current screen
+function updateRulesButtonVisibility() {
+    const rulesButton = document.getElementById('rulesButton');
+    if (!rulesButton) return;
+    
+    const setupPanel = document.getElementById('setupPanel');
+    const gamePanel = document.getElementById('gamePanel');
+    const leaderboardModal = document.getElementById('leaderboardModal');
+    
+    // Hide rules button on setup screen, game panel hidden, or when leaderboard modal is visible
+    if ((setupPanel && setupPanel.style.display !== 'none') || 
+        (gamePanel && gamePanel.style.display === 'none') ||
+        (leaderboardModal && leaderboardModal.parentElement)) {
+        rulesButton.style.display = 'none';
+    } else {
+        rulesButton.style.display = 'flex';
+    }
+}
+// Initialize rules sidebar
+initRulesSidebar();
+
+// Override relevant functions to update rules button visibility
+const originalUpdateDisplay = updateDisplay;
+updateDisplay = function() {
+    originalUpdateDisplay();
     updateRulesButtonVisibility();
-}
+};
 
-        // ─── CREATE ROOM ──────────────────────────────────────────────────────
-async function createRoom() {
-    const name = document.getElementById('roomName').value.trim() || 'Game Room';
-    const numPlayers = parseInt(document.getElementById('numPlayers').value) || 4;
-    const btn = document.getElementById('createRoomBtn');
-    const errDiv = document.getElementById('createRoomError');
+const originalCloseLeaderboardModal = closeLeaderboardModal;
+closeLeaderboardModal = function() {
+    if (originalCloseLeaderboardModal) originalCloseLeaderboardModal();
+    updateRulesButtonVisibility();
+};
 
-    btn.disabled = true;
-    btn.textContent = '⏳ Creating…';
-    errDiv.style.display = 'none';
-
-    try {
-        const response = await fetch('/api/rooms', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name, maxPlayers: numPlayers })
-        });
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.message || err.error || `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Backend trả về: { id, name, maxPlayers, joinLinks }
-        // Chuyển đổi joinLinks từ camelCase sang snake_case cho frontend dùng
-        const baseUrl = window.location.origin;
-        const joinLinks = [];
-        for (let i = 0; i < data.maxPlayers; i++) {
-            joinLinks.push({
-                player_index: i,
-                player_id: i,
-                player_name: `Player ${i+1}`,
-                url: `${baseUrl}/play/${data.id}/${i}`
-            });
-        }
-
-        room = {
-            id: data.id,
-            name: data.name,
-            num_players: data.maxPlayers,
-            current_phase: 0,
-            max_phase: null,  // will be determined by the largest player's chosen size
-            ended: false,
-            players: [],
-            logs: ["🎮 Room created! Waiting for players to submit projects..."],
-            join_links: joinLinks
-        };
-
-        // Khởi tạo players array
-        for (let i = 0; i < room.num_players; i++) {
-            room.players.push({
-                id: i,
-                name: `Player ${i + 1}`,
-                funding: 0,
-                hype: 50,
-                transparency: 50,
-                score: 0,
-                status: 'not_joined',
-                project_size: null,
-                funding_target: null,
-                funding_amount: 0,
-                max_phase: null,
-                current_phase: 0,
-                ready_for_next_phase: false
-            });
-        }
-
-        phaseSnapshots = [];
-        recordSnapshot(1, 'Room created and game initialized');
-
-        document.getElementById('setupPanel').style.display = 'none';
-        document.getElementById('gamePanel').style.display = 'block';
-        updateDisplay();
-        startAutoUpdate();
-
-    } catch (e) {
-        console.error('Create room error:', e);
-        errDiv.textContent = '❌ ' + e.message;
-        errDiv.style.display = 'block';
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '🚀 CREATE ROOM';
-    }
-}
-
-        // ─── RUN NEXT PHASE ───────────────────────────────────────────────────
-async function runPhase() {
-    if (!room) return;
-    
-    const btn = document.getElementById('runPhaseBtn');
-    btn.disabled = true;
-    btn.textContent = '⏳ Running…';
-    try {
-        // Sửa endpoint từ /run-phase thành /next-phase
-        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/next-phase`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.message || err.error || `HTTP ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        // Cập nhật room state
-        room.current_phase = result.phase || (room.current_phase + 1);
-        
-        // Lấy lại thông tin room mới nhất
-        await pollRoom();
-        
-        // Ghi nhận snapshot
-        recordSnapshot(room.current_phase, `Phase ${room.current_phase} completed`);
-        
-        updateDisplay();
-        
-        if (room.ended) {
-            onGameEnded();
-            showLeaderboardModal();
-        }
-    } catch (e) {
-        console.error('Run phase error:', e);
-        alert('❌ ' + e.message);
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '▶ RUN NEXT PHASE';
-    }
-}
-
-        // ─── END GAME ─────────────────────────────────────────────────────────
-async function endGame() {
-    if (!room || room.ended) return;
-    if (!confirm('End the game now? This cannot be undone.')) return;
-    
-    const btn = document.getElementById('endGameBtn');
-    btn.disabled = true;
-    
-    try {
-        // Sửa endpoint từ /end-game thành /end
-        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/end`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.message || err.error || `HTTP ${response.status}`);
-        }
-        
-        await response.json();
-        
-        room.ended = true;
-        recordSnapshot(room.current_phase, 'Game ended by teacher');
-        onGameEnded();
-        updateDisplay();
-        showLeaderboardModal();
-    } catch (e) {
-        console.error('End game error:', e);
-        alert('❌ ' + e.message);
-    } finally {
-        btn.disabled = false;
-    }
-}
-
-        // ─── RESET GAME ───────────────────────────────────────────────────────
-async function resetGame() {
-    if (!room) return;
-    if (!confirm('Reset the entire game? All player progress will be lost.')) return;
-    
-    try {
-        // Sửa endpoint từ /reset-game thành /reset
-        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/reset`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.message || err.error || `HTTP ${response.status}`);
-        }
-        
-        await response.json();
-        
-        // Lấy lại thông tin room mới
-        await pollRoom();
-        
-        phaseSnapshots = [];
-        recordSnapshot(room.current_phase, 'Game has been RESET! Starting over.');
-        setGameButtonsDisabled(false);
-        document.getElementById('gameStatus').innerHTML = 'IN PROGRESS';
-        document.getElementById('gameStatus').className = 'success';
-        updateDisplay();
-        startAutoUpdate();
-        alert('✅ Game reset!');
-    } catch (e) {
-        console.error('Reset game error:', e);
-        alert('❌ ' + e.message);
-    }
-}
-
-        // ─── RESET CURRENT PHASE ──────────────────────────────────────────────
-async function resetCurrentPhase() {
-    if (!room) return;
-    
-    try {
-        // Endpoint này đúng rồi, giữ nguyên
-        const response = await fetch(`${API_BASE_URL}/rooms/${room.id}/reset-phase`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.message || err.error || `HTTP ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        // Cập nhật phase
-        room.current_phase = result.phase;
-        updateDisplay();
-        alert('✅ Current phase reset!');
-    } catch (e) {
-        console.error('Reset phase error:', e);
-        alert('❌ ' + e.message);
-    }
-}
-
-        // ─── AUTO-POLL ────────────────────────────────────────────────────────
-async function pollRoom() {
-    if (!room || !room.id) return;
-
-    try {
-        // Chỉ gọi API lấy thông tin phòng
-        const response = await fetch(`/api/rooms/${room.id}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const data = await response.json();
-        
-        // Cập nhật room
-        room.ended = data.ended || false;
-        room.current_phase = data.currentPhase || room.current_phase || 0;
-        if (data.logs) room.logs = data.logs;
-        
-        // Cập nhật players từ data.players (backend đã trả về đủ thông tin)
-        if (data.players && Array.isArray(data.players)) {
-            room.players = room.players.map((existingPlayer, idx) => {
-                const updated = data.players[idx];
-                if (updated) {
-                    return {
-                        ...existingPlayer,
-                        status: updated.status || existingPlayer.status,
-                        project_size: updated.scale || updated.project_size || existingPlayer.project_size,
-                        max_phase: updated.max_phase || existingPlayer.max_phase,
-                        current_phase: updated.current_phase || existingPlayer.current_phase || 0,
-                        funding: updated.funding ?? existingPlayer.funding ?? 0,
-                        hype: updated.hype ?? existingPlayer.hype ?? 50,
-                        transparency: updated.transparency ?? existingPlayer.transparency ?? 50,
-                        ready_for_next_phase: updated.ready_for_next_phase ?? false
-                    };
-                }
-                return existingPlayer;
-            });
-        }
-        
-        updateDisplay();
-        
-        // Kiểm tra kết thúc game
-        const joinedPlayers = room.players.filter(p => p && p.status !== 'not_joined');
-        if (joinedPlayers.length > 0 && !room.ended) {
-            const allPlayersEnded = joinedPlayers.every(p => {
-                if (p.status === 'ended') return true;
-                if (!p.max_phase) return false;
-                return (p.current_phase || 0) >= p.max_phase;
-            });
-            
-            if (allPlayersEnded) {
-                room.ended = true;
-                onGameEnded();
-                showLeaderboardModal();
-            }
-        }
-        
-    } catch (e) {
-        console.warn('Poll error:', e.message);
-    }
-}
-
-function startAutoUpdate() {
-    if (autoUpdateInterval) clearInterval(autoUpdateInterval);
-    autoUpdateInterval = setInterval(() => {
-        // Kiểm tra gamePanel hiển thị, room tồn tại, và chưa kết thúc
-        const gamePanel = document.getElementById('gamePanel');
-        if (gamePanel && gamePanel.style.display === 'block' && room && room.id && !room.ended) {
-            pollRoom();
-        }
-    }, 5000);
-}
-
-        // ─── GAME ENDED HELPERS ───────────────────────────────────────────────
-        function onGameEnded() {
-            clearInterval(autoUpdateInterval);
-            setGameButtonsDisabled(true);
-            document.getElementById('gameStatus').innerHTML = 'ENDED';
-            document.getElementById('gameStatus').className = 'error';
-        }
-
-        function setGameButtonsDisabled(disabled, preserveReset = false) {
-            document.querySelectorAll('#gamePanel button').forEach(btn => {
-                if (preserveReset && btn.id === 'resetGameBtn') return;
-                btn.disabled = disabled;
-            });
-        }
-
-        // ─── LEADERBOARD MODAL ────────────────────────────────────────────────
-        function showLeaderboardModal() {
-            const players = room.players || [];
-
-            const bySize = {
-                S: { name: '🟢 Small (5 phases)', color: 'small', players: [] },
-                M: { name: '🟠 Medium (7 phases)', color: 'medium', players: [] },
-                L: { name: '🔴 Large (9 phases)', color: 'large', players: [] }
-            };
-
-            players.forEach(p => {
-                const sz = p.project_size || 'M';
-                (bySize[sz] || bySize.M).players.push(p);
-            });
-
-            Object.values(bySize).forEach(cat => {
-                cat.players.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-                cat.players.forEach((p, i) => { p.categoryRank = i + 1; });
-            });
-
-            let html = `
-            <div class="modal-overlay" id="leaderboardModal">
-                <div class="modal-content">
-                    <button class="close-modal" onclick="closeLeaderboardModal()">✕ Close</button>
-                    <h2 style="color:#2e1a47;margin-bottom:20px;text-align:center;">🏆 GAME OVER - FINAL LEADERBOARD 🏆</h2>
-                    <div style="text-align:center;margin-bottom:20px;color:#6b21a5;">
-                        📊 Rankings by Project Type | 💰 Funding shown as % and actual amount
-                    </div>`;
-
-            Object.entries(bySize).forEach(([, cat]) => {
-                if (!cat.players.length) return;
-                html += `
-                <div class="leaderboard-category">
-                    <div class="category-header ${cat.color}">
-                        <span>${cat.name}</span><span>${cat.players.length} player(s)</span>
-                    </div>
-                    <table class="leaderboard-table">
-                        <thead><tr><th>Rank</th><th>Player</th><th>Funding (% & $)</th><th>Hype</th><th>Transparency</th><th>Final Score</th></tr></thead>
-                        <tbody>`;
-                cat.players.forEach((p, i) => {
-                    const rankCls = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
-                    const medal   = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
-                    const pct     = ((p.funding ?? 0) * 100).toFixed(1);
-                    const fa      = (p.funding_amount  ?? 0).toLocaleString();
-                    const ft      = (p.funding_target  ?? 0).toLocaleString();
-                    html += `
-                    <tr class="${rankCls}">
-                        <td style="font-weight:bold;">${medal}</td>
-                        <td><strong>${p.name}</strong></td>
-                        <td>
-                            <div>${pct}%</div>
-                            <div class="funding-amount">$${fa}</div>
-                            <div style="font-size:11px;color:#666;">of $${ft}</div>
-                        </td>
-                        <td>${p.hype ?? 0}</td>
-                        <td>${p.transparency ?? 0}</td>
-                        <td><strong style="color:#f59e0b;font-size:18px;">${(p.score ?? 0).toFixed(2)}</strong></td>
-                    </tr>`;
-                });
-                html += `</tbody></table></div>`;
-            });
-
-            const allSorted = [...players].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-            html += `
-            <div class="leaderboard-category" style="margin-top:20px;">
-                <div class="category-header" style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);">
-                    <span>🌟 OVERALL RANKINGS (All Types)</span><span>${allSorted.length} total players</span>
-                </div>
-                <table class="leaderboard-table">
-                    <thead><tr><th>Overall Rank</th><th>Player</th><th>📐 Project Type</th><th>Funding</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead>
-                    <tbody>`;
-            allSorted.forEach((p, i) => {
-                const rankCls  = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : '';
-                const medal    = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
-                const sz       = p.project_size || 'M';
-                const typeIcon = sz === 'S' ? '🟢' : sz === 'L' ? '🔴' : '🟠';
-                const typeName = sz === 'S' ? 'Small (5 phases)' : sz === 'L' ? 'Large (9 phases)' : 'Medium (7 phases)';
-                const pct      = ((p.funding ?? 0) * 100).toFixed(1);
-                const fa       = (p.funding_amount ?? 0).toLocaleString();
-                html += `
-                <tr class="${rankCls}">
-                    <td style="font-weight:bold;">${medal}</td>
-                    <td><strong>${p.name}</strong></td>
-                    <td><span style="font-weight:600;">${typeIcon} ${typeName}</span></td>
-                    <td>${pct}%<br><span class="funding-amount">$${fa}</span></td>
-                    <td>${p.hype ?? 0}</td>
-                    <td>${p.transparency ?? 0}</td>
-                    <td><strong style="color:#f59e0b;">${(p.score ?? 0).toFixed(2)}</strong></td>
-                </tr>`;
-            });
-            html += `</tbody></table></div>
-            <div style="text-align:center;margin-top:20px;padding:12px;background:#f3e8ff;border-radius:12px;">
-                <strong>🎮 Game Complete!</strong> 📐 Project types: 🟢 Small | 🟠 Medium | 🔴 Large
-            </div>
-            </div></div>`;
-
-            const existing = document.getElementById('leaderboardModal');
-            if (existing) existing.remove();
-            document.body.insertAdjacentHTML('beforeend', html);
-        }
-
-        function closeLeaderboardModal() {
-            const modal = document.getElementById('leaderboardModal');
-            if (modal) modal.remove();
-            updateRulesButtonVisibility();
-        }
-
-        // ─── COPY LINK ────────────────────────────────────────────────────────
-        function copyLink(url) {
-            navigator.clipboard.writeText(url)
-                .then(() => alert(`✅ Link copied:\n${url}`))
-                .catch(() => alert('⚠️ Could not copy. Please copy manually:\n' + url));
-        }
-
-        // ─── SWITCH TO PLAYER VIEW ────────────────────────────────────────────
-        function toggleView() {
-            const id = room ? room.id : '';
-            window.open(`play.html?room=${id}&player=0`, '_blank');
-        }
-
-        // ─── RULES SIDEBAR ────────────────────────────────────────────────────
-        function initRulesSidebar() {
-            const btn     = document.getElementById('rulesButton');
-            const sidebar = document.getElementById('rulesSidebar');
-            const overlay = document.getElementById('rulesOverlay');
-            const close   = document.getElementById('closeRulesBtn');
-
-            const open  = () => { sidebar.classList.add('open'); overlay.classList.add('show'); document.body.style.overflow = 'hidden'; };
-            const shut  = () => { sidebar.classList.remove('open'); overlay.classList.remove('show'); document.body.style.overflow = ''; };
-
-            if (btn)     btn.addEventListener('click', open);
-            if (close)   close.addEventListener('click', shut);
-            if (overlay) overlay.addEventListener('click', shut);
-            document.addEventListener('keydown', e => { if (e.key === 'Escape' && sidebar.classList.contains('open')) shut(); });
-        }
-
-        function updateRulesButtonVisibility() {
-            const btn   = document.getElementById('rulesButton');
-            const setup = document.getElementById('setupPanel');
-            const game  = document.getElementById('gamePanel');
-            const modal = document.getElementById('leaderboardModal');
-            if (!btn) return;
-            const hide = (setup && setup.style.display !== 'none') ||
-                         (game  && game.style.display  === 'none') ||
-                         !!modal;
-            btn.style.display = hide ? 'none' : 'flex';
-        }
-
-        // ─── INIT ─────────────────────────────────────────────────────────────
-        initRulesSidebar();
-        updateRulesButtonVisibility();
-    </script>
+// Initial call
+updateRulesButtonVisibility();
+</script>
 </body>
 </html>
