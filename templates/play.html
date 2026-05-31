@@ -842,6 +842,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const currentRoomId = urlParams.get('room') || 'DEMO_ROOM';
             const playerIndexFromUrl = parseInt(urlParams.get('player')) || 0;
+            const API_BASE_URL = window.location.origin + '/api';
 
             document.getElementById('playerName').innerText = `Player ${playerIndexFromUrl + 1}`;
             document.getElementById('roomIdDisplay').innerText = currentRoomId;
