@@ -882,17 +882,19 @@
             if (pollingInterval) clearInterval(pollingInterval);
             
             const statusDiv = document.getElementById('connectionStatus');
-            statusDiv.className = 'connection-status bg-blue-100 text-blue-800 p-3 rounded-xl mb-4';
-            statusDiv.innerHTML = '⏳ Waiting for host to start the game...';
-            statusDiv.classList.remove('hidden');
+            if (statusDiv) {
+                statusDiv.className = 'connection-status bg-blue-100 text-blue-800 p-3 rounded-xl mb-4';
+                statusDiv.innerHTML = '⏳ Waiting for host to start the game...';
+                statusDiv.classList.remove('hidden');
+            }
             
             pollingInterval = setInterval(async () => {
                 try {
                     const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
                     
-                    if (data.game_started && !data.game_ended) {
+                     if (data.game_started && !data.game_ended) {
                         if (document.getElementById('gamePanel').classList.contains('hidden')) {
-                            statusDiv.classList.add('hidden');
+                            if (statusDiv) statusDiv.classList.add('hidden');
                             document.getElementById('gamePanel').classList.remove('hidden');
                         }
                         updateGameUIFromData(data);
@@ -903,14 +905,13 @@
                         document.getElementById('gamePanel').classList.add('hidden');
                         if (pollingInterval) clearInterval(pollingInterval);
                     } else if (data.choosing_deck === true && !deckSubmitted) {
-                        // Nếu chưa submit deck và game đang ở giai đoạn chọn deck, hiển thị deck builder
                         if (document.getElementById('deckPanel').classList.contains('hidden') && document.getElementById('gamePanel').classList.contains('hidden')) {
                             showDeckBuilder();
                         }
                     }
                 } catch (err) {
                     console.error('Polling error:', err);
-                    statusDiv.innerHTML = '⚠️ Error connecting to server. Retrying...';
+                    if (statusDiv) statusDiv.innerHTML = '⚠️ Error connecting to server. Retrying...';
                 }
             }, 2000);
         }
