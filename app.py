@@ -370,12 +370,15 @@ def process_phase(room, phase, players, logs):
             if actual > 0:
                 if actual <= players[idx]['available_cash']:
                     players[idx]['available_cash'] -= actual
+                    players[idx]['total_invested'] -= actual
+                    players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
                     alloc_entry['perProject'][idx] -= actual
                     alloc_entry['idle'] += actual
                     logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
                 else:
                     players[idx]['status'] = 'bankrupt'
                     players[idx]['funding_progress'] = 0
+                    players[idx]['total_invested'] = 0
                     logs.append(f"Dự án {idx+1} PHÁ SẢN!")
 
     for bot in active_bots:
@@ -1233,6 +1236,15 @@ def api_get_room(room_id):
     players_list = []
     for i, proj in enumerate(room.get('players', [])):
         if proj:
+            # Tính metrics và score thực tế
+            metrics = calculate_metrics(proj)
+            # Nếu dự án đã kết thúc hoặc đạt max phase
+            if proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5):
+                score = final_score(proj, proj.get('max_phase', 5), metrics)
+            else:
+                # Score tạm thời dựa trên số phase đã qua (nếu có)
+                current_phase = proj.get('current_phase', 0)
+                score = final_score(proj, current_phase, metrics) if current_phase > 0 else 0
             players_list.append({
                 'id': i,
                 'name': f'Player {i+1}',
@@ -1240,7 +1252,7 @@ def api_get_room(room_id):
                 'funding': proj.get('funding_progress', 0),
                 'hype': proj.get('hype', 50),
                 'transparency': proj.get('transparency', 50),
-                'score': 0,
+                'score': score,
                 'current_phase': proj.get('current_phase', 0),
                 'max_phase': proj.get('max_phase', 5),
                 'deck_ready': room.get('deck_ready', [False])[i] if i < len(room.get('deck_ready', [])) else False
@@ -1285,6 +1297,8 @@ def api_get_room(room_id):
         'status': room['status'],
         'game_started': room['status'] == 'playing'
     })
+
+    phase_progress = (room.get('phase', 0) / room.get('max_phase', 1)) * 100 if room.get('max_phase', 0) > 0 else 0
 
 @app.route('/api/rooms/<room_id>/next-phase', methods=['POST'])
 def api_next_phase(room_id):
