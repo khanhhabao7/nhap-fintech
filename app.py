@@ -14,7 +14,7 @@ import random
 import math
 import uuid
 import os
-import time
+
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
 
@@ -462,6 +462,44 @@ def play_page(room_id, player_index):
         return "Chỉ số người chơi không hợp lệ", 400
     return render_template('play.html', room_id=room_id, player_index=player_index, max_players=room['num_players'])
 
+@app.route('/api/create_room', methods=['POST'])
+def create_room():
+    data = request.json
+    num_players = int(data.get('num_players', 4))
+    if not 2 <= num_players <= 10:
+        return jsonify({'error': 'Số người chơi phải từ 2 đến 10'}), 400
+    
+    room_id = str(uuid.uuid4())[:8]
+    base_url = request.host_url.rstrip('/')
+    
+    rooms[room_id] = {
+        'num_players': num_players,
+        'players': [None] * num_players,
+        'phase': 0,
+        'max_phase': 0,
+        'status': 'waiting_for_projects',
+        'bot_alloc': None,
+        'logs': ["Phòng đã tạo. Chờ người chơi submit dự án..."],
+        'player_ready': [False] * num_players,
+        'deck_ready': [False] * num_players,
+        'pending_cards': {},
+        'phase_energy': [3] * num_players,
+        'mulligan_used': [False] * num_players,
+        'game_ended': False,
+        'player_triggers': [{} for _ in range(num_players)],
+        'bot_memory': {bot['id']: {'attractiveness_history': [[] for _ in range(num_players)]} for bot in BOTS},
+        'submitted_players': 0,
+        'name': None,
+        'phase_details': []
+    }
+    
+    join_links = [f"{base_url}/play/{room_id}/{i}" for i in range(num_players)]
+    
+    return jsonify({
+        'room_id': room_id, 
+        'join_links': join_links,
+        'status': 'waiting_for_projects'
+    })
 
 @app.route('/api/submit_project', methods=['POST'])
 def submit_project():
@@ -480,7 +518,6 @@ def submit_project():
 
     if room['players'][player_index] is not None:
         return jsonify({'error': 'Bạn đã submit dự án rồi'}), 400
-
 
     # Lưu tên phòng nếu chưa có
     if room.get('name') is None and 'project_name' in project_data:
@@ -1350,90 +1387,6 @@ def api_reset_game(room_id):
         room['bot_memory'][bot_id]['attractiveness_history'] = [[] for _ in range(room.get('num_players', 4))]
     
     return jsonify({'success': True})
-# ==================== API ĐỒNG BỘ KẾT THÚC GAME ====================
-
-@app.route('/api/player_complete', methods=['POST'])
-def player_complete():
-    data = request.json
-    room_id = data['room_id']
-    player_index = data['player_index']
-    final_data = data.get('final_data', {})
-
-    if room_id not in rooms:
-        return jsonify({'error': 'Room not found'}), 404
-
-    room = rooms[room_id]
-
-    if 'completed_players' not in room:
-        room['completed_players'] = {}
-
-    room['completed_players'][player_index] = {
-        'completed_at': time.time(),
-        'final_data': final_data
-    }
-
-    total_players = len([p for p in room['players'] if p is not None])
-    completed_count = len(room['completed_players'])
-
-    all_completed = (completed_count >= total_players)
-
-    if all_completed:
-        final_ranking = calculate_final_ranking(room)
-        room['final_ranking'] = final_ranking
-        room['game_ended'] = True
-
-    return jsonify({
-        'all_completed': all_completed,
-        'completed_count': completed_count,
-        'total_players': total_players,
-        'final_ranking': room.get('final_ranking', None)
-    })
-
-@app.route('/api/game_status', methods=['GET'])
-def game_status():
-    room_id = request.args.get('room_id')
-    if room_id not in rooms:
-        return jsonify({'error': 'Room not found'}), 404
-    room = rooms[room_id]
-    return jsonify({
-        'game_ended': room.get('game_ended', False),
-        'final_ranking': room.get('final_ranking', None),
-        'completed_players': room.get('completed_players', {}),
-        'total_players': len([p for p in room['players'] if p is not None])
-    })
-
-def calculate_final_ranking(room):
-    rankings = []
-    for idx, player in enumerate(room['players']):
-        if player is None:
-            continue
-        completed_data = room.get('completed_players', {}).get(idx, {})
-        if completed_data and completed_data.get('final_data'):
-            final = completed_data['final_data']
-        else:
-            final = {
-                'funding_progress': player.get('funding_progress', 0),
-                'hype': player.get('hype', 0),
-                'transparency': player.get('transparency', 0),
-                'runway': calculate_metrics(player).get('runway', 0)
-            }
-        score = (final.get('funding_progress', 0) * 100) + \
-                (final.get('hype', 0) * 0.4) + \
-                (final.get('transparency', 0) * 0.3) + \
-                (final.get('runway', 5) * 2)
-        rankings.append({
-            'player_index': idx,
-            'player_name': f"Player {idx+1}",
-            'scale': player.get('scale', 'M'),
-            'funding_percent': final.get('funding_progress', 0) * 100,
-            'funding_amount': player.get('target_funding', 0) * final.get('funding_progress', 0),
-            'hype': final.get('hype', 0),
-            'transparency': final.get('transparency', 0),
-            'runway': final.get('runway', 0),
-            'score': score
-        })
-    rankings.sort(key=lambda x: x['score'], reverse=True)
-    return rankings
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
