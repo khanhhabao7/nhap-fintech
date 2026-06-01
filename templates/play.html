@@ -115,6 +115,21 @@
             border: 2px solid #ec4899;
             box-shadow: 0 0 0 2px rgba(236,72,153,0.3);
         }
+
+     .funding-bar {
+        width: 100%; height: 10px; background: #e2e8f0; border-radius: 999px;
+        overflow: hidden; margin-bottom: 12px;
+    }
+    .funding-bar-fill {
+        height: 100%; background: linear-gradient(90deg, #facc15, #f59e0b);
+        transition: width 0.3s;
+    }
+    .leaderboard-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0;
+    }
+    .leaderboard-table th { background: #f3e8ff; }       
+        
     </style>
 </head>
 <body class="p-5 font-sans antialiased">
@@ -231,13 +246,15 @@
         
         <!-- Main game panel -->
         <div id="gamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden mt-6">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
                 <h2 class="text-2xl font-bold text-purple-800">YOUR PROJECT</h2>
-                <div class="flex gap-2">
+                <div class="flex gap-2 flex-wrap">
                     <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">💰 <span id="funding">0</span>%</span>
                     <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">⚡ <span id="energy">3</span></span>
+                    <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">🕒 Phase <span id="currentPhase">1</span>/<span id="maxPhase">7</span></span>
                 </div>
             </div>
+            <div class="funding-bar mb-3"><div id="fundingBarFill" class="funding-bar-fill" style="width:0%"></div></div>
             
             <div id="scenarioDisplay" class="bg-pink-100 border border-pink-300 rounded-xl p-3 mb-4 text-center text-purple-800">Waiting for event...</div>
             
@@ -284,15 +301,26 @@
             </div>
         </div>
         
-        <!-- End game screen -->
-        <div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl text-center hidden">
-            <h2 class="text-3xl font-bold mb-4 text-purple-800">GAME OVER</h2>
-            <div class="text-6xl font-bold text-pink-500 mb-2"><span id="finalScore">0</span></div>
-            <div class="text-gray-600 mb-4">Your score</div>
-            <div class="text-lg mb-4 text-purple-800">Funding reached: <span id="finalFunding">0</span>%</div>
-            <button onclick="location.reload()" class="btn-gradient px-6 py-2 rounded-full font-bold transition text-white">PLAY AGAIN</button>
+        <!-- End game screen (chi tiết) -->
+        <div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden">
+            <h2 class="text-3xl font-bold text-center mb-4 text-purple-800">🏆 GAME OVER 🏆</h2>
+            <div class="text-center mb-6">
+                <div class="text-6xl font-bold text-pink-500"><span id="finalScore">0</span></div>
+                <div class="text-gray-600 mb-2">Your Final Score</div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mt-3">
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Funding %</div><div class="font-bold text-lg"><span id="finalFunding">0</span>%</div></div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Hype</div><div class="font-bold text-lg"><span id="finalHype">0</span></div></div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Transparency</div><div class="font-bold text-lg"><span id="finalTrans">0</span></div></div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Runway</div><div class="font-bold text-lg"><span id="finalRunway">0</span></div></div>
+                </div>
+            </div>
+            <h3 class="font-bold text-lg mb-3 text-purple-800">📊 COMPETITOR RANKING</h3>
+            <div id="finalRanking" class="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2"></div>
+            <div class="flex gap-3">
+                <button onclick="location.reload()" class="btn-gradient flex-1 py-2 rounded-full font-bold text-white">🔄 PLAY AGAIN</button>
+                <button id="backToGameBtn" class="bg-gray-500 hover:bg-gray-600 flex-1 py-2 rounded-full font-bold text-white">◀ BACK TO GAME</button>
+            </div>
         </div>
-    </div>
 
     <!-- INFO MODAL -->
     <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
@@ -638,6 +666,7 @@
                         document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
                         document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
                         document.getElementById('endgamePanel').classList.remove('hidden');
+                        renderFinalRanking();
                         document.getElementById('gamePanel').classList.add('hidden');
                         if (pollingInterval) clearInterval(pollingInterval);
                     } else if (data.choosing_deck === true && !deckSubmitted) {
@@ -665,6 +694,9 @@
             document.getElementById('roi').innerText = data.metrics?.roi_norm?.toFixed(1) || 0;
             document.getElementById('runway').innerText = data.metrics?.runway || 0;
             document.getElementById('scenarioDisplay').innerHTML = `📢 ${data.last_scenario || 'Waiting for phase...'}`;
+            document.getElementById('currentPhase').innerText = data.phase || 1;
+            document.getElementById('maxPhase').innerText = data.max_phase || 7;
+            document.getElementById('fundingBarFill').style.width = ((data.metrics?.funding_progress || 0) * 100) + '%';
             
             const handDiv = document.getElementById('hand');
             if (data.hand && data.hand.length > 0) {
@@ -723,8 +755,37 @@
                 reactionTriggersDiv.classList.add('hidden');
             }
         }   // <-- HÀM KẾT THÚC Ở ĐÂY
-                        
-        
+
+        // Hàm hiển thị bảng xếp hạng cuối game
+        async function renderFinalRanking() {
+            try {
+                const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
+                if (!roomData.players) return;
+                const sorted = [...roomData.players].filter(p => p.status !== 'not_joined').sort((a,b) => (b.score||0) - (a.score||0));
+                let html = `<table class="leaderboard-table"><thead><tr><th>#</th><th>Player</th><th>Scale</th><th>Funding %</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead><tbody>`;
+                sorted.forEach((p, idx) => {
+                    html += `<tr>
+                        <td>${idx+1}</td>
+                        <td>${p.name || `Player ${p.id+1}`}</td>
+                        <td>${p.scale || 'M'}</td>
+                        <td>${((p.funding||0)*100).toFixed(1)}%</td>
+                        <td>${p.hype||0}</td>
+                        <td>${p.transparency||0}</td>
+                        <td><strong>${(p.score||0).toFixed(2)}</strong></td>
+                    </tr>`;
+                });
+                html += `</tbody></table>`;
+                document.getElementById('finalRanking').innerHTML = html;
+                const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
+                if (myData) {
+                    document.getElementById('finalFunding').innerText = ((myData.funding||0)*100).toFixed(1);
+                    document.getElementById('finalHype').innerText = myData.hype || 0;
+                    document.getElementById('finalTrans').innerText = myData.transparency || 0;
+                    document.getElementById('finalRunway').innerText = myData.runway || 0;
+                }
+            } catch(err) { console.error(err); }
+        }
+    
         // ==================== PLAYER ACTIONS ====================
         document.getElementById('playCardBtn')?.addEventListener('click', async () => {
             if (selectedCardIndex === null) { alert('Select a card first'); return; }
@@ -772,7 +833,10 @@
                 console.error(err);
             }
         });
-        
+        document.getElementById('backToGameBtn')?.addEventListener('click', () => {
+            document.getElementById('endgamePanel').classList.add('hidden');
+            document.getElementById('gamePanel').classList.remove('hidden');
+        });
         // Gắn sự kiện cho nút submit deck (sau khi render lại)
         document.addEventListener('click', (e) => {
             if (e.target && e.target.id === 'submitDeckBtn') {
