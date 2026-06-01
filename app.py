@@ -108,6 +108,9 @@ REACTION_CARDS = [
 def clamp(x, lo, hi):
     return max(lo, min(hi, x))
 
+def get_scale_factor(scale):
+    return {"S": 0.8, "M": 1.0, "L": 1.2}.get(scale, 1.0)
+
 def calculate_metrics(proj):
     total_fees = proj.get("fee_ecom", 0) + proj.get("fee_retail", 0) + proj.get("fee_direct", 0)
     ch_fees = total_fees / 100.0
@@ -310,7 +313,8 @@ def final_score(proj, phases_used, metrics):
     trans_score = (proj["transparency"] / 100) * 20
     raw = funding_score + speed_score + roi_score + trans_score
     perf_phase = raw / phases_used if phases_used > 0 else 0
-    raw_final = perf_phase * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
+    scale_factor = get_scale_factor(proj.get("scale", "M"))
+    raw_final = perf_phase * scale_factor * (1 + proj["funding_progress"])
     return clamp(raw_final, 0, 100)
 
 def process_phase(room, phase, players, logs):
