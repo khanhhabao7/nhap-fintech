@@ -1158,6 +1158,29 @@ def run_phase():
         room['game_ended'] = True
         room['status'] = 'ended'
 
+    # ========== LƯU PHASE DETAILS ==========
+    phase_detail = {
+        'phase': phase,  # phase vừa chạy
+        'date': str(uuid.uuid4())[:8],
+        'event': f"End of Phase {phase}",
+        'players': []
+    }
+    for idx, proj in enumerate(players):
+        if proj:
+            tmp_score = 0
+            if proj.get('current_phase', 0) > 0:
+                met = calculate_metrics(proj)
+                tmp_score = final_score(proj, proj.get('current_phase', 1), met)
+            phase_detail['players'].append({
+                'name': f'Player {idx+1}',
+                'status': proj.get('status', 'active'),
+                'funding': proj.get('funding_progress', 0),
+                'hype': proj.get('hype', 50),
+                'score': tmp_score
+            })
+    room.setdefault('phase_details', []).append(phase_detail)
+    # ========== KẾT THÚC ==========
+    
     return jsonify({
         'ended': game_ended,
         'phase': room['phase'] - 1,
