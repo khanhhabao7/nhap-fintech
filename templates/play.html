@@ -355,6 +355,14 @@
         
         const targetFundingConstraints = { S: { min: 30000, max: 99999 }, M: { min: 100000, max: 251999 }, L: { min: 252000, max: 500000 } };
         const API_BASE = window.location.origin + '/api';
+                // Hàm xác định scale thực tế từ player (ưu tiên scale có sẵn, nếu không dùng max_phase)
+        function getPlayerScale(player) {
+            if (player.scale && player.scale !== 'M') return player.scale;
+            const maxPhase = player.max_phase || 7;
+            if (maxPhase === 5) return 'S';
+            if (maxPhase === 9) return 'L';
+            return 'M';
+        }
         let activeCardsMaster = [];
         let reactionCardsMaster = [];
         
@@ -771,7 +779,7 @@
                     html += `<tr>
                         <td>${idx+1}</td>
                         <td>${p.name || `Player ${p.id+1}`}</td>
-                        <td>${p.scale || 'M'}</td>
+                        <td>${getPlayerScale(p)}</td>
                         <td>${((p.funding||0)*100).toFixed(1)}%</td>
                         <td>${p.hype||0}</td>
                         <td>${p.transparency||0}</td>
