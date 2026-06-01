@@ -1259,6 +1259,8 @@ def api_get_room(room_id):
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
+
+    
     
     players_list = []
     for i, proj in enumerate(room.get('players', [])):
