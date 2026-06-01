@@ -280,6 +280,11 @@
                 <span>🕒 Phase: <strong><span id="currentPhase">-</span></strong> / <strong><span id="maxPhase">-</span></strong></span>
                 <span>🎯 Status: <strong><span id="gameStatus" class="loading-placeholder" style="display:inline-block; padding:2px 12px;">Đang tải...</span></strong></span>
             </div>
+
+            <div class="w-full bg-purple-200 rounded-full h-2 mt-1">
+                <div class="bg-pink-500 h-2 rounded-full" style="width: ${roomData.phase_progress || 0}%"></div>
+            </div>
+            
             <div class="flex" style="gap: 12px; margin-bottom: 18px;">
                 <label for="phaseSelect" style="color:#2e1a47; font-weight:600;">📜 Phase archive:</label>
                 <select id="phaseSelect" onchange="showPhaseDetails()">
