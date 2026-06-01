@@ -1285,6 +1285,8 @@ def api_get_room(room_id):
     
     joined_players = len([p for p in room.get('players', []) if p is not None])
     
+    phase_progress = (room.get('phase', 0) / room.get('max_phase', 1)) * 100 if room.get('max_phase', 0) > 0 else 0
+
     return jsonify({
         'name': room.get('name', 'Game Room'),
         'maxPlayers': room.get('num_players', 4),
@@ -1298,10 +1300,9 @@ def api_get_room(room_id):
         'joinLinks': join_links,
         'can_start_deck': room['status'] == 'waiting_for_projects' and room.get('submitted_players', 0) >= 2,
         'status': room['status'],
-        'game_started': room['status'] == 'playing'
+        'game_started': room['status'] == 'playing',
+        'phase_progress': phase_progress   # thêm dòng này
     })
-
-    phase_progress = (room.get('phase', 0) / room.get('max_phase', 1)) * 100 if room.get('max_phase', 0) > 0 else 0
 
 @app.route('/api/rooms/<room_id>/next-phase', methods=['POST'])
 def api_next_phase(room_id):
