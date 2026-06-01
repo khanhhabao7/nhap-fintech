@@ -567,7 +567,6 @@
         }
         
         document.getElementById('runPhaseBtn').disabled = !isGameActive;
-        document.getElementById('forceStartDeckBtn').disabled = roomData.status !== 'waiting_for_projects' || !canStartDeck;
         document.getElementById('endGameBtn').disabled = roomData.ended;
         document.getElementById('resetGameBtn').disabled = false;
 
