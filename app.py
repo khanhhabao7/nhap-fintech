@@ -1028,14 +1028,17 @@ def run_phase():
     if room['status'] != 'playing':
         return jsonify({'error': 'Game not active'}), 400
 
-    active_players_ready = all(
-        room['player_ready'][i] 
-        for i in range(room['num_players']) 
-        if room['players'][i] and room['players'][i].get('status') == 'active'
-    )
-    
-    if not active_players_ready:
-        return jsonify({'error': 'Chưa phải tất cả người chơi đều Ready'}), 400
+    phase = room['phase']
+    # Chỉ kiểm tra ready từ phase 2 trở đi
+    if phase > 1:
+        active_players_ready = all(
+            room['player_ready'][i] 
+            for i in range(room['num_players']) 
+            if room['players'][i] and room['players'][i].get('status') == 'active'
+        )
+        if not active_players_ready:
+            return jsonify({'error': 'Chưa phải tất cả người chơi đều Ready'}), 400
+    # Phase 1: không cần kiểm tra, cứ chạy
 
     phase = room['phase']
     players = room['players']
