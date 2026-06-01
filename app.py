@@ -304,45 +304,18 @@ def attractiveness(project, bot, metrics):
     noise = random.uniform(-5, 5) if bot["type"] != "Random" else random.uniform(-10, 10)
     return raw_A * (trust / 100) + noise
 
-
-#----------------TÍNH ĐIỂM FINAL NHÁ TRỜI ƠI SỬA QUÀI -------------------------
-
-
 def final_score(proj, phases_used, metrics):
-    # 1. Funding score: đạt 100% funding được 40 điểm
-    funding_score = proj["funding_progress"] * 40
-    
-    # 2. Speed bonus: thưởng nếu đạt funding sớm (chỉ tính nếu funding >= 50%)
-    speed_bonus = 0
-    if proj["funding_progress"] >= 0.5:
-        # Càng ít phase đã dùng, càng nhiều điểm (tối đa 20)
-        # phases_used càng nhỏ càng tốt, tối thiểu là 1
-        max_phase = proj.get("max_phase", 7)
-        # Nếu đạt 100% từ phase 1: bonus = 20
-        # Nếu đạt 100% từ phase cuối: bonus = 0
-        speed_bonus = max(0, 20 * (1 - (phases_used - 1) / (max_phase - 1))) if max_phase > 1 else 0
-    
-    # 3. ROI score: dựa trên ROI dự kiến (tối đa 20 điểm)
-    roi_score = min(20, max(0, (metrics["roi_norm"] / 100) * 20))
-    
-    # 4. Transparency score: tối đa 20 điểm
+    if proj["funding_progress"] < 0.5:
+        return 0
+    funding_score = proj["funding_progress"] * 30
+    speed_score = (100 - phases_used) * 0.2
+    roi_score = min(30, max(0, (metrics["roi_norm"] / 100) * 30))
     trans_score = (proj["transparency"] / 100) * 20
-    
-    # Tổng điểm trước khi nhân scale
-    total_raw = funding_score + speed_bonus + roi_score + trans_score
-    
-    # Nhân với hệ số scale (S=0.9, M=1.0, L=1.1) để cân bằng
-    scale_factor = {"S": 0.9, "M": 1.0, "L": 1.1}.get(proj.get("scale", "M"), 1.0)
-    
-    final = total_raw * scale_factor
-    
-    # Giới hạn 0-100
-    return max(0, min(100, final))
-
-
-
-
-
+    raw = funding_score + speed_score + roi_score + trans_score
+    perf_phase = raw / phases_used if phases_used > 0 else 0
+    scale_factor = get_scale_factor(proj.get("scale", "M"))
+    raw_final = perf_phase * scale_factor * (1 + proj["funding_progress"])
+    return clamp(raw_final, 0, 100)
 
 def process_phase(room, phase, players, logs):
     active_bots = get_bots_for_phase(phase)
@@ -1467,3 +1440,5 @@ def api_reset_game(room_id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+
