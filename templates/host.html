@@ -313,17 +313,10 @@
         <!-- Game control buttons -->
         <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
             <button onclick="runPhase()" id="runPhaseBtn" disabled>▶ RUN NEXT PHASE</button>
-            <button onclick="forceStartDeckPhase()" id="forceStartDeckBtn" disabled>🎲 FORCE START DECK SELECTION</button>
             <button onclick="endGame()" id="endGameBtn" disabled>⛔ END GAME</button>
             <button onclick="resetGame()" id="resetGameBtn" disabled>🔄 RESET GAME</button>
         </div>
     </div>
-</div>
-
-<div class="floating-switch">
-    <button onclick="toggleView()" style="background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff); padding: 8px 20px;">
-        👤 Switch to Player View
-    </button>
 </div>
 
 <!-- Modal tạo phòng nhanh -->
@@ -670,26 +663,7 @@
         }
     }
 
-    async function forceStartDeckPhase() {
-        if (!currentRoomId) return;
-        if (confirm('Force bắt đầu giai đoạn chọn Deck? (Chỉ dùng khi đã có ít nhất 2 người chơi submit dự án)')) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/start_deck_phase`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ room_id: currentRoomId })
-                });
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Cannot force start deck phase');
-                }
-                await fetchAndUpdateUI();
-                alert('✅ Đã chuyển sang giai đoạn chọn Deck!');
-            } catch (error) {
-                alert(`❌ Lỗi: ${error.message}`);
-            }
-        }
-    }
+
 
     async function endGame() {
         if (!currentRoomId) return;
@@ -727,13 +701,7 @@
         navigator.clipboard.writeText(text).then(() => alert('✅ Đã copy link!'));
     }
 
-    function toggleView() {
-        if (currentRoomId) {
-            window.open(`/play/${currentRoomId}/0`, '_blank');
-        } else {
-            alert('Chưa có phòng nào được tạo');
-        }
-    }
+
 
     // Global functions
     window.createNewRoom = createNewRoom;
