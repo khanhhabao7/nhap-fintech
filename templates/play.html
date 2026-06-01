@@ -690,7 +690,7 @@
             const invDiv = document.getElementById('investorsList');
             if (data.investors?.length) invDiv.innerHTML = data.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
             else invDiv.innerHTML = 'No investors yet';
-        }
+
 
         // ========== ĐOẠN REACTION TRIGGERS ĐƯỢC CHUYỂN VÀO ĐÂY ==========
             const reactionTriggersDiv = document.getElementById('reactionTriggers');
