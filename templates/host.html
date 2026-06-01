@@ -613,6 +613,7 @@
 
                 // Leaderboard - Overall and by Scale
         if (roomData.players && roomData.players.length > 0) {
+            console.log('Player scales:', roomData.players.map(p => ({ name: p.name, scale: p.scale })));
             // 1. Xếp hạng chung (tất cả player)
             const allPlayers = roomData.players.filter(p => p.status !== 'not_joined');
             const sortedOverall = [...allPlayers].sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -720,8 +721,25 @@
         }
     }
 
-    function showPhaseDetails() {
-        if (currentRoomId) fetchAndUpdateUI();
+    async function showPhaseDetails() {
+        if (!currentRoomId) return;
+        const roomData = await fetchRoomData();
+        if (!roomData || !roomData.phaseDetails) return;
+        const select = document.getElementById('phaseSelect');
+        const selectedPhase = parseInt(select.value);
+        const detail = roomData.phaseDetails.find(d => d.phase === selectedPhase);
+        const container = document.getElementById('phaseDetails');
+        if (!detail) {
+            container.innerHTML = '<div class="data-empty">Không có dữ liệu cho phase này</div>';
+            return;
+        }
+        let html = `<div style="margin-bottom:10px;"><strong style="color:#2e1a47;">📅 ${detail.event} (${detail.date})</strong></div>`;
+        html += `<div class="rankings" style="margin-top:10px;">`;
+        detail.players.forEach(p => {
+            html += `<div class="rank-card"><h3>${p.name}</h3><div>💰 Funding: ${(p.funding*100).toFixed(1)}%</div><div>🔥 Hype: ${p.hype}</div><div>🏅 Score: ${p.score}</div></div>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
     }
 
     async function runPhase() {
