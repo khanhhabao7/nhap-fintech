@@ -643,9 +643,19 @@
             // 2. Xếp hạng theo scale (S, M, L)
             const scales = ['S', 'M', 'L'];
             const scaleNames = { S: 'Small (5 phases)', M: 'Medium (7 phases)', L: 'Large (9 phases)' };
+            
+            // Hàm xác định scale thực tế từ player (ưu tiên scale có sẵn, nếu không dùng max_phase)
+            function getPlayerScale(player) {
+                if (player.scale && player.scale !== 'M') return player.scale;
+                const maxPhase = player.max_phase || 7;
+                if (maxPhase === 5) return 'S';
+                if (maxPhase === 9) return 'L';
+                return 'M';
+            }
+            
             let byScaleHtml = '';
             for (const scale of scales) {
-                const playersOfScale = allPlayers.filter(p => (p.scale || 'M') === scale);
+                const playersOfScale = allPlayers.filter(p => getPlayerScale(p) === scale);
                 if (playersOfScale.length === 0) {
                     byScaleHtml += `<div style="margin-top: 15px;"><strong style="color:#2e1a47;">📌 ${scaleNames[scale]}</strong><div class="data-empty">No players</div></div>`;
                     continue;
