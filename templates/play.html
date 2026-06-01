@@ -280,7 +280,7 @@
             
             <div id="investors" class="bg-white/70 rounded-xl p-3">
                 <div class="text-xs text-purple-600">INVESTORS</div>
-                <div id="investorsList" class="text-sm text-purple-800">No investors yet</div>
+                <div id="" class="text-sm text-purple-800">No investors yet</div>
             </div>
         </div>
         
@@ -691,6 +691,52 @@
             if (data.investors?.length) invDiv.innerHTML = data.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
             else invDiv.innerHTML = 'No investors yet';
         }
+
+                        // Hiển thị reaction triggers
+            const reactionTriggersDiv = document.getElementById('reactionTriggers');
+            const reactionListDiv = document.getElementById('reactionList2');
+            if (data.triggers && data.triggers.length > 0) {
+                reactionTriggersDiv.classList.remove('hidden');
+                reactionListDiv.innerHTML = data.triggers.map(rc => `
+                    <button class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-sm reaction-btn" data-id="${rc.id}" data-name="${rc.name}">
+                        ${rc.name}
+                    </button>
+                `).join('');
+                // Gắn sự kiện click cho reaction (cần gọi API use_reaction)
+                document.querySelectorAll('.reaction-btn').forEach(btn => {
+                    btn.onclick = async () => {
+                        const reactionId = btn.dataset.id;
+                        // Tìm index của reaction trong reaction_hand của player hiện tại (có trong data.reaction_hand)
+                        const reactionIndex = (data.reaction_hand || []).findIndex(r => r.id === reactionId);
+                        if (reactionIndex === -1) {
+                            alert('Reaction not available');
+                            return;
+                        }
+                        try {
+                            const res = await fetch(`${API_BASE}/use_reaction`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    room_id: roomIdFromUrl,
+                                    player_index: playerIndexFromUrl,
+                                    reaction_index: reactionIndex
+                                })
+                            });
+                            const result = await res.json();
+                            if (result.ok) {
+                                alert(`Đã kích hoạt: ${btn.dataset.name}`);
+                                // Refresh state
+                            } else {
+                                alert(result.error || 'Failed');
+                            }
+                        } catch (err) {
+                            alert(err.message);
+                        }
+                    };
+                });
+            } else {
+                reactionTriggersDiv.classList.add('hidden');
+            }
         
         // ==================== PLAYER ACTIONS ====================
         document.getElementById('playCardBtn')?.addEventListener('click', async () => {
