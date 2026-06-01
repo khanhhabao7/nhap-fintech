@@ -532,6 +532,7 @@ def submit_project():
 
     # Thêm max_phase dựa trên scale
     scale = project_data.get('scale', 'M')
+    project_data['scale'] = scale   # lưu scale vào project
     max_phase_map = {'S': 5, 'M': 7, 'L': 9}
     project_data['max_phase'] = max_phase_map.get(scale, 7)
 
