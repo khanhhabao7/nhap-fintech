@@ -308,19 +308,37 @@ def final_score(proj, phases_used, metrics):
     if proj["funding_progress"] < 0.5:
         return 0
 
-    funding_score = proj["funding_progress"] * 25  
-    speed_score = (100 - phases_used) * 0.25        
-    roi_score = min(25, (metrics["roi_norm"] / 100) * 25)
-    trans_score = (proj["transparency"] / 100) * 25         
-    raw = funding_score + speed_score + roi_score + trans_score  
+    # 1. Funding (tối đa 40)
+    funding_score = proj["funding_progress"] * 40
 
-    # Thưởng thêm nếu kết thúc sớm (không chia phases_used mà nhân)
+    # 2. Speed (tối đa 20)
     max_phase = proj.get("max_phase", 5)
-    early_bonus = 1 + (max_phase - phases_used) / max_phase   
+    if max_phase > 1:
+        speed_score = 20 * (1 - (phases_used - 1) / (max_phase - 1))
+    else:
+        speed_score = 20 if phases_used == 1 else 0
+    speed_score = max(0, min(20, speed_score))
 
-    adjusted = raw * early_bonus * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
-    final = min(100, adjusted)
-    return final   
+    # 3. ROI (tối đa 20)
+    roi_score = min(20, (metrics["roi_norm"] / 100) * 20)
+
+    # 4. Transparency (tối đa 20)
+    trans_score = (proj["transparency"] / 100) * 20
+    trans_score = max(0, min(20, trans_score))
+
+    raw = funding_score + speed_score + roi_score + trans_score
+    raw = max(0, min(100, raw))  # an toàn
+
+    # Scale factor (Small=0.8, Medium=0.9, Large=1.0)
+    scale_map = {"Small": 0.8, "Medium": 0.9, "Large": 1.0}
+    scale_factor = scale_map.get(proj.get("scale", "Medium"), 0.9)
+
+    # Bonus từ funding: (1+funding)/2, nằm trong [0.75, 1.0]
+    funding_bonus = (1 + proj["funding_progress"]) / 2
+
+    final = raw * scale_factor * funding_bonus
+    return min(100, max(0, final))
+ 
 
 def process_phase(room, phase, players, logs):
     active_bots = get_bots_for_phase(phase)
