@@ -133,6 +133,80 @@
     </style>
 </head>
 <body class="p-5 font-sans antialiased">
+    <button class="rules-button" id="rulesButton">📖</button>
+    
+    <div class="rules-sidebar-overlay" id="rulesOverlay"></div>
+    
+    <div class="rules-sidebar" id="rulesSidebar">
+        <div class="rules-sidebar-header">
+            <h2>📖 Fun(d) Raising - Game Guide</h2>
+            <button class="close-rules" id="closeRulesBtn">&times;</button>
+        </div>
+        <div class="rules-sidebar-content">
+            <h3>1. Overview</h3>
+            <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the most attractive project. Each player creates a startup, chooses a custom deck of cards, and navigates random events. Investors (our system) decide where to put their money. The host controls the game flow. After several rounds (phases), a final score determines the winner.</p>
+    
+            <h3>2. Setup</h3>
+            <h4>2.1 Host creates a room</h4>
+            <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create Room</span>. The system generates unique join links – one per player. The host sends each link to the corresponding player.</p>
+            
+            <h4>2.2 Players enter project details</h4>
+            <p>Each player opens their link and fills in the required information about their startup (price, costs, production forecast, capital structure, etc.). All fields have reasonable limits to keep the game balanced.</p>
+            
+            <h4>2.3 Players build their deck</h4>
+            <p>After submitting the project, each player selects:</p>
+            <ul>
+                <li><strong>19 Active Cards (mandatory)</strong> – three types:
+                    <ul>
+                        <li><span class="highlight">Aggressive</span>: boosts Hype, often lowers Transparency.</li>
+                        <li><span class="highlight">Defensive</span>: increases Transparency, reduces legal risk.</li>
+                        <li><span class="highlight">Capital</span>: affects funding, trust, or financial structure.</li>
+                    </ul>
+                </li>
+                <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a specific condition is met.</li>
+            </ul>
+            <p><em>Note: Cards are selected by clicking on them (no "highlight" step). The host decides when the deck selection phase ends and the game starts.</em></p>
+    
+            <h3>3. Game Flow – Phases</h3>
+            <p>The number of phases depends on the chosen scale:</p>
+            <ul>
+                <li>Small → 5 phases</li>
+                <li>Medium → 7 phases</li>
+                <li>Large → 9 phases</li>
+            </ul>
+            <p>The host controls the progression: after each phase, the host decides when to move to the next one.</p>
+            
+            <h4>During a phase:</h4>
+            <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including market, internal, external, or regulatory events.</p>
+            
+            <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their deck. They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and then clicking the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new cards) – costs 1 energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards that are triggered will appear as clickable buttons; they can be used at any time during the phase (each only once). The host decides when the phase ends and proceeds to the next one.</p>
+            
+            <p><strong>c. Host runs the phase</strong><br>When the host clicks Run Phase, the system:</p>
+            <ul>
+                <li>Applies all played cards and event effects.</li>
+                <li>Updates project stats (funding progress, runway, etc.).</li>
+                <li>Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random) evaluate all active projects.</li>
+                <li>Bots may withdraw money from less attractive projects.</li>
+                <li>Bots may invest new money into attractive projects (softmax distribution).</li>
+                <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that performed poorly before may struggle to regain trust.</li>
+                <li>The phase ends. If a project runs out of cash, it goes bankrupt and is eliminated.</li>
+            </ul>
+    
+            <h3>4. End of Game &amp; Winner</h3>
+            <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt). The host sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The score takes into account funding progress, speed, expected ROI, transparency, and a penalty for unrealistic valuation. The project with the highest score wins.</p>
+    
+            <h3>5. Quick Tips</h3>
+            <ul>
+                <li>Balance Aggressive (Hype) and Defensive (Transparency) cards – too much hype hurts credibility.</li>
+                <li>Save energy for impactful cards; don't waste it on weak effects.</li>
+                <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g., bot withdrawals, bad events).</li>
+                <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale, capital efficiency, leverage) – build a solid financial foundation to attract them.</li>
+            </ul>
+        </div>
+    </div>
+
+
+    
     <div class="max-w-5xl mx-auto">
         <div id="connectionStatus" class="connection-status mb-4 p-3 rounded-xl text-center text-sm hidden"></div>
 
