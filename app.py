@@ -307,15 +307,20 @@ def attractiveness(project, bot, metrics):
 def final_score(proj, phases_used, metrics):
     if proj["funding_progress"] < 0.5:
         return 0
-    funding_score = proj["funding_progress"] * 30
-    speed_score = (100 - phases_used) * 0.2
-    roi_score = min(30, max(0, (metrics["roi_norm"] / 100) * 30))
-    trans_score = (proj["transparency"] / 100) * 20
-    raw = funding_score + speed_score + roi_score + trans_score
-    perf_phase = raw / phases_used if phases_used > 0 else 0
-    scale_factor = get_scale_factor(proj.get("scale", "M"))
-    raw_final = perf_phase * scale_factor * (1 + proj["funding_progress"])
-    return clamp(raw_final, 0, 100)
+
+    funding_score = proj["funding_progress"] * 25  
+    speed_score = (100 - phases_used) * 0.25        
+    roi_score = min(25, (metrics["roi_norm"] / 100) * 25)
+    trans_score = (proj["transparency"] / 100) * 25         
+    raw = funding_score + speed_score + roi_score + trans_score  
+
+    # Thưởng thêm nếu kết thúc sớm (không chia phases_used mà nhân)
+    max_phase = proj.get("max_phase", 5)
+    early_bonus = 1 + (max_phase - phases_used) / max_phase   
+
+    adjusted = raw * early_bonus * proj.get("scale_factor", 1.0) * (1 + proj["funding_progress"])
+    final = min(100, adjusted)
+    return final   
 
 def process_phase(room, phase, players, logs):
     active_bots = get_bots_for_phase(phase)
