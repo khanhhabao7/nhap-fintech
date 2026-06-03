@@ -1341,22 +1341,55 @@
                 initRulesSidebar();
             });
 
-            // Override relevant functions to update rules button visibility
-            const originalUpdateDisplay = updateDisplay;
-            updateDisplay = function () {
-                originalUpdateDisplay();
-                updateRulesButtonVisibility();
-            };
+            // Game Rules Sidebar Controller - ĐÃ CÓ SẴN, chỉ cần đảm bảo hoạt động
+function initRulesSidebar() {
+    const rulesButton = document.getElementById('rulesButton');
+    const rulesSidebar = document.getElementById('rulesSidebar');
+    const rulesOverlay = document.getElementById('rulesOverlay');
+    const closeRulesBtn = document.getElementById('closeRulesBtn');
 
-            const originalCloseLeaderboardModal = closeLeaderboardModal;
-            closeLeaderboardModal = function () {
-                if (originalCloseLeaderboardModal) originalCloseLeaderboardModal();
-                updateRulesButtonVisibility();
-            };
+    if (!rulesButton || !rulesSidebar) {
+        console.log('Rules sidebar elements not found');
+        return;
+    }
 
-            // Initial call
-            updateRulesButtonVisibility();
-        </script>
-</body>
+    function openRules() {
+        rulesSidebar.classList.add('open');
+        rulesOverlay.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
 
-</html>
+    function closeRules() {
+        rulesSidebar.classList.remove('open');
+        rulesOverlay.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    rulesButton.addEventListener('click', openRules);
+    closeRulesBtn.addEventListener('click', closeRules);
+    rulesOverlay.addEventListener('click', closeRules);
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
+            closeRules();
+        }
+    });
+}
+
+// Các hàm helper (thêm vào để tránh lỗi)
+function updateRulesButtonVisibility() {
+    // Rules button luôn hiển thị ở mọi màn hình
+    const rulesButton = document.getElementById('rulesButton');
+    if (rulesButton) {
+        rulesButton.style.display = 'flex';
+    }
+}
+
+// Khởi tạo rules sidebar khi trang load
+document.addEventListener('DOMContentLoaded', function () {
+    initRulesSidebar();
+    updateRulesButtonVisibility();
+});
+
+// Đảm bảo rules button luôn hiển thị (không cần override vì không có lỗi)
+console.log('Rules sidebar ready - click the 📖 button at bottom left to view game rules');
