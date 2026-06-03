@@ -587,6 +587,56 @@
         // State cho deck builder
         let selectedActive = new Set();   // lưu index
         let selectedReaction = new Set();
+
+                // Info Modal
+const infoDatabase = {
+    scale: { title: "Project Scale", content: "Choose project size:<br>• Small (5 phases, lower funding target)<br>• Medium (7 phases, standard target)<br>• Large (9 phases, higher target)<br><br>Constraints: S:30k-100k USD, M:100k-252k USD, L:252k-500k USD" },
+    price_channels: { title: "Price & Sales Channels", content: "• Retail price: Listed price before fees (10-1000 USD)<br>• E-commerce fee: Online marketplace fee (0-100%)<br>• Retail fee: Physical store margin (0-100%)<br>• Direct channel fee: Your own website cost (0-100%)" },
+    cogs: { title: "Cost of Goods Sold (COGS)", content: "• Direct materials: Raw materials per unit (0.1-100 USD)<br>• Direct packaging: Box, label per unit (0.1-100 USD)<br>• Direct labor: Assembly cost per unit (0.1-100 USD)<br>• Defect allowance: Expected defective rate (0-10%)" },
+    forecast: { title: "Production Forecast", content: "Expected unit sales:<br>• Month 1: First month after launch<br>• Month 3: Third month<br>• Month 6: Sixth month<br><br>Constraints: 0-100,000 units" },
+    opex: { title: "Monthly Operating Costs", content: "• Fixed operating cost: Rent, salaries, utilities (1000-100,000 USD/month)<br>• Marketing cost: Ads, promotions (0-100,000 USD/month)" },
+    capital: { title: "Capital & Equity", content: "• Owner equity: Founder investment (0-300,000 USD)<br>• Bank loan: Debt financing (0-300,000 USD)<br>• Loan interest rate: Annual rate (5-100%)<br>• Equity offered: % of company for investors (0.1-99.9%)" },
+    hype: { title: "HYPE", content: "Public interest and brand awareness (0-100).<br>Higher hype attracts more investors.<br>Increased by: Marketing Blitz, Viral Campaign, Flash Sale cards." },
+    transparency: { title: "TRANSPARENCY", content: "Openness about operations (0-100).<br>Higher transparency reduces regulatory risk.<br>Increased by: Third Party Audit, Open Financial Report cards." }
+};
+
+// ===== GÁN SỰ KIỆN CLICK CHO TẤT CẢ ICON "?" =====
+// Lấy modal elements
+const modal = document.getElementById('infoModal');
+const modalOverlay = document.getElementById('modalOverlay');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const modalCloseFooter = document.getElementById('modalCloseFooter');
+
+function showModal(categoryKey) {
+    const data = infoDatabase[categoryKey];
+    if (!data) {
+        console.warn(`No info found for category: ${categoryKey}`);
+        return;
+    }
+    document.getElementById('modalTitle').innerText = data.title;
+    document.getElementById('modalContent').innerHTML = `<div class="space-y-2">${data.content}</div>`;
+    modal.classList.remove('hidden');
+}
+
+function closeModal() {
+    modal.classList.add('hidden');
+}
+
+// Gán sự kiện cho tất cả icon có class "info-icon"
+document.querySelectorAll('.info-icon').forEach(icon => {
+    icon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const category = icon.getAttribute('data-category');
+        if (category) {
+            showModal(category);
+        }
+    });
+});
+
+// Gán sự kiện đóng modal
+if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
+if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+if (modalCloseFooter) modalCloseFooter.addEventListener('click', closeModal);
         
         // ==================== INFO MODAL ====================
         const infoDatabase = {
