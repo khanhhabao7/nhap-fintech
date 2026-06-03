@@ -313,10 +313,11 @@ def final_score(proj, phases_used, metrics):
 
     # 2. Speed (tối đa 20)
     max_phase = proj.get("max_phase", 5)
-    if max_phase > 1:
-        speed_score = 20 * (1 - (phases_used - 1) / (max_phase - 1))
+    complete_phase = proj.get("funding_complete_phase")
+    if complete_phase is not None and max_phase > 1:
+        speed_score = 20 * (1 - (complete_phase - 1) / (max_phase - 1))
     else:
-        speed_score = 20 if phases_used == 1 else 0
+        speed_score = 0
     speed_score = max(0, min(20, speed_score))
 
     # 3. ROI (tối đa 20)
@@ -395,6 +396,8 @@ def process_phase(room, phase, players, logs):
                     players[idx]['available_cash'] -= actual
                     players[idx]['total_invested'] -= actual
                     players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
+                if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
+                    players[idx]['funding_complete_phase'] = phase
                     alloc_entry['perProject'][idx] -= actual
                     alloc_entry['idle'] += actual
                     logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
@@ -573,6 +576,7 @@ def submit_project():
         'reaction_hand': None,
         'current_hand': [],
         'energy_left': 3,
+        'funding_complete_phase': None,
     })
     
     project_data['scale'] = scale   # lưu scale vào project
@@ -1463,5 +1467,4 @@ def api_reset_game(room_id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
 
