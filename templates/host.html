@@ -401,7 +401,28 @@
         .rules-sidebar-overlay.show {
             display: block;
         }
-        
+
+        .phase-detail-player {
+    background: rgba(255,255,255,0.7);
+    border-radius: 16px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 3px solid #8b5cf6;
+}
+.phase-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+    font-size: 13px;
+    color: #4a2b7a;
+}
+.empty-phase-msg {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+    font-style: italic;
+}
     </style>
 </head>
 <body>
@@ -840,6 +861,24 @@
             document.getElementById('logsArea').innerHTML = '<div class="data-empty">📭 Chưa có sự kiện nào</div>';
         }
 
+        // Cập nhật phase selector nếu có phase mới - giữ nguyên lựa chọn hiện tại nếu có thể
+if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
+    const select = document.getElementById('phaseSelect');
+    const currentSelected = select.value;
+    const sortedPhases = [...roomData.phaseDetails].sort((a,b) => a.phase - b.phase);
+    const newOptions = '<option value="">-- Chọn phase để xem chi tiết --</option>' + 
+        sortedPhases.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || 'Đã diễn ra'})</option>`).join('');
+    
+    // Chỉ cập nhật nếu nội dung thay đổi
+    if (select.innerHTML !== newOptions) {
+        select.innerHTML = newOptions;
+        // Nếu phase đã chọn trước đó vẫn tồn tại, giữ nguyên
+        if (currentSelected && roomData.phaseDetails.some(d => d.phase.toString() === currentSelected)) {
+            select.value = currentSelected;
+        }
+    }
+}
+
         // Join Links
         if (roomData.joinLinks && roomData.joinLinks.length > 0) {
             let linksHtml = '<div style="display: flex; flex-direction: column; gap: 12px;">';
@@ -865,33 +904,68 @@
             document.getElementById('joinLinksList').innerHTML = '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>';
         }
 
-        // Phase details
-        if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
-            const select = document.getElementById('phaseSelect');
-            select.innerHTML = roomData.phaseDetails.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || ''})</option>`).join('');
-        }
-    }
+// Phase details - FIX: hiển thị tất cả phase đã chơi theo đúng scale từng player
+if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
+    const select = document.getElementById('phaseSelect');
+    // Sắp xếp phase theo thứ tự tăng dần
+    const sortedPhases = [...roomData.phaseDetails].sort((a,b) => a.phase - b.phase);
+    select.innerHTML = '<option value="">-- Chọn phase để xem chi tiết --</option>' + 
+        sortedPhases.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || 'Đã diễn ra'})</option>`).join('');
+}
 
-    async function showPhaseDetails() {
-        if (!currentRoomId) return;
-        const roomData = await fetchRoomData();
-        if (!roomData || !roomData.phaseDetails) return;
-        const select = document.getElementById('phaseSelect');
-        const selectedPhase = parseInt(select.value);
-        const detail = roomData.phaseDetails.find(d => d.phase === selectedPhase);
-        const container = document.getElementById('phaseDetails');
-        if (!detail) {
-            container.innerHTML = '<div class="data-empty">Không có dữ liệu cho phase này</div>';
-            return;
-        }
-        let html = `<div style="margin-bottom:10px;"><strong style="color:#2e1a47;">📅 ${detail.event} (${detail.date})</strong></div>`;
-        html += `<div class="rankings" style="margin-top:10px;">`;
-        detail.players.forEach(p => {
-            html += `<div class="rank-card"><h3>${p.name}</h3><div>💰 Funding: ${(p.funding*100).toFixed(1)}%</div><div>🔥 Hype: ${p.hype}</div><div>🏅 Score: ${p.score}</div></div>`;
-        });
-        html += `</div>`;
-        container.innerHTML = html;
+async function showPhaseDetails() {
+    if (!currentRoomId) return;
+    const roomData = await fetchRoomData();
+    if (!roomData || !roomData.phaseDetails) return;
+    const select = document.getElementById('phaseSelect');
+    const selectedPhaseValue = select.value;
+    if (!selectedPhaseValue) {
+        document.getElementById('phaseDetails').innerHTML = '<div class="data-empty">📌 Chọn một phase từ danh sách để xem chi tiết</div>';
+        return;
     }
+    const selectedPhase = parseInt(selectedPhaseValue);
+    const detail = roomData.phaseDetails.find(d => d.phase === selectedPhase);
+    const container = document.getElementById('phaseDetails');
+    if (!detail) {
+        container.innerHTML = '<div class="data-empty">⚠️ Không có dữ liệu chi tiết cho phase này</div>';
+        return;
+    }
+    
+    // Lấy thông tin scale của từng player để hiển thị đúng số phase
+    const playersScaleMap = new Map();
+    if (roomData.players) {
+        roomData.players.forEach(p => {
+            let scale = p.scale || 'M';
+            if (scale !== 'S' && scale !== 'L') scale = 'M';
+            playersScaleMap.set(p.id, { name: p.name || `Player ${p.id+1}`, scale: scale, maxPhase: p.max_phase || (scale === 'S' ? 5 : scale === 'L' ? 9 : 7) });
+        });
+    }
+    
+    let html = `<div style="margin-bottom:10px;"><strong style="color:#2e1a47;">📅 ${detail.event || `Phase ${detail.phase}`} (${detail.date || 'Đã diễn ra'})</strong></div>`;
+    html += `<div style="font-size:13px; color:#6b21a5; margin-bottom:12px;">📊 Kết quả chi tiết phase ${detail.phase}:</div>`;
+    html += `<div class="rankings" style="margin-top:10px;">`;
+    
+    // Hiển thị tất cả players có trong phase này
+    const playersInPhase = detail.players || [];
+    if (playersInPhase.length === 0) {
+        html += `<div class="data-empty">Không có dữ liệu người chơi cho phase này</div>`;
+    } else {
+        playersInPhase.forEach(p => {
+            const playerInfo = playersScaleMap.get(p.id) || { name: p.name || `Player ${p.id+1}`, scale: 'M' };
+            const scaleBadge = playerInfo.scale === 'S' ? '🟢 Small (5 phases)' : (playerInfo.scale === 'L' ? '🔴 Large (9 phases)' : '🟡 Medium (7 phases)');
+            html += `<div class="rank-card">
+                <h3 style="display:flex; justify-content:space-between; flex-wrap:wrap;">${playerInfo.name} <span style="font-size:12px; background:#e2d4f0; padding:2px 10px; border-radius:20px;">${scaleBadge}</span></h3>
+                <div>💰 Funding: ${((p.funding || 0)*100).toFixed(1)}%</div>
+                <div>🔥 Hype: ${p.hype || 0}</div>
+                <div>🔍 Transparency: ${p.transparency || 0}</div>
+                <div>🏅 Score: ${(p.score || 0).toFixed(2)}</div>
+                ${p.event_effect ? `<div style="margin-top:8px; font-size:12px; color:#7c3aed;">✨ Event: ${p.event_effect}</div>` : ''}
+            </div>`;
+        });
+    }
+    html += `</div>`;
+    container.innerHTML = html;
+}
 
     async function runPhase() {
         if (!currentRoomId) return;
