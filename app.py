@@ -442,7 +442,7 @@ def process_phase(room, phase, players, logs):
                     players[idx]['available_cash'] += cap
                     players[idx]['funding_progress'] = min(1.0, players[idx]['total_invested'] / players[idx]['target_funding'])
                     if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
-    players[idx]['funding_complete_phase'] = phase
+                        players[idx]['funding_complete_phase'] = phase
                     alloc_entry['perProject'][idx] += cap
                     remaining -= cap
                     logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
@@ -721,15 +721,6 @@ def start_game():
     room['logs'].append("🚀 Host đã bắt đầu game!")
     return jsonify({'ok': True, 'message': 'Game started'})
     
-
-    except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        print("=== LỖI SUBMIT DECK ===")
-        print(error_trace)
-        if 'room_id' in locals() and room_id in rooms:
-            rooms[room_id]['logs'].append(f"❌ Lỗi submit deck của Player {player_index+1}: {str(e)}")
-        return jsonify({'error': f'Internal error: {str(e)}'}), 500
 
 @app.route('/api/auto_select_deck', methods=['POST'])
 def auto_select_deck():
