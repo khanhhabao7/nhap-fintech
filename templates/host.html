@@ -804,10 +804,6 @@
             });
             document.getElementById('rankingsOverall').innerHTML = overallHtml || '<div class="data-empty">Chưa có người chơi</div>';
             
-            // ... phần rankingsByScale giữ nguyên (đã có deckStatus)
-        
-
-            
 
             // 2. Xếp hạng theo scale (S, M, L)
             const scales = ['S', 'M', 'L'];
@@ -912,6 +908,8 @@ if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
         } else {
             document.getElementById('joinLinksList').innerHTML = '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>';
         }
+    }
+}
 
 
 async function showPhaseDetails() {
