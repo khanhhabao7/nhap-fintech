@@ -752,12 +752,10 @@
             gameStatusSpan.className = 'loading-placeholder';
         }
         
-        // Enable/disable nút run phase (phải ready hết active player)
+        // Enable/disable nút run phase (chỉ cần game đang playing, backend sẽ kiểm tra ready)
         const runBtn = document.getElementById('runPhaseBtn');
         if (roomData.status === 'playing' && !roomData.ended) {
-            const activePlayers = roomData.players.filter(p => p.status === 'active');
-            const allReady = activePlayers.length > 0 && activePlayers.every(p => p.ready === true);
-            runBtn.disabled = !allReady;
+            runBtn.disabled = false;   // Luôn enable để host có thể bấm, backend sẽ báo lỗi nếu chưa ready
         } else {
             runBtn.disabled = true;
         }
