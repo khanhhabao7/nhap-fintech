@@ -8,6 +8,7 @@
 # - DƯƠNG: templates/host.html, templates/play.html (riêng)
 # ===================================================================
 
+
 from flask import Flask, render_template, request, jsonify
 import random
 import math
@@ -307,8 +308,10 @@ def final_score(proj, phases_used, metrics):
     if proj["funding_progress"] < 0.5:
         return 0
 
+    # 1. Funding (tối đa 40)
     funding_score = proj["funding_progress"] * 40
 
+    # 2. Speed (tối đa 20)
     max_phase = proj.get("max_phase", 5)
     complete_phase = proj.get("funding_complete_phase")
     if complete_phase is not None and max_phase > 1:
@@ -317,16 +320,21 @@ def final_score(proj, phases_used, metrics):
         speed_score = 0
     speed_score = max(0, min(20, speed_score))
 
+    # 3. ROI (tối đa 20)
     roi_score = min(20, (metrics["roi_norm"] / 100) * 20)
+
+    # 4. Transparency (tối đa 20)
     trans_score = (proj["transparency"] / 100) * 20
     trans_score = max(0, min(20, trans_score))
 
     raw = funding_score + speed_score + roi_score + trans_score
     raw = max(0, min(100, raw))
 
+    # Scale factor (Small=0.8, Medium=0.9, Large=1.0)
     scale_map = {"Small": 0.8, "Medium": 0.9, "Large": 1.0}
     scale_factor = scale_map.get(proj.get("scale", "Medium"), 0.9)
 
+    # Bonus từ funding: (1+funding)/2, nằm trong [0.75, 1.0]
     funding_bonus = (1 + proj["funding_progress"]) / 2
 
     final = raw * scale_factor * funding_bonus
@@ -343,7 +351,7 @@ def process_phase(room, phase, players, logs):
             if not proj or proj.get('status') != 'active' or proj['funding_progress'] >= 1 or proj.get('current_phase', 0) >= proj['max_phase']:
                 A[(bot['id'], idx)] = -1e9
             else:
-                metrics = calculate_metrics(proj)
+                metrics = calculate_metrics(proj)   
                 hist = room['bot_memory'][bot['id']]['attractiveness_history'][idx]
                 current_attr = attractiveness(proj, bot, metrics)
                 if hist:
@@ -388,10 +396,10 @@ def process_phase(room, phase, players, logs):
                     players[idx]['available_cash'] -= actual
                     players[idx]['total_invested'] -= actual
                     players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
-                    # Cập nhật allocation của bot
                     alloc_entry['perProject'][idx] -= actual
                     alloc_entry['idle'] += actual
                     logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
+                    # Sau khi rút, nếu funding_progress vẫn >=1 (vẫn đạt) thì không thay đổi funding_complete_phase
                 else:
                     # Không đủ tiền -> phá sản
                     players[idx]['status'] = 'bankrupt'
@@ -417,6 +425,8 @@ def process_phase(room, phase, players, logs):
         probs = [math.exp(a / 20) / sum_exp for a in shifted]
         remaining = idle
         for _ in range(5):
+            if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
+                players[idx]['funding_complete_phase'] = phase
             if remaining <= 0:
                 break
             for j, idx in enumerate(candidates):
@@ -428,8 +438,6 @@ def process_phase(room, phase, players, logs):
                     players[idx]['total_invested'] += cap
                     players[idx]['available_cash'] += cap
                     players[idx]['funding_progress'] = min(1.0, players[idx]['total_invested'] / players[idx]['target_funding'])
-                    if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
-                        players[idx]['funding_complete_phase'] = phase
                     alloc_entry['perProject'][idx] += cap
                     remaining -= cap
                     logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
@@ -439,23 +447,34 @@ def process_phase(room, phase, players, logs):
 rooms = {}
 
 def try_start_game(room):
+    """Khởi tạo game khi tất cả người chơi đã chọn deck"""
     if room['status'] != 'choosing_deck':
         return False
+
+    # Kiểm tra tất cả người chơi (đã submit project) đều đã chọn deck
     for i, p in enumerate(room['players']):
         if p is not None and not room['deck_ready'][i]:
             return False
+
     if not any(p is not None for p in room['players']):
         return False
+
     try:
+        # Tính max_phase từ các dự án
         max_phase = max((p.get('max_phase', 5) for p in room['players'] if p is not None), default=5)
         room['max_phase'] = max_phase
+
+        # Khởi tạo bot allocation
         room['bot_alloc'] = [
             {'bot_id': bot['id'], 'perProject': [0] * room['num_players'], 'idle': bot['wealth']}
             for bot in BOTS
         ]
+
         room['phase'] = 1
         room['status'] = 'playing'
         room['logs'].append("🎮 Tất cả người chơi đã chọn deck. Game chính thức bắt đầu!")
+
+        # Phát bài ban đầu cho người chơi active
         for idx, p in enumerate(room['players']):
             if p and p.get('active_deck') and len(p['active_deck']) > 0:
                 p['current_hand'] = random.sample(p['active_deck'], min(5, len(p['active_deck'])))
@@ -487,8 +506,10 @@ def create_room():
     num_players = int(data.get('num_players', 4))
     if not 2 <= num_players <= 10:
         return jsonify({'error': 'Số người chơi phải từ 2 đến 10'}), 400
+    
     room_id = str(uuid.uuid4())[:8]
     base_url = request.host_url.rstrip('/')
+    
     rooms[room_id] = {
         'num_players': num_players,
         'players': [None] * num_players,
@@ -509,9 +530,11 @@ def create_room():
         'name': None,
         'phase_details': []
     }
+    
     join_links = [f"{base_url}/play/{room_id}/{i}" for i in range(num_players)]
+    
     return jsonify({
-        'room_id': room_id,
+        'room_id': room_id, 
         'join_links': join_links,
         'status': 'waiting_for_projects'
     })
@@ -525,15 +548,20 @@ def submit_project():
 
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
+
     if player_index >= len(room['players']):
         return jsonify({'error': 'Player index không hợp lệ'}), 400
+
     if room['players'][player_index] is not None:
         return jsonify({'error': 'Bạn đã submit dự án rồi'}), 400
 
+    # Lưu tên phòng nếu chưa có
     if room.get('name') is None and 'project_name' in project_data:
         room['name'] = project_data['project_name']
 
+    # Thêm max_phase dựa trên scale
     scale = project_data.get('scale', 'M')
     max_phase_map = {'S': 5, 'M': 7, 'L': 9}
     project_data['max_phase'] = max_phase_map.get(scale, 7)
@@ -555,12 +583,16 @@ def submit_project():
         'energy_left': 3,
         'funding_complete_phase': None,
     })
-    project_data['scale'] = scale
+    
+    project_data['scale'] = scale   # lưu scale vào project
+    
     room['players'][player_index] = project_data
     room['player_ready'][player_index] = True
     room['submitted_players'] += 1
+
     room['logs'].append(f"✅ Player {player_index + 1} đã submit dự án (scale {scale}, max_phase {project_data['max_phase']}).")
 
+    # Tự động chuyển sang choosing_deck nếu đủ số lượng người chơi (>=2)
     if room['status'] == 'waiting_for_projects' and room['submitted_players'] >= 2:
         room['status'] = 'choosing_deck'
         room['logs'].append(f"🎮 Đã có {room['submitted_players']} người chơi. Bắt đầu giai đoạn chọn Deck!")
@@ -576,18 +608,27 @@ def submit_project():
 def start_deck_phase():
     data = request.json
     room_id = data['room_id']
+    
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
+    
     if room['status'] != 'waiting_for_projects':
         return jsonify({'error': 'Không thể bắt đầu ở trạng thái hiện tại'}), 400
+    
     submitted_count = room['submitted_players']
     if submitted_count < 2:
         return jsonify({'error': f'Chưa đủ người chơi submit dự án (cần ít nhất 2, hiện có {submitted_count})'}), 400
+
     room['status'] = 'choosing_deck'
     room['player_ready'] = [False] * room['num_players']
     room['logs'].append(f"Host đã force bắt đầu chọn Deck. {submitted_count} người chơi tham gia.")
-    return jsonify({'ok': True, 'message': f'Bắt đầu giai đoạn chọn Deck với {submitted_count} dự án.'})
+
+    return jsonify({
+        'ok': True,
+        'message': f'Bắt đầu giai đoạn chọn Deck với {submitted_count} dự án.'
+    })
 
 @app.route('/api/submit_deck', methods=['POST'])
 def submit_deck():
@@ -597,40 +638,56 @@ def submit_deck():
         player_index = data.get('player_index')
         active_indices = data.get('active_indices')
         reaction_indices = data.get('reaction_indices', [])
+
+        # Validate input
         if not room_id or player_index is None:
             return jsonify({'error': 'Missing room_id or player_index'}), 400
+
         room = rooms.get(room_id)
         if not room:
             return jsonify({'error': 'Room not found'}), 404
+
         if room['status'] != 'choosing_deck':
             return jsonify({'error': 'Không phải lúc chọn deck (status: ' + room['status'] + ')'}), 400
+
+        # Kiểm tra player tồn tại
         if player_index < 0 or player_index >= len(room['players']):
             return jsonify({'error': 'Player index out of range'}), 400
+
         proj = room['players'][player_index]
         if proj is None:
             return jsonify({'error': 'Player chưa submit dự án'}), 400
+
         if not isinstance(active_indices, list) or len(active_indices) != 22:
             return jsonify({'error': 'Phải chọn đúng 22 active cards'}), 400
+
+        # Kiểm tra các index có hợp lệ không
         total_active = len(ACTIVE_CARDS_FULL)
         total_reaction = len(REACTION_CARDS)
+
         for idx in active_indices:
             if not isinstance(idx, int) or idx < 0 or idx >= total_active:
                 return jsonify({'error': f'Active card index {idx} không hợp lệ (0..{total_active-1})'}), 400
+
         for idx in reaction_indices:
             if not isinstance(idx, int) or idx < 0 or idx >= total_reaction:
                 return jsonify({'error': f'Reaction card index {idx} không hợp lệ (0..{total_reaction-1})'}), 400
+
+        # Gán deck
         try:
             proj['active_deck'] = [ACTIVE_CARDS_FULL[i] for i in active_indices]
             proj['reaction_hand'] = [REACTION_CARDS[i].copy() for i in reaction_indices]
         except IndexError as e:
             room['logs'].append(f"❌ Lỗi IndexError khi gán deck cho Player {player_index+1}: {str(e)}")
             return jsonify({'error': f'Lỗi card index: {str(e)}'}), 400
+
+        # Đánh dấu đã sẵn sàng
         room['deck_ready'][player_index] = True
         room['logs'].append(f"✅ Player {player_index + 1} đã chọn deck ({len(active_indices)} active, {len(reaction_indices)} reaction).")
-        game_started = try_start_game(room)
-        if game_started:
-            room['logs'].append("🚀 Game đã được khởi động tự động!")
+
+
         return jsonify({'ok': True, 'game_started': game_started})
+
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
@@ -642,25 +699,37 @@ def submit_deck():
 
 @app.route('/api/auto_select_deck', methods=['POST'])
 def auto_select_deck():
+    """Tự động chọn deck ngẫu nhiên cho người chơi (chỉ tạo, không tự submit)"""
     data = request.json
     room_id = data['room_id']
     player_index = data['player_index']
+
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
+
     if room['status'] != 'choosing_deck':
         return jsonify({'error': 'Không thể chọn deck lúc này'}), 400
+
     proj = room['players'][player_index]
     if proj is None:
         return jsonify({'error': 'Player not found'}), 404
+
+    # Chọn random 22 active cards từ ACTIVE_CARDS_FULL
     total_active = len(ACTIVE_CARDS_FULL)
     active_indices = random.sample(range(total_active), 22)
+    
+    # Chọn random 0-3 reaction cards
     total_reaction = len(REACTION_CARDS)
     num_reactions = random.randint(0, 3)
     reaction_indices = random.sample(range(total_reaction), num_reactions) if num_reactions > 0 else []
+
+    # Chỉ lưu vào project, không tự động đánh dấu deck_ready
     proj['active_deck'] = [ACTIVE_CARDS_FULL[i] for i in active_indices]
     proj['reaction_hand'] = [REACTION_CARDS[i].copy() for i in reaction_indices]
+
     room['logs'].append(f"🤖 Player {player_index + 1} đã auto-chọn deck ngẫu nhiên (chưa submit).")
+
     return jsonify({
         'ok': True,
         'active_indices': active_indices,
@@ -670,37 +739,72 @@ def auto_select_deck():
 
 @app.route('/api/force_auto_deck', methods=['POST'])
 def force_auto_deck():
+    """Host ép các player chưa chọn deck phải auto chọn random VÀ SUBMIT LUÔN"""
     data = request.json
     room_id = data['room_id']
+
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
+
     if room['status'] != 'choosing_deck':
         return jsonify({'error': 'Không thể force lúc này'}), 400
+
     forced_count = 0
     for idx, proj in enumerate(room['players']):
         if proj is not None and not room['deck_ready'][idx]:
+            # Auto chọn deck cho player này
             total_active = len(ACTIVE_CARDS_FULL)
             active_indices = random.sample(range(total_active), 22)
             total_reaction = len(REACTION_CARDS)
             num_reactions = random.randint(0, 3)
             reaction_indices = random.sample(range(total_reaction), num_reactions) if num_reactions > 0 else []
+
             proj['active_deck'] = [ACTIVE_CARDS_FULL[i] for i in active_indices]
             proj['reaction_hand'] = [REACTION_CARDS[i].copy() for i in reaction_indices]
+
             room['deck_ready'][idx] = True
             forced_count += 1
             room['logs'].append(f"⚡ Host force auto-chọn deck và submit cho Player {idx + 1}.")
+
     room['logs'].append(f"🔧 Đã force auto deck cho {forced_count} người chơi.")
+
     try_start_game(room)
+
     return jsonify({'ok': True, 'forced_count': forced_count})
+
+@app.route('/api/start_game', methods=['POST'])
+def start_game():
+    data = request.json
+    room_id = data.get('room_id')
+    if not room_id or room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    
+    room = rooms[room_id]
+    if room['status'] != 'choosing_deck':
+        return jsonify({'error': 'Game không ở trạng thái chọn deck'}), 400
+    
+    active_projects = [p for p in room['players'] if p is not None]
+    if len(active_projects) < 2:
+        return jsonify({'error': 'Cần ít nhất 2 dự án để bắt đầu'}), 400
+    
+    success = try_start_game(room)
+    if not success:
+        return jsonify({'error': 'Không thể khởi tạo game, kiểm tra deck của người chơi'}), 400
+    
+    room['logs'].append("🚀 Host đã bắt đầu game!")
+    return jsonify({'ok': True, 'message': 'Game started'})
+
 
 @app.route('/api/host_state', methods=['GET'])
 def host_state():
     room_id = request.args.get('room_id')
     if not room_id or room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
     rankings = []
+    
     for i, proj in enumerate(room['players']):
         if proj:
             is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5)
@@ -711,6 +815,7 @@ def host_state():
                 score = 0
             else:
                 score = 0
+            
             rankings.append({
                 'name': f"Player {i+1}",
                 'funding': proj.get('funding_progress', 0),
@@ -725,6 +830,7 @@ def host_state():
             })
         else:
             rankings.append({'name': f"Player {i+1}", 'funding': 0, 'score': 0, 'status': 'not_joined', 'deck_ready': False})
+    
     return jsonify({
         'status': room['status'],
         'phase': room['phase'],
@@ -742,19 +848,24 @@ def host_state():
 def player_state():
     room_id = request.args.get('room_id')
     player_index = request.args.get('player_index')
+    
     if not room_id or player_index is None:
         return jsonify({'error': 'Missing room_id or player_index'}), 400
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     try:
         player_index = int(player_index)
     except ValueError:
         return jsonify({'error': 'Invalid player_index'}), 400
+    
     room = rooms[room_id]
     if player_index < 0 or player_index >= len(room['players']) or room['players'][player_index] is None:
         return jsonify({'error': 'Player not found'}), 404
+    
     proj = room['players'][player_index]
     metrics = calculate_metrics(proj)
+    
     investors = []
     if room.get('bot_alloc'):
         for alloc in room['bot_alloc']:
@@ -763,13 +874,16 @@ def player_state():
                 bot = next((b for b in BOTS if b['id'] == alloc['bot_id']), None)
                 if bot:
                     investors.append({'type': bot['type'], 'amount': amount})
+    
     is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5)
     final_score_value = 0
     if is_ended and proj.get('funding_progress', 0) >= 0.5:
         final_score_value = final_score(proj, proj.get('max_phase', 5), metrics)
     elif proj.get('status') == 'bankrupt':
         final_score_value = -100
+    
     triggers = room.get('player_triggers', [{}])[player_index] if player_index < len(room.get('player_triggers', [])) else {}
+    
     return jsonify({
         'status': room.get('status', 'waiting'),
         'phase': room.get('phase', 0),
@@ -805,50 +919,70 @@ def play_card():
     room_id = data.get('room_id')
     player_index = data.get('player_index')
     card_index = data.get('card_index')
+
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+
     room = rooms[room_id]
     if room['status'] != 'playing':
         return jsonify({'error': 'Game chưa ở trạng thái chơi'}), 400
+
     proj = room['players'][player_index] if player_index < len(room['players']) else None
+    
     if not proj or proj.get('status') != 'active':
         return jsonify({'error': 'Dự án không hợp lệ hoặc đã kết thúc'}), 400
+
     hand = proj.get('current_hand', [])
     if not (0 <= card_index < len(hand)):
         return jsonify({'error': 'Lá bài không hợp lệ'}), 400
+
     card = hand[card_index]
+
     if proj.get('energy_left', 0) < card.get('cost', 0):
         return jsonify({'error': 'Không đủ Energy'}), 400
+
     import copy
     room['pending_cards'][player_index] = copy.deepcopy(card)
     proj['energy_left'] -= card['cost']
     hand.pop(card_index)
-    return jsonify({'ok': True, 'message': f'✅ Đã chơi {card["name"]}'})
+
+    return jsonify({
+        'ok': True,
+        'message': f'✅ Đã chơi {card["name"]}'
+    })
 
 @app.route('/api/mulligan', methods=['POST'])
 def mulligan():
     data = request.json
     room_id = data['room_id']
     player_index = data['player_index']
+    
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
+    
     if room['status'] != 'playing':
         return jsonify({'error': 'Game chưa bắt đầu'}), 400
+    
     proj = room['players'][player_index]
     if not proj or proj.get('status') != 'active':
         return jsonify({'error': 'Dự án không còn hoạt động'}), 400
+    
     if room['mulligan_used'][player_index]:
         return jsonify({'error': 'Bạn đã dùng Mulligan trong phase này rồi'}), 400
     if proj.get('energy_left', 0) < 1:
         return jsonify({'error': 'Không đủ Energy để Mulligan'}), 400
+    
     deck = proj['active_deck']
     proj['current_hand'] = random.sample(deck, min(5, len(deck)))
     proj['energy_left'] -= 1
     proj['transparency'] = max(0, proj['transparency'] - 2)
+    
     for bid in proj['trust_scores']:
         proj['trust_scores'][bid] = max(0, proj['trust_scores'][bid] - 1)
+    
     room['mulligan_used'][player_index] = True
+    
     return jsonify({'ok': True, 'message': 'Mulligan thành công! Đã đổi 5 lá bài mới.'})
 
 @app.route('/api/player_ready_phase', methods=['POST'])
@@ -856,14 +990,18 @@ def player_ready_phase():
     data = request.json
     room_id = data['room_id']
     player_index = data['player_index']
+    
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
+    
     if room['status'] != 'playing':
         return jsonify({'error': 'Game chưa bắt đầu'}), 400
+    
     proj = room['players'][player_index]
     if not proj or proj.get('status') != 'active':
         return jsonify({'error': 'Dự án không còn hoạt động'}), 400
+    
     room['player_ready'][player_index] = True
     return jsonify({'ok': True})
 
@@ -873,24 +1011,32 @@ def use_reaction():
     room_id = data['room_id']
     player_index = data['player_index']
     reaction_index = data['reaction_index']
+    
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
+    
     if room['status'] != 'playing':
         return jsonify({'error': 'Not playing'}), 400
+    
     proj = room['players'][player_index]
     if not proj:
         return jsonify({'error': 'Player not found'}), 400
+    
     reaction_hand = proj.get('reaction_hand', [])
     if reaction_index >= len(reaction_hand):
         return jsonify({'error': 'Invalid reaction index'}), 400
+    
     rc = reaction_hand[reaction_index]
     available_reactions = room['player_triggers'][player_index].get('available_reactions', [])
     available_ids = [r['id'] for r in available_reactions]
+    
     if rc['id'] not in available_ids:
         return jsonify({'error': 'Reaction này hiện không thể kích hoạt'}), 400
+    
     eff = rc.get('effect', {})
     cost_percent = rc.get('cost_percent', 0)
+    
     if 'transparency' in eff:
         proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
     if 'hype' in eff:
@@ -904,67 +1050,73 @@ def use_reaction():
     if 'trust_all' in eff:
         for bid in proj['trust_scores']:
             proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + eff['trust_all'], 0, 100)
-    if 'whale_trust' in eff:
+    if 'trust_whale' in eff:
         for bot in BOTS:
             if bot['type'] == 'Whale':
                 bid = bot['id']
-                proj['trust_scores'][bid] = clamp(proj['trust_scores'].get(bid, 50) + eff['whale_trust'], 0, 100)
+                proj['trust_scores'][bid] = clamp(proj['trust_scores'].get(bid, 50) + eff['trust_whale'], 0, 100)
     if 'sell_pressure_reduce' in eff:
         proj['sell_pressure_reduce'] = eff.get('sell_pressure_reduce', 0.5)
+    
     cost = (cost_percent / 100.0) * proj['target_funding']
     proj['available_cash'] = max(0, proj['available_cash'] - cost)
+    
     proj['reaction_hand'].pop(reaction_index)
-    room['player_triggers'][player_index]['available_reactions'] = [r for r in available_reactions if r['id'] != rc['id']]
+    room['player_triggers'][player_index]['available_reactions'] = [
+        r for r in available_reactions if r['id'] != rc['id']
+    ]
+    
     return jsonify({'ok': True, 'message': f'Đã kích hoạt reaction: {rc["name"]}'})
 
 @app.route('/api/run_phase', methods=['POST'])
 def run_phase():
     data = request.json
     room_id = data['room_id']
+    
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
-    if room['status'] == 'waiting_for_projects' or room['status'] == 'choosing_deck':
-        all_ready = all(
-            room['deck_ready'][i]
-            for i in range(room['num_players'])
-            if room['players'][i] is not None
-        )
-        if not all_ready:
-            missing = [i+1 for i in range(room['num_players']) if room['players'][i] is not None and not room['deck_ready'][i]]
-            return jsonify({'error': f'Chưa sẵn sàng: người chơi {missing} chưa submit deck'}), 400
-        success = try_start_game(room)
-        if not success:
-            return jsonify({'error': 'Không thể khởi tạo game. Kiểm tra deck của từng người chơi.'}), 400
-        room['logs'].append("🚀 Game đã được bắt đầu bởi host.")
+    
     if room['status'] != 'playing':
-        return jsonify({'error': 'Game chưa ở trạng thái chơi'}), 400
+        return jsonify({'error': 'Game not active'}), 400
+
     phase = room['phase']
+    # Chỉ kiểm tra ready từ phase 2 trở đi
     if phase > 1:
         active_players_ready = all(
-            room['player_ready'][i]
-            for i in range(room['num_players'])
+            room['player_ready'][i] 
+            for i in range(room['num_players']) 
             if room['players'][i] and room['players'][i].get('status') == 'active'
         )
         if not active_players_ready:
             return jsonify({'error': 'Chưa phải tất cả người chơi đều Ready'}), 400
+    # Phase 1: không cần kiểm tra, cứ chạy
+
+    phase = room['phase']
     players = room['players']
     logs = []
+
     for i in range(room['num_players']):
         room['player_triggers'][i] = {'available_reactions': []}
+
     for idx, proj in enumerate(players):
         if not proj or proj.get('status') != 'active' or proj.get('current_phase', 0) >= proj.get('max_phase', 999):
             continue
+
         scenario = random.choice(SCENARIOS)
         proj['last_scenario'] = scenario['name']
         logs.append(f"Dự án {idx+1}: {scenario['name']}")
+
         d = scenario['delta']
+
         if 'price' in d:
             proj['price'] *= (1 + d['price'])
         if 'cogs' in d:
             proj['material'] *= (1 + d['cogs'])
             proj['packaging'] *= (1 + d['cogs'])
             proj['labor'] = proj.get('labor', 0) * (1 + d['cogs'])
+
         if 'hype' in d:
             proj['hype'] = clamp(proj['hype'] + d['hype'], 0, 100)
         if 'transparency' in d:
@@ -981,6 +1133,7 @@ def run_phase():
             proj['available_cash'] -= cost
         if 'reg_risk' in d:
             proj['legal_cost_spent'] += (d['reg_risk'] / 100) * proj['target_funding']
+
         if idx in room['pending_cards']:
             card = room['pending_cards'][idx]
             if card:
@@ -1004,7 +1157,9 @@ def run_phase():
                     proj['available_cash'] -= (eff['cost_percent'] / 100) * proj['target_funding']
                 if 'visibility' in eff:
                     proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
+
                 logs.append(f" → Dự án {idx+1} chơi thẻ {card['name']}")
+
         triggers = []
         for rc in proj.get('reaction_hand', []):
             if rc.get('trigger') == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
@@ -1022,30 +1177,43 @@ def run_phase():
                 m = calculate_metrics(proj)
                 if m.get('runway', 999) < 3:
                     triggers.append(rc)
+
         if triggers:
             room['player_triggers'][idx]['available_reactions'] = triggers
             logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
+
+        metrics = calculate_metrics(proj)
+        proj['funding_progress'] = metrics.get('funding_progress', 0)
         proj['current_phase'] += 1
+
         if proj['current_phase'] >= proj['max_phase']:
             proj['status'] = 'ended'
             logs.append(f" → Dự án {idx+1} đã kết thúc.")
+
     process_phase(room, phase, players, logs)
+
     room['pending_cards'] = {}
     room['player_ready'] = [False] * room['num_players']
     room['logs'] = logs[-50:]
+
     room['phase'] += 1
+
     for idx, proj in enumerate(players):
         if proj and proj.get('status') == 'active' and proj.get('current_phase', 0) < proj.get('max_phase', 999):
             proj['current_hand'] = random.sample(proj['active_deck'], min(5, len(proj['active_deck'])))
             proj['energy_left'] = 3
             room['mulligan_used'][idx] = False
+
     all_ended = all(p is None or p.get('current_phase', 0) >= p.get('max_phase', 999) for p in players)
     game_ended = (room['phase'] > room['max_phase']) or all_ended
+
     if game_ended:
         room['game_ended'] = True
         room['status'] = 'ended'
+
+    # ========== LƯU PHASE DETAILS ==========
     phase_detail = {
-        'phase': phase,
+        'phase': phase,  # phase vừa chạy
         'date': str(uuid.uuid4())[:8],
         'event': f"End of Phase {phase}",
         'players': []
@@ -1064,6 +1232,8 @@ def run_phase():
                 'score': tmp_score
             })
     room.setdefault('phase_details', []).append(phase_detail)
+    # ========== KẾT THÚC ==========
+    
     return jsonify({
         'ended': game_ended,
         'phase': room['phase'] - 1,
@@ -1076,6 +1246,7 @@ def card_lists():
     try:
         active_cards = [card.copy() for card in ACTIVE_CARDS_FULL]
         reaction_cards = [card.copy() for card in REACTION_CARDS]
+        
         return jsonify({
             'active': active_cards,
             'reaction': reaction_cards,
@@ -1094,8 +1265,10 @@ def api_create_room():
     data = request.json
     room_name = data.get('name', 'Startup Game')
     max_players = data.get('maxPlayers', 4)
+    
     room_id = str(uuid.uuid4())[:8]
     base_url = request.host_url.rstrip('/')
+    
     rooms[room_id] = {
         'num_players': max_players,
         'players': [None] * max_players,
@@ -1116,6 +1289,7 @@ def api_create_room():
         'name': room_name,
         'phase_details': []
     }
+    
     join_links = []
     for i in range(max_players):
         join_links.append({
@@ -1123,6 +1297,7 @@ def api_create_room():
             'playerName': f'Player {i+1}',
             'realLink': f"{base_url}/play/{room_id}/{i}"
         })
+    
     return jsonify({
         'id': room_id,
         'name': room_name,
@@ -1134,14 +1309,21 @@ def api_create_room():
 def api_get_room(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
+
+    
+    
     players_list = []
     for i, proj in enumerate(room.get('players', [])):
         if proj:
+            # Tính metrics và score thực tế
             metrics = calculate_metrics(proj)
+            # Nếu dự án đã kết thúc hoặc đạt max phase
             if proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5):
                 score = final_score(proj, proj.get('max_phase', 5), metrics)
             else:
+                # Score tạm thời dựa trên số phase đã qua (nếu có)
                 current_phase = proj.get('current_phase', 0)
                 score = final_score(proj, current_phase, metrics) if current_phase > 0 else 0
             players_list.append({
@@ -1169,6 +1351,7 @@ def api_get_room(room_id):
                 'max_phase': 5,
                 'deck_ready': False
             })
+    
     base_url = request.host_url.rstrip('/')
     join_links = []
     for i in range(room.get('num_players', 4)):
@@ -1177,8 +1360,11 @@ def api_get_room(room_id):
             'playerName': f'Player {i+1}',
             'realLink': f"{base_url}/play/{room_id}/{i}"
         })
+    
     joined_players = len([p for p in room.get('players', []) if p is not None])
+    
     phase_progress = (room.get('phase', 0) / room.get('max_phase', 1)) * 100 if room.get('max_phase', 0) > 0 else 0
+
     return jsonify({
         'name': room.get('name', 'Game Room'),
         'maxPlayers': room.get('num_players', 4),
@@ -1193,14 +1379,16 @@ def api_get_room(room_id):
         'can_start_deck': room['status'] == 'waiting_for_projects' and room.get('submitted_players', 0) >= 2,
         'status': room['status'],
         'game_started': room['status'] == 'playing',
-        'phase_progress': phase_progress
+        'phase_progress': phase_progress   # thêm dòng này
     })
 
 @app.route('/api/rooms/<room_id>/next-phase', methods=['POST'])
 def api_next_phase(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
+    
     if room.get('players') and any(p for p in room['players'] if p):
         phase_details = {
             'phase': room.get('phase', 0),
@@ -1217,22 +1405,28 @@ def api_next_phase(room_id):
                     'hype': p.get('hype', 50),
                     'score': 0
                 })
+        
         if 'phase_details' not in room:
             room['phase_details'] = []
         room['phase_details'].append(phase_details)
+    
     room['phase'] = room.get('phase', 0) + 1
     room['player_ready'] = [False] * room.get('num_players', 4)
+    
     return jsonify({'success': True, 'phase': room.get('phase', 0)})
 
 @app.route('/api/rooms/<room_id>/random-event', methods=['POST'])
 def api_random_event(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
     scenario = random.choice(SCENARIOS)
+    
     if 'logs' not in room:
         room['logs'] = []
     room['logs'].append(f"🎲 Sự kiện ngẫu nhiên: {scenario['name']}")
+    
     for proj in room.get('players', []):
         if proj and proj.get('status') == 'active':
             d = scenario['delta']
@@ -1240,33 +1434,42 @@ def api_random_event(room_id):
                 proj['hype'] = clamp(proj.get('hype', 50) + d['hype'], 0, 100)
             if 'transparency' in d:
                 proj['transparency'] = clamp(proj.get('transparency', 50) + d['transparency'], 0, 100)
+    
     return jsonify({'success': True, 'event': scenario['name']})
 
 @app.route('/api/rooms/<room_id>/reset-phase', methods=['POST'])
 def api_reset_phase(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
+    
     if room.get('phase', 0) > 0:
         room['phase'] = max(0, room['phase'] - 1)
+    
     room['logs'] = room.get('logs', []) + [f"🔄 Phase đã được reset về {room['phase']}"]
+    
     return jsonify({'success': True, 'phase': room.get('phase', 0)})
 
 @app.route('/api/rooms/<room_id>/end', methods=['POST'])
 def api_end_game(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
     room['game_ended'] = True
     room['status'] = 'ended'
     room['logs'].append("🏁 Game đã kết thúc bởi host!")
+    
     return jsonify({'success': True})
 
 @app.route('/api/rooms/<room_id>/reset', methods=['POST'])
 def api_reset_game(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
+    
     room = rooms[room_id]
+    
     room['phase'] = 0
     room['game_ended'] = False
     room['status'] = 'waiting_for_projects'
@@ -1279,10 +1482,14 @@ def api_reset_game(room_id):
     room['player_triggers'] = [{} for _ in range(room.get('num_players', 4))]
     room['logs'] = ["🔄 Game đã được reset. Chờ người chơi submit dự án..."]
     room['phase_details'] = []
+    
     for bot_id in room['bot_memory']:
         room['bot_memory'][bot_id]['attractiveness_history'] = [[] for _ in range(room.get('num_players', 4))]
+    
     return jsonify({'success': True})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+
