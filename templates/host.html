@@ -750,7 +750,7 @@
         
         const gameStatusSpan = document.getElementById('gameStatus');
         const canStartDeck = roomData.can_start_deck === true;
-        const isGameActive = roomData.status === 'playing' && !roomData.ended;
+        // const isGameActive = roomData.status === 'playing' && !roomData.ended;
         
         if (roomData.ended) {
             gameStatusSpan.innerHTML = '🏁 ENDED';
@@ -769,7 +769,9 @@
             gameStatusSpan.className = 'loading-placeholder';
         }
         
-        document.getElementById('runPhaseBtn').disabled = !isGameActive;
+        const canStart = (roomData.status === 'choosing_deck');
+        const isPlaying = (roomData.status === 'playing' && !roomData.ended);
+        document.getElementById('runPhaseBtn').disabled = !(canStart || isPlaying);
         document.getElementById('endGameBtn').disabled = roomData.ended;
         document.getElementById('resetGameBtn').disabled = false;
 
