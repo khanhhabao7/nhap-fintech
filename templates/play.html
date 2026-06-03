@@ -270,64 +270,7 @@
     .leaderboard-table th, .leaderboard-table td {
         padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0;
     }
-    .leaderboard-table th { background: #f3e8ff; }  
-
-        .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Cải thiện hiển thị deck card */
-.deck-card {
-    min-height: 80px;
-    word-break: break-word;
-}
-
-.active-card, .reaction-card {
-    transition: all 0.2s ease;
-}
-
-.active-card:hover, .reaction-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.selected-card {
-    opacity: 1;
-    filter: none;
-    border-width: 2px !important;
-    box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.3);
-}
-
-/* Cải thiện grid hiển thị card */
-#activeList {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 12px;
-    max-height: 500px;
-    overflow-y: auto;
-    padding: 16px;
-}
-
-#reactionList {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 12px;
-    padding: 16px;
-}
-
-/* Responsive cho mobile */
-@media (max-width: 768px) {
-    #activeList {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
-    #reactionList {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    }
-}
+    .leaderboard-table th { background: #f3e8ff; }       
         
     </style>
 </head>
@@ -480,9 +423,9 @@
                         <div class="info-icon" data-category="forecast">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 1 units</label><input type="number" id="month1Units" value="1200" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 3 units</label><input type="number" id="month3Units" value="2500" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 6 units</label><input type="number" id="month6Units" value="4000" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 1 units</label><input type="number" id="month1Units" value="1200" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 3 units</label><input type="number" id="month3Units" value="2500" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 6 units</label><input type="number" id="month6Units" value="4000" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
                 
@@ -493,8 +436,8 @@
                         <div class="info-icon" data-category="opex">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Fixed operating cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="fixedOpex" value="15000" step="1" min="1000" max="100000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Marketing cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="marketingCost" value="8000" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Fixed operating cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="fixedOpex" value="15000" step="1000" min="1000" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Marketing cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="marketingCost" value="8000" step="1000" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
                 
@@ -505,8 +448,8 @@
                         <div class="info-icon" data-category="capital">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Owner equity <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="ownerEquity" value="50000" step="1" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Bank loan <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="bankLoan" value="30000" step="1" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Owner equity <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="ownerEquity" value="50000" step="1000" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Bank loan <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="bankLoan" value="30000" step="1000" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
                         <div><label class="block text-sm font-medium mb-1 text-purple-900">Loan interest rate <span class="text-xs text-gray-500">(%/year)</span></label><input type="number" id="loanRate" value="8" step="0.1" min="5" max="100" class="w-full rounded-xl px-3 py-2"></div>
                         <div><label class="block text-sm font-medium mb-1 text-purple-900">Equity offered <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="equity" value="15" step="0.1" min="0.1" max="99.9" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
@@ -525,6 +468,7 @@
                 <h2 class="text-2xl font-bold text-purple-800">YOUR PROJECT</h2>
                 <div class="ml-auto bg-pink-100 px-3 py-1 rounded-full text-sm font-bold text-pink-700">
                     👤 Player <span id="playerIndexDisplay">?</span>
+                    <span id="myReadyStatus" class="ml-2 text-xs">⏳</span>
                 </div>
                 <div class="flex gap-2 flex-wrap">
                     <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">💰 <span id="funding">0</span>%</span>
@@ -580,42 +524,24 @@
         </div>
         
         <!-- End game screen (chi tiết) -->
-<!-- End game screen (chi tiết) -->
-<div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden">
-    <h2 class="text-3xl font-bold text-center mb-6 text-purple-800">🏆 GAME OVER 🏆</h2>
-    
-    <!-- Phần điểm của bạn - căn giữa -->
-    <div class="text-center mb-8">
-        <div class="inline-block bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-6 shadow-lg">
-            <div class="text-7xl font-bold text-white mb-2"><span id="finalScore">0</span></div>
-            <div class="text-pink-100 font-semibold">Your Final Score</div>
-        </div>
-        
-        <!-- Các chỉ số phụ - căn giữa -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto mt-6">
-            <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
-                <div class="text-xs text-purple-500 font-medium">📊 FUNDING</div>
-                <div class="font-bold text-2xl text-purple-700"><span id="finalFunding">0</span>%</div>
+        <div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden">
+            <h2 class="text-3xl font-bold text-center mb-4 text-purple-800">🏆 GAME OVER 🏆</h2>
+            <div class="text-center mb-6">
+                <div class="text-6xl font-bold text-pink-500"><span id="finalScore">0</span></div>
+                <div class="text-gray-600 mb-2">Your Final Score</div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mt-3">
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Funding %</div><div class="font-bold text-lg"><span id="finalFunding">0</span>%</div></div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Hype</div><div class="font-bold text-lg"><span id="finalHype">0</span></div></div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Transparency</div><div class="font-bold text-lg"><span id="finalTrans">0</span></div></div>
+                </div>
             </div>
-            <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
-                <div class="text-xs text-purple-500 font-medium">🔥 HYPE</div>
-                <div class="font-bold text-2xl text-pink-600"><span id="finalHype">0</span></div>
+            <h3 class="font-bold text-lg mb-3 text-purple-800">📊 COMPETITOR RANKING</h3>
+            <div id="finalRanking" class="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2"></div>
+            <!-- <div class="flex gap-3">
+                <button onclick="location.reload()" class="btn-gradient flex-1 py-2 rounded-full font-bold text-white">🔄 PLAY AGAIN</button>
+                <button id="backToGameBtn" class="bg-gray-500 hover:bg-gray-600 flex-1 py-2 rounded-full font-bold text-white">◀ BACK TO GAME</button> -->
+            <!-- </div> -->
             </div>
-            <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
-                <div class="text-xs text-purple-500 font-medium">👁️ TRANSPARENCY</div>
-                <div class="font-bold text-2xl text-green-600"><span id="finalTrans">0</span></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bảng xếp hạng - căn giữa -->
-    <div class="max-w-4xl mx-auto">
-        <h3 class="font-bold text-xl mb-4 text-purple-800 text-center flex items-center justify-center gap-2">
-            <span>🏆</span> COMPETITOR RANKING <span>🏆</span>
-        </h3>
-        <div id="finalRanking" class="bg-white/70 rounded-xl p-4 max-h-96 overflow-y-auto"></div>
-    </div>
-</div>
 
     <!-- INFO MODAL -->
     <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
@@ -849,59 +775,36 @@
             alert(`✨ Auto selected ${selectedActive.size} Active cards and ${selectedReaction.size} Reaction cards.\nYou can still change your selection before confirming.`);
         }
         
-function renderDeckSelectionUI() {
-    const activeContainer = document.getElementById('activeList');
-    const reactionContainer = document.getElementById('reactionList');
-    if (!activeContainer || !reactionContainer) return;
-
-    // Hiển thị Active Cards
-    activeContainer.innerHTML = '';
-    if (activeCardsMaster.length === 0) {
-        activeContainer.innerHTML = '<div class="col-span-4 text-center text-red-500 p-4">Loading cards from server...</div>';
-    } else {
-        activeCardsMaster.forEach((card, idx) => {
-            let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
-            const isSelected = selectedActive.has(idx);
-            const selectedClass = isSelected ? 'selected-card' : '';
+        function renderDeckSelectionUI() {
+            const activeContainer = document.getElementById('activeList');
+            const reactionContainer = document.getElementById('reactionList');
+            if (!activeContainer || !reactionContainer) return;
             
-            // Xử lý description để hiển thị đẹp hơn
-            let shortDesc = card.desc || '';
-            if (shortDesc.length > 50) shortDesc = shortDesc.substring(0, 47) + '...';
+            activeContainer.innerHTML = '';
+            activeCardsMaster.forEach((card, idx) => {
+                let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
+                const isSelected = selectedActive.has(idx);
+                const selectedClass = isSelected ? 'selected-card' : '';
+                activeContainer.innerHTML += `
+                    <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedClass}" data-idx="${idx}" data-type="active" style="background-color:${bgColor};">
+                        <div class="font-bold text-sm text-purple-800">${card.name}</div>
+                        <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
+                    </div>
+                `;
+            });
             
-            activeContainer.innerHTML += `
-                <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedClass}" 
-                     data-idx="${idx}" data-type="active" 
-                     style="background-color:${bgColor}; border: ${isSelected ? '2px solid #ec4899' : '1px solid #e2e8f0'};">
-                    <div class="font-bold text-sm text-purple-800">${card.name || 'Unknown'}</div>
-                    <div class="text-xs text-purple-600 mt-1">⚡ Cost: ${card.cost || 0}</div>
-                    <div class="text-xs text-gray-600 mt-1 line-clamp-2">📝 ${shortDesc}</div>
-                </div>
-            `;
-        });
-    }
-
-    // Hiển thị Reaction Cards
-    reactionContainer.innerHTML = '';
-    if (reactionCardsMaster.length === 0) {
-        reactionContainer.innerHTML = '<div class="col-span-3 text-center text-red-500 p-4">Loading reaction cards...</div>';
-    } else {
-        reactionCardsMaster.forEach((card, idx) => {
-            const isSelected = selectedReaction.has(idx);
-            const selectedClass = isSelected ? 'selected-card' : '';
-            
-            let shortDesc = card.desc || '';
-            if (shortDesc.length > 50) shortDesc = shortDesc.substring(0, 47) + '...';
-            
-            reactionContainer.innerHTML += `
-                <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" 
-                     data-idx="${idx}" data-type="reaction"
-                     style="border: ${isSelected ? '2px solid #10b981' : '1px solid #d1fae5'};">
-                    <div class="font-bold text-sm text-purple-800">${card.name || 'Unknown'}</div>
-                    <div class="text-xs text-gray-600 mt-1 line-clamp-2">📝 ${shortDesc}</div>
-                </div>
-            `;
-        });
-    }
+            reactionContainer.innerHTML = '';
+            reactionCardsMaster.forEach((card, idx) => {
+                const isSelected = selectedReaction.has(idx);
+                const selectedClass = isSelected ? 'selected-card' : '';
+                reactionContainer.innerHTML += `
+                    <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" data-idx="${idx}" data-type="reaction">
+                        <div class="font-bold text-sm text-purple-800">${card.name}</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
+                    </div>
+                `;
+            });
             
             // Gắn sự kiện click cho active cards
             document.querySelectorAll('.active-card').forEach(el => {
@@ -942,87 +845,6 @@ function renderDeckSelectionUI() {
             document.getElementById('activeCount').innerText = selectedActive.size;
             document.getElementById('reactionCount').innerText = selectedReaction.size;
         }
-
-        async function loadCards() {
-    try {
-        const res = await fetch(`${API_BASE}/card_lists`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        activeCardsMaster = data.active;
-        reactionCardsMaster = data.reaction;
-        
-        // Debug: Log số lượng card nhận được từ BE
-        console.log('✅ Loaded cards from BE:', {
-            active: activeCardsMaster.length,
-            reaction: reactionCardsMaster.length,
-            activeSample: activeCardsMaster.slice(0, 2),
-            reactionSample: reactionCardsMaster.slice(0, 2)
-        });
-        
-        // Kiểm tra nếu số lượng card không đủ
-        if (activeCardsMaster.length < 22) {
-            console.warn(`⚠️ Only ${activeCardsMaster.length} active cards received from BE, need at least 22`);
-        }
-        if (reactionCardsMaster.length < 3) {
-            console.warn(`⚠️ Only ${reactionCardsMaster.length} reaction cards received from BE`);
-        }
-        
-        return true;
-    } catch (err) {
-        console.error('Error loading cards:', err);
-        alert('Cannot load cards from server. Please refresh.');
-        return false;
-    }
-}
-        async function showDeckBuilder() {
-    if (!activeCardsMaster.length) {
-        const loaded = await loadCards();
-        if (!loaded) return;
-    }
-
-    const deckPanel = document.getElementById('deckPanel');
-    deckPanel.innerHTML = `
-        <h2 class="text-2xl font-bold mb-4 text-purple-800">🎴 BUILD YOUR DECK</h2>
-        <div class="mb-4 flex justify-between items-center flex-wrap gap-3">
-            <div class="text-sm text-gray-600">
-                📊 Tổng số card từ hệ thống: 
-                <strong class="text-purple-600">${activeCardsMaster.length}</strong> Active cards | 
-                <strong class="text-purple-600">${reactionCardsMaster.length}</strong> Reaction cards
-            </div>
-            <button id="autoDeckBtn" class="auto-deck-btn">🎲 AUTO-SELECT RANDOM DECK</button>
-        </div>
-        <div class="bg-purple-50 rounded-lg p-3 mb-4 text-sm text-purple-700">
-            💡 <strong>Hướng dẫn:</strong> Click vào card để chọn. Mỗi bộ bài cần <strong>22 Active cards</strong> (bắt buộc) và tối đa <strong>3 Reaction cards</strong>.
-        </div>
-        <div class="mb-6">
-            <h3 class="font-bold mb-3 text-purple-800 flex items-center gap-2">
-                <span class="bg-pink-500 w-3 h-3 rounded-full"></span> ACTION CARDS (chọn 22 cards)
-            </h3>
-            <div id="activeList" class="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-[500px] overflow-y-auto p-3 bg-white/50 rounded-xl"></div>
-            <div class="text-sm mt-3 font-semibold text-purple-700">✅ Đã chọn: <span id="activeCount">0</span>/22</div>
-        </div>
-        <div class="mb-6">
-            <h3 class="font-bold mb-3 text-purple-800 flex items-center gap-2">
-                <span class="bg-emerald-500 w-3 h-3 rounded-full"></span> REACTION CARDS (chọn tối đa 3)
-            </h3>
-            <div id="reactionList" class="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 bg-white/50 rounded-xl"></div>
-            <div class="text-sm mt-3 font-semibold text-purple-700">✅ Đã chọn: <span id="reactionCount">0</span>/3</div>
-        </div>
-        <button id="submitDeckBtn" class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-lg text-lg transition-all">
-            ✅ CONFIRM DECK
-        </button>
-    `;
-    deckPanel.classList.remove('hidden');
-
-    selectedActive.clear();
-    selectedReaction.clear();
-    renderDeckSelectionUI();
-
-    const autoBtn = document.getElementById('autoDeckBtn');
-    if (autoBtn) {
-        autoBtn.onclick = () => autoSelectRandomLocally();
-    }
-}
         
         // Gửi deck lên server
         async function submitDeckToServer() {
@@ -1050,83 +872,7 @@ function renderDeckSelectionUI() {
                 return false;
             }
         }
-        // ==================== RENDER FINAL RANKING ====================
-async function renderFinalRanking() {
-    try {
-        const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
-        if (!roomData.players) return;
         
-        // Sắp xếp theo score giảm dần
-        const sorted = [...roomData.players]
-            .filter(p => p.status !== 'not_joined')
-            .sort((a, b) => (b.score || 0) - (a.score || 0));
-        
-        // Tạo bảng xếp hạng
-        let html = `
-            <table class="leaderboard-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Player</th>
-                        <th>Scale</th>
-                        <th>Funding</th>
-                        <th>Hype</th>
-                        <th>Transparency</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        sorted.forEach((p, idx) => {
-            // Highlight hàng của player hiện tại
-            const isCurrentPlayer = p.id === playerIndexFromUrl;
-            const rowClass = isCurrentPlayer ? 'style="background: linear-gradient(135deg, #fce7f3, #f3e8ff); font-weight: bold;"' : '';
-            
-            html += `<tr ${rowClass}>
-                <td><strong>${idx + 1}</strong>${idx === 0 ? ' 👑' : ''}</td>
-                <td>${p.name || `Player ${p.id + 1}`}${isCurrentPlayer ? ' (You)' : ''}</td>
-                <td>${getPlayerScale(p)}</td>
-                <td>${((p.funding || 0) * 100).toFixed(1)}%</td>
-                <td>${p.hype || 0}</td>
-                <td>${p.transparency || 0}</td>
-                <td><strong>${(p.score || 0).toFixed(2)}</strong></td>
-            </table>`;
-        });
-        
-        html += `
-                </tbody>
-            </table>
-        `;
-        
-        document.getElementById('finalRanking').innerHTML = html;
-        
-        // Cập nhật các chỉ số của player hiện tại (nếu chưa được cập nhật từ data)
-        const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
-        if (myData) {
-            // Chỉ cập nhật nếu các element chưa có giá trị
-            const finalFundingEl = document.getElementById('finalFunding');
-            const finalHypeEl = document.getElementById('finalHype');
-            const finalTransEl = document.getElementById('finalTrans');
-            
-            if (finalFundingEl && finalFundingEl.innerText === '0') {
-                finalFundingEl.innerText = ((myData.funding || 0) * 100).toFixed(1);
-            }
-            if (finalHypeEl && finalHypeEl.innerText === '0') {
-                finalHypeEl.innerText = myData.hype || 0;
-            }
-            if (finalTransEl && finalTransEl.innerText === '0') {
-                finalTransEl.innerText = myData.transparency || 0;
-            }
-        }
-    } catch (err) { 
-        console.error('Error rendering final ranking:', err);
-        const rankingDiv = document.getElementById('finalRanking');
-        if (rankingDiv) {
-            rankingDiv.innerHTML = '<p class="text-center text-red-500">Unable to load ranking</p>';
-        }
-    }
-}
         // ==================== GAME POLLING ====================
         function startGamePolling() {
             if (pollingInterval) clearInterval(pollingInterval);
@@ -1181,6 +927,13 @@ async function renderFinalRanking() {
             document.getElementById('currentPhase').innerText = data.phase || 1;
             document.getElementById('maxPhase').innerText = data.max_phase || 7;
             document.getElementById('fundingBarFill').style.width = ((data.metrics?.funding_progress || 0) * 100) + '%';
+
+                        // Cập nhật trạng thái ready của bản thân (nếu backend trả 'ready')
+            const readySpan = document.getElementById('myReadyStatus');
+            if (readySpan && data.ready !== undefined) {
+                readySpan.innerText = data.ready ? '✅' : '⏳';
+                readySpan.title = data.ready ? 'Ready' : 'Not ready';
+            }
             
             const handDiv = document.getElementById('hand');
             if (data.hand && data.hand.length > 0) {
@@ -1241,69 +994,34 @@ async function renderFinalRanking() {
         }   // <-- HÀM KẾT THÚC Ở ĐÂY
 
         // Hàm hiển thị bảng xếp hạng cuối game
-async function renderFinalRanking() {
-    try {
-        const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
-        if (!roomData.players) return;
-        
-        // Sắp xếp theo score giảm dần
-        const sorted = [...roomData.players]
-            .filter(p => p.status !== 'not_joined')
-            .sort((a, b) => (b.score || 0) - (a.score || 0));
-        
-        // Tạo bảng xếp hạng
-        let html = `
-            <table class="leaderboard-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Player</th>
-                        <th>Scale</th>
-                        <th>Funding</th>
-                        <th>Hype</th>
-                        <th>Transparency</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody>
-        `;
-        
-        sorted.forEach((p, idx) => {
-            // Highlight hàng của player hiện tại
-            const isCurrentPlayer = p.id === playerIndexFromUrl;
-            const rowClass = isCurrentPlayer ? 'style="background: linear-gradient(135deg, #fce7f3, #f3e8ff); font-weight: bold;"' : '';
-            
-            html += `<tr ${rowClass}>
-                <td><strong>${idx + 1}</strong>${idx === 0 ? ' 👑' : ''}</td>
-                <td>${p.name || `Player ${p.id + 1}`}${isCurrentPlayer ? ' (You)' : ''}</td>
-                <td>${getPlayerScale(p)}</td>
-                <td>${((p.funding || 0) * 100).toFixed(1)}%</td>
-                <td>${p.hype || 0}</td>
-                <td>${p.transparency || 0}</td>
-                <td><strong>${(p.score || 0).toFixed(2)}</strong></td>
-            </tr>`;
-        });
-        
-        html += `
-                </tbody>
-            </table>
-        `;
-        
-        document.getElementById('finalRanking').innerHTML = html;
-        
-        // Cập nhật các chỉ số của player hiện tại
-        const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
-        if (myData) {
-            document.getElementById('finalFunding').innerText = ((myData.funding || 0) * 100).toFixed(1);
-            document.getElementById('finalHype').innerText = myData.hype || 0;
-            document.getElementById('finalTrans').innerText = myData.transparency || 0;
+        async function renderFinalRanking() {
+            try {
+                const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
+                if (!roomData.players) return;
+                const sorted = [...roomData.players].filter(p => p.status !== 'not_joined').sort((a,b) => (b.score||0) - (a.score||0));
+                let html = `<table class="leaderboard-table"><thead><tr><th>#</th><th>Player</th><th>Scale</th><th>Funding %</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead><tbody>`;
+                sorted.forEach((p, idx) => {
+                    html += `<tr>
+                        <td>${idx+1}</td>
+                        <td>${p.name || `Player ${p.id+1}`}</td>
+                        <td>${getPlayerScale(p)}</td>
+                        <td>${((p.funding||0)*100).toFixed(1)}%</td>
+                        <td>${p.hype||0}</td>
+                        <td>${p.transparency||0}</td>
+                        <td><strong>${(p.score||0).toFixed(2)}</strong></td>
+                    </tr>`;
+                });
+                html += `</tbody></table>`;
+                document.getElementById('finalRanking').innerHTML = html;
+                const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
+                if (myData) {
+                    document.getElementById('finalFunding').innerText = ((myData.funding||0)*100).toFixed(1);
+                    document.getElementById('finalHype').innerText = myData.hype || 0;
+                    document.getElementById('finalTrans').innerText = myData.transparency || 0;
+                    document.getElementById('finalRunway').innerText = myData.runway || 0;
+                }
+            } catch(err) { console.error(err); }
         }
-    } catch (err) { 
-        console.error('Error rendering final ranking:', err);
-        document.getElementById('finalRanking').innerHTML = '<p class="text-center text-red-500">Unable to load ranking</p>';
-    }
-}
-        
     
         // ==================== PLAYER ACTIONS ====================
         document.getElementById('playCardBtn')?.addEventListener('click', async () => {
@@ -1363,7 +1081,10 @@ async function renderFinalRanking() {
                 console.error(err);
             }
         });
-
+        document.getElementById('backToGameBtn')?.addEventListener('click', () => {
+            document.getElementById('endgamePanel').classList.add('hidden');
+            document.getElementById('gamePanel').classList.remove('hidden');
+        });
         // Gắn sự kiện cho nút submit deck (sau khi render lại)
         document.addEventListener('click', (e) => {
             if (e.target && e.target.id === 'submitDeckBtn') {
@@ -1434,5 +1155,4 @@ document.addEventListener('DOMContentLoaded', initRulesSidebar);
     </script>
 </body>
 </html>
-
 
