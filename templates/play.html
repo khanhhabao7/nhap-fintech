@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -12,178 +11,11 @@
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
-            border-radius: 1.5rem;
-        }
-
-        .info-icon {
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-            background: #f8bbd0;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-left: 6px;
-            color: #4a1d6d;
-        }
-
-        .info-icon:hover {
-            background: #ba6bff;
-            color: white;
-            transform: scale(1.05);
-        }
-
-        .modal-overlay {
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-        }
-
-        input,
-        select {
-            transition: all 0.2s ease;
-            background-color: #ffffffdd;
-            border: 1px solid #c9b1e6;
-            color: #1e1b2b;
-            border-radius: 12px;
-            padding: 8px 14px;
-        }
-
-        input:focus,
-        select:focus {
-            outline: none;
-            ring: 2px solid #b77eff;
-            border-color: #b77eff;
-            background-color: white;
-        }
-
-        .category-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            background: rgba(255, 250, 255, 0.9);
-            border: 1px solid #f3c5ff;
-            border-radius: 1.5rem;
-        }
-
-        .category-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 24px -12px rgba(106, 13, 173, 0.25);
-            background: white;
-        }
-
-        .btn-gradient {
-            background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff);
-            transition: all 0.25s;
-        }
-
-        .btn-gradient:hover {
-            background: linear-gradient(95deg, #ff80ab, #c47eff, #7eaeff);
-            transform: scale(0.98);
-            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
-        }
-
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #edd9ff;
-            border-radius: 20px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #a569e6;
-            border-radius: 20px;
-        }
-
-        .hand-card {
-            cursor: pointer;
-            transition: all 0.2s;
-            background: white;
-            border-radius: 0.75rem;
-            padding: 0.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .hand-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .deck-card {
-            transition: all 0.2s;
-        }
-
-        .auto-deck-btn {
-            background: #8b5cf6;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 999px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 16px;
-            display: inline-block;
-        }
-
-        .auto-deck-btn:hover {
-            background: #7c3aed;
-        }
-
-        .connection-status {
-            transition: all 0.2s;
-        }
-
-        .selected-card {
-            opacity: 0.6;
-            filter: grayscale(0.2);
-            border: 2px solid #ec4899;
-            box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.3);
-        }
-
-        .funding-bar {
-            width: 100%;
-            height: 10px;
-            background: #e2e8f0;
-            border-radius: 999px;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-
-        .funding-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #facc15, #f59e0b);
-            transition: width 0.3s;
-        }
-
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
-        }
-
-        .leaderboard-table th,
-        .leaderboard-table td {
-            padding: 10px 12px;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .leaderboard-table th {
-            background: #f3e8ff;
-        }
-
-        /* Game Rules Sidebar Styles */
+                /* Game Rules Sidebar Styles */
         .rules-button {
             position: fixed;
             bottom: 24px;
-            right: 24px;
+            right: 24px;          /* ← chuyển sang phải */
             z-index: 999;
             background: linear-gradient(135deg, #8b5cf6, #6366f1);
             border: none;
@@ -199,12 +31,12 @@
             align-items: center;
             justify-content: center;
         }
-
+        
         .rules-button:hover {
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
         }
-
+        
         .rules-sidebar {
             position: fixed;
             top: 0;
@@ -220,11 +52,11 @@
             overflow-y: auto;
             font-family: 'Inter', sans-serif;
         }
-
+        
         .rules-sidebar.open {
             right: 0;
         }
-
+        
         .rules-sidebar-header {
             padding: 24px;
             background: linear-gradient(135deg, #ec4899, #8b5cf6);
@@ -235,13 +67,13 @@
             top: 0;
             z-index: 10;
         }
-
+        
         .rules-sidebar-header h2 {
             color: white;
             margin: 0;
             font-size: 1.5rem;
         }
-
+        
         .close-rules {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -256,47 +88,47 @@
             justify-content: center;
             transition: all 0.2s;
         }
-
+        
         .close-rules:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.1);
         }
-
+        
         .rules-sidebar-content {
             padding: 24px;
         }
-
+        
         .rules-sidebar-content h3 {
             color: #f472b6;
             margin-top: 20px;
             margin-bottom: 10px;
             font-size: 1.25rem;
         }
-
+        
         .rules-sidebar-content h4 {
             color: #a78bfa;
             margin-top: 15px;
             margin-bottom: 8px;
             font-size: 1rem;
         }
-
-        .rules-sidebar-content p,
+        
+        .rules-sidebar-content p, 
         .rules-sidebar-content li {
             color: #e0e0e0;
             line-height: 1.6;
             font-size: 0.9rem;
         }
-
-        .rules-sidebar-content ul,
+        
+        .rules-sidebar-content ul, 
         .rules-sidebar-content ol {
             padding-left: 20px;
             margin: 10px 0;
         }
-
+        
         .rules-sidebar-content li {
             margin: 6px 0;
         }
-
+        
         .rules-sidebar-content .highlight {
             background: rgba(236, 72, 153, 0.2);
             padding: 2px 6px;
@@ -304,7 +136,7 @@
             color: #f472b6;
             font-weight: 600;
         }
-
+        
         .rules-sidebar-overlay {
             position: fixed;
             top: 0;
@@ -315,132 +147,223 @@
             z-index: 998;
             display: none;
         }
-
+        
         .rules-sidebar-overlay.show {
             display: block;
         }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+            border-radius: 1.5rem;
+        }
+        .info-icon {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #f8bbd0;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 6px;
+            color: #4a1d6d;
+        }
+        .info-icon:hover {
+            background: #ba6bff;
+            color: white;
+            transform: scale(1.05);
+        }
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        input, select {
+            transition: all 0.2s ease;
+            background-color: #ffffffdd;
+            border: 1px solid #c9b1e6;
+            color: #1e1b2b;
+            border-radius: 12px;
+            padding: 8px 14px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            ring: 2px solid #b77eff;
+            border-color: #b77eff;
+            background-color: white;
+        }
+        .category-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: rgba(255, 250, 255, 0.9);
+            border: 1px solid #f3c5ff;
+            border-radius: 1.5rem;
+        }
+        .category-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -12px rgba(106, 13, 173, 0.25);
+            background: white;
+        }
+        .btn-gradient {
+            background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff);
+            transition: all 0.25s;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(95deg, #ff80ab, #c47eff, #7eaeff);
+            transform: scale(0.98);
+            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #edd9ff; border-radius: 20px; }
+        ::-webkit-scrollbar-thumb { background: #a569e6; border-radius: 20px; }
+        .hand-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .hand-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .deck-card {
+            transition: all 0.2s;
+        }
+        .auto-deck-btn {
+            background: #8b5cf6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        .auto-deck-btn:hover {
+            background: #7c3aed;
+        }
+        .connection-status {
+            transition: all 0.2s;
+        }
+        .selected-card {
+            opacity: 0.6;
+            filter: grayscale(0.2);
+            border: 2px solid #ec4899;
+            box-shadow: 0 0 0 2px rgba(236,72,153,0.3);
+        }
+
+     .funding-bar {
+        width: 100%; height: 10px; background: #e2e8f0; border-radius: 999px;
+        overflow: hidden; margin-bottom: 12px;
+    }
+    .funding-bar-fill {
+        height: 100%; background: linear-gradient(90deg, #facc15, #f59e0b);
+        transition: width 0.3s;
+    }
+    .leaderboard-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0;
+    }
+    .leaderboard-table th { background: #f3e8ff; }       
+        
     </style>
 </head>
-
 <body class="p-5 font-sans antialiased">
-
     <div class="max-w-5xl mx-auto">
+
+                <!-- Game Rules Sidebar -->
+        <button class="rules-button" id="rulesButton">📖</button>
+        
+        <div class="rules-sidebar-overlay" id="rulesOverlay"></div>
+        
+        <div class="rules-sidebar" id="rulesSidebar">
+            <div class="rules-sidebar-header">
+                <h2>📖 Fun(d) Raising - Game Guide</h2>
+                <button class="close-rules" id="closeRulesBtn">&times;</button>
+            </div>
+            <div class="rules-sidebar-content">
+                <h3>1. Overview</h3>
+                <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the most attractive project. Each player creates a startup, chooses a custom deck of cards, and navigates random events. Investors (our system) decide where to put their money. The host controls the game flow. After several rounds (phases), a final score determines the winner.</p>
+        
+                <h3>2. Setup</h3>
+                <h4>2.1 Host creates a room</h4>
+                <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create Room</span>. The system generates unique join links – one per player. The host sends each link to the corresponding player.</p>
+                
+                <h4>2.2 Players enter project details</h4>
+                <p>Each player opens their link and fills in the required information about their startup (price, costs, production forecast, capital structure, etc.). All fields have reasonable limits to keep the game balanced.</p>
+                
+                <h4>2.3 Players build their deck</h4>
+                <p>After submitting the project, each player selects:</p>
+                <ul>
+                    <li><strong>22 Active Cards (mandatory)</strong> – three types:
+                        <ul>
+                            <li><span class="highlight">Aggressive</span>: boosts Hype, often lowers Transparency.</li>
+                            <li><span class="highlight">Defensive</span>: increases Transparency, reduces legal risk.</li>
+                            <li><span class="highlight">Capital</span>: affects funding, trust, or financial structure.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a specific condition is met.</li>
+                </ul>
+                <p><em>Cards are selected by clicking on them. The host decides when the deck selection phase ends and the game starts.</em></p>
+        
+                <h3>3. Game Flow – Phases</h3>
+                <p>The number of phases depends on the chosen scale:</p>
+                <ul>
+                    <li>Small → 5 phases</li>
+                    <li>Medium → 7 phases</li>
+                    <li>Large → 9 phases</li>
+                </ul>
+                <p>The host controls the progression: after each phase, the host decides when to move to the next one.</p>
+                
+                <h4>During a phase:</h4>
+                <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including market, internal, external, or regulatory events.</p>
+                
+                <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their deck. They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and then clicking the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new cards) – costs 1 energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards that are triggered will appear as clickable buttons; they can be used at any time during the phase (each only once). The host decides when the phase ends and proceeds to the next one.</p>
+                
+                <p><strong>c. Host runs the phase</strong><br>When the host clicks Run Phase, the system:</p>
+                <ul>
+                    <li>Applies all played cards and event effects.</li>
+                    <li>Updates project stats (funding progress, runway, etc.).</li>
+                    <li>Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random) evaluate all active projects.</li>
+                    <li>Bots may withdraw money from less attractive projects.</li>
+                    <li>Bots may invest new money into attractive projects (softmax distribution).</li>
+                    <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that performed poorly before may struggle to regain trust.</li>
+                    <li>The phase ends. If a project runs out of cash, it goes bankrupt and is eliminated.</li>
+                </ul>
+        
+                <h3>4. End of Game &amp; Winner</h3>
+                <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt). The host sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The score takes into account funding progress, speed, expected ROI, transparency, and a penalty for unrealistic valuation. The project with the highest score wins.</p>
+        
+                <h3>5. Quick Tips</h3>
+                <ul>
+                    <li>Balance Aggressive (Hype) and Defensive (Transparency) cards – too much hype hurts credibility.</li>
+                    <li>Save energy for impactful cards; don't waste it on weak effects.</li>
+                    <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g., bot withdrawals, bad events).</li>
+                    <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale, capital efficiency, leverage) – build a solid financial foundation to attract them.</li>
+                </ul>
+            </div>
+        </div>
+
+
+        
         <div id="connectionStatus" class="connection-status mb-4 p-3 rounded-xl text-center text-sm hidden"></div>
 
         <!-- Project submission form -->
         <div id="projectFormPanel" class="glass-card rounded-3xl p-6 shadow-2xl">
             <div class="flex justify-between items-center flex-wrap gap-3 mb-5">
-                <h2
-                    class="text-3xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-600 to-blue-500 bg-clip-text text-transparent">
-                    SUBMIT YOUR PROJECT</h2>
-                <div
-                    class="bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full shadow-sm border border-purple-200 text-sm">
-                    <span class="text-pink-500 font-bold">You are:</span> <strong id="playerName"
-                        class="text-purple-800">Player 1</strong>
+                <h2 class="text-3xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-600 to-blue-500 bg-clip-text text-transparent">SUBMIT YOUR PROJECT</h2>
+                <div class="bg-white/80 backdrop-blur-sm px-5 py-2 rounded-full shadow-sm border border-purple-200 text-sm">
+                    <span class="text-pink-500 font-bold">You are:</span> <strong id="playerName" class="text-purple-800">Player 1</strong> 
                     <span class="text-gray-500 ml-3">Room: <span id="roomIdDisplay" class="font-mono">...</span></span>
                 </div>
             </div>
-
-            <!-- Game Rules Sidebar -->
-            <button class="rules-button" id="rulesButton">📖</button>
-
-            <div class="rules-sidebar-overlay" id="rulesOverlay"></div>
-
-            <div class="rules-sidebar" id="rulesSidebar">
-                <div class="rules-sidebar-header">
-                    <h2>📖 Fun(d) Raising - Game Guide</h2>
-                    <button class="close-rules" id="closeRulesBtn">&times;</button>
-                </div>
-                <div class="rules-sidebar-content">
-                    <h3>1. Overview</h3>
-                    <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the
-                        most attractive project. Each player creates a startup, chooses a custom deck of cards, and
-                        navigates random events. Investors (our system) decide where to put their money. The host
-                        controls the game flow. After several rounds (phases), a final score determines the winner.</p>
-
-                    <h3>2. Setup</h3>
-                    <h4>2.1 Host creates a room</h4>
-                    <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create
-                            Room</span>. The system generates unique join links – one per player. The host sends each
-                        link to the corresponding player.</p>
-
-                    <h4>2.2 Players enter project details</h4>
-                    <p>Each player opens their link and fills in the required information about their startup (price,
-                        costs, production forecast, capital structure, etc.). All fields have reasonable limits to keep
-                        the game balanced.</p>
-
-                    <h4>2.3 Players build their deck</h4>
-                    <p>After submitting the project, each player selects:</p>
-                    <ul>
-                        <li><strong>19 Active Cards (mandatory)</strong> – three types:
-                            <ul>
-                                <li><span class="highlight">Aggressive</span>: boosts Hype, often lowers Transparency.
-                                </li>
-                                <li><span class="highlight">Defensive</span>: increases Transparency, reduces legal
-                                    risk.</li>
-                                <li><span class="highlight">Capital</span>: affects funding, trust, or financial
-                                    structure.</li>
-                            </ul>
-                        </li>
-                        <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a
-                            specific condition is met.</li>
-                    </ul>
-                    <p><em>Note: Cards are selected by clicking on them (no "highlight" step). The host decides when the
-                            deck selection phase ends and the game starts.</em></p>
-
-                    <h3>3. Game Flow – Phases</h3>
-                    <p>The number of phases depends on the chosen scale:</p>
-                    <ul>
-                        <li>Small → 5 phases</li>
-                        <li>Medium → 7 phases</li>
-                        <li>Large → 9 phases</li>
-                    </ul>
-                    <p>The host controls the progression: after each phase, the host decides when to move to the next
-                        one.</p>
-
-                    <h4>During a phase:</h4>
-                    <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including
-                        market, internal, external, or regulatory events.</p>
-
-                    <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their
-                        deck. They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and
-                        then clicking the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new
-                        cards) – costs 1 energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards
-                        that are triggered will appear as clickable buttons; they can be used at any time during the
-                        phase (each only once). The host decides when the phase ends and proceeds to the next one.</p>
-
-                    <p><strong>c. Host runs the phase</strong><br>When the host clicks Run Phase, the system:</p>
-                    <ul>
-                        <li>Applies all played cards and event effects.</li>
-                        <li>Updates project stats (funding progress, runway, etc.).</li>
-                        <li>Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random) evaluate all active projects.
-                        </li>
-                        <li>Bots may withdraw money from less attractive projects.</li>
-                        <li>Bots may invest new money into attractive projects (softmax distribution).</li>
-                        <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that
-                            performed poorly before may struggle to regain trust.</li>
-                        <li>The phase ends. If a project runs out of cash, it goes bankrupt and is eliminated.</li>
-                    </ul>
-
-                    <h3>4. End of Game &amp; Winner</h3>
-                    <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt).
-                        The host sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The
-                        score takes into account funding progress, speed, expected ROI, transparency, and a penalty for
-                        unrealistic valuation. The project with the highest score wins.</p>
-
-                    <h3>5. Quick Tips</h3>
-                    <ul>
-                        <li>Balance Aggressive (Hype) and Defensive (Transparency) cards – too much hype hurts
-                            credibility.</li>
-                        <li>Save energy for impactful cards; don't waste it on weak effects.</li>
-                        <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g.,
-                            bot withdrawals, bad events).</li>
-                        <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale,
-                            capital efficiency, leverage) – build a solid financial foundation to attract them.</li>
-                    </ul>
-                </div>
-            </div>
-
+            
             <form id="projectForm" class="space-y-6">
                 <!-- Scale -->
                 <div class="category-card p-5">
@@ -459,13 +382,12 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold mb-1 text-purple-900">Target funding (USD)</label>
-                            <input type="number" id="targetFundingOverride" placeholder="Auto based on scale"
-                                class="w-full rounded-xl px-3 py-2.5">
+                            <input type="number" id="targetFundingOverride" placeholder="Auto based on scale" class="w-full rounded-xl px-3 py-2.5">
                             <p class="text-xs text-purple-400 mt-1">Leave empty = default scale range</p>
                         </div>
                     </div>
                 </div>
-
+                
                 <!-- Price & Channels -->
                 <div class="category-card p-5">
                     <div class="flex items-center gap-2 mb-3 border-b border-purple-100 pb-2">
@@ -473,21 +395,13 @@
                         <div class="info-icon" data-category="price_channels">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail price <span
-                                    class="text-xs text-gray-500">(USD)</span></label><input type="number" id="price"
-                                value="35" step="1" min="10" max="1000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">E-commerce fee <span
-                                    class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesEcom"
-                                value="10" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail fee <span
-                                    class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesRetail"
-                                value="15" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct channel fee <span
-                                    class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesDirect"
-                                value="5" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail price <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="price" value="35" step="1" min="10" max="1000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">E-commerce fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesEcom" value="10" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesRetail" value="15" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct channel fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesDirect" value="5" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
-
+                
                 <!-- COGS -->
                 <div class="category-card p-5">
                     <div class="flex items-center gap-2 mb-3 border-b border-purple-100 pb-2">
@@ -495,25 +409,13 @@
                         <div class="info-icon" data-category="cogs">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct materials <span
-                                    class="text-xs text-gray-500">(USD)</span></label><input type="number"
-                                id="cogsMaterial" value="12" step="0.01" min="0.1" max="100"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct packaging <span
-                                    class="text-xs text-gray-500">(USD)</span></label><input type="number"
-                                id="cogsPackaging" value="3" step="0.01" min="0.1" max="100"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct labor <span
-                                    class="text-xs text-gray-500">(USD)</span></label><input type="number"
-                                id="cogsLabor" value="4" step="0.01" min="0.1" max="100"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Defect allowance <span
-                                    class="text-xs text-gray-500">(%)</span></label><input type="number"
-                                id="defectAllowance" value="2" step="0.5" min="0" max="10"
-                                class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct materials <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="cogsMaterial" value="12" step="0.01" min="0.1" max="100" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct packaging <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="cogsPackaging" value="3" step="0.01" min="0.1" max="100" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct labor <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="cogsLabor" value="4" step="0.01" min="0.1" max="100" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Defect allowance <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="defectAllowance" value="2" step="0.5" min="0" max="10" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
-
+                
                 <!-- Production Forecast -->
                 <div class="category-card p-5">
                     <div class="flex items-center gap-2 mb-3 border-b border-purple-100 pb-2">
@@ -521,18 +423,12 @@
                         <div class="info-icon" data-category="forecast">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 1 units</label><input
-                                type="number" id="month1Units" value="1200" step="100" min="0" max="100000"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 3 units</label><input
-                                type="number" id="month3Units" value="2500" step="100" min="0" max="100000"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 6 units</label><input
-                                type="number" id="month6Units" value="4000" step="100" min="0" max="100000"
-                                class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 1 units</label><input type="number" id="month1Units" value="1200" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 3 units</label><input type="number" id="month3Units" value="2500" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 6 units</label><input type="number" id="month6Units" value="4000" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
-
+                
                 <!-- Monthly Operating Costs -->
                 <div class="category-card p-5">
                     <div class="flex items-center gap-2 mb-3 border-b border-purple-100 pb-2">
@@ -540,17 +436,11 @@
                         <div class="info-icon" data-category="opex">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Fixed operating cost <span
-                                    class="text-xs text-gray-500">(USD/month)</span></label><input type="number"
-                                id="fixedOpex" value="15000" step="1000" min="1000" max="100000"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Marketing cost <span
-                                    class="text-xs text-gray-500">(USD/month)</span></label><input type="number"
-                                id="marketingCost" value="8000" step="1000" min="0" max="100000"
-                                class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Fixed operating cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="fixedOpex" value="15000" step="1000" min="1000" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Marketing cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="marketingCost" value="8000" step="1000" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
-
+                
                 <!-- Capital Structure -->
                 <div class="category-card p-5">
                     <div class="flex items-center gap-2 mb-3 border-b border-purple-100 pb-2">
@@ -558,33 +448,20 @@
                         <div class="info-icon" data-category="capital">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Owner equity <span
-                                    class="text-xs text-gray-500">(USD)</span></label><input type="number"
-                                id="ownerEquity" value="50000" step="1000" min="0" max="300000"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Bank loan <span
-                                    class="text-xs text-gray-500">(USD)</span></label><input type="number" id="bankLoan"
-                                value="30000" step="1000" min="0" max="300000" class="w-full rounded-xl px-3 py-2">
-                        </div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Loan interest rate <span
-                                    class="text-xs text-gray-500">(%/year)</span></label><input type="number"
-                                id="loanRate" value="8" step="0.1" min="5" max="100"
-                                class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Equity offered <span
-                                    class="text-xs text-gray-500">(%)</span></label><input type="number" id="equity"
-                                value="15" step="0.1" min="0.1" max="99.9" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Owner equity <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="ownerEquity" value="50000" step="1000" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Bank loan <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="bankLoan" value="30000" step="1000" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Loan interest rate <span class="text-xs text-gray-500">(%/year)</span></label><input type="number" id="loanRate" value="8" step="0.1" min="5" max="100" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Equity offered <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="equity" value="15" step="0.1" min="0.1" max="99.9" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
-
-                <button type="submit"
-                    class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-xl text-lg transition-all">SUBMIT
-                    PROJECT & BUILD DECK</button>
+                
+                <button type="submit" class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-xl text-lg transition-all">SUBMIT PROJECT & BUILD DECK</button>
             </form>
         </div>
 
         <!-- Deck selection panel -->
         <div id="deckPanel" class="glass-card rounded-3xl p-6 shadow-xl hidden mt-6"></div>
-
+        
         <!-- Main game panel -->
         <div id="gamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden mt-6">
             <div class="flex justify-between items-center flex-wrap gap-3 mb-4">
@@ -593,39 +470,28 @@
                     👤 Player <span id="playerIndexDisplay">?</span>
                 </div>
                 <div class="flex gap-2 flex-wrap">
-                    <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">💰 <span
-                            id="funding">0</span>%</span>
-                    <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">⚡ <span
-                            id="energy">3</span></span>
-                    <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">🕒 Phase <span
-                            id="currentPhase">1</span>/<span id="maxPhase">7</span></span>
+                    <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">💰 <span id="funding">0</span>%</span>
+                    <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">⚡ <span id="energy">3</span></span>
+                    <span class="bg-purple-100 px-3 py-1 rounded-full text-sm text-purple-800 font-bold">🕒 Phase <span id="currentPhase">1</span>/<span id="maxPhase">7</span></span>
                 </div>
             </div>
-            <div class="funding-bar mb-3">
-                <div id="fundingBarFill" class="funding-bar-fill" style="width:0%"></div>
-            </div>
-
-            <div id="scenarioDisplay"
-                class="bg-pink-100 border border-pink-300 rounded-xl p-3 mb-4 text-center text-purple-800">Waiting for
-                event...</div>
-
+            <div class="funding-bar mb-3"><div id="fundingBarFill" class="funding-bar-fill" style="width:0%"></div></div>
+            
+            <div id="scenarioDisplay" class="bg-pink-100 border border-pink-300 rounded-xl p-3 mb-4 text-center text-purple-800">Waiting for event...</div>
+            
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="bg-white/70 rounded-xl p-3">
                     <div class="text-xs text-purple-600">HYPE</div>
                     <div class="text-2xl font-bold text-pink-500" id="hype">50</div>
-                    <div class="w-full bg-purple-200 rounded-full h-2 mt-1">
-                        <div id="hypeBar" class="bg-pink-500 h-2 rounded-full" style="width: 50%"></div>
-                    </div>
+                    <div class="w-full bg-purple-200 rounded-full h-2 mt-1"><div id="hypeBar" class="bg-pink-500 h-2 rounded-full" style="width: 50%"></div></div>
                 </div>
                 <div class="bg-white/70 rounded-xl p-3">
                     <div class="text-xs text-purple-600">TRANSPARENCY</div>
                     <div class="text-2xl font-bold text-green-600" id="transparency">50</div>
-                    <div class="w-full bg-purple-200 rounded-full h-2 mt-1">
-                        <div id="transBar" class="bg-green-500 h-2 rounded-full" style="width: 50%"></div>
-                    </div>
+                    <div class="w-full bg-purple-200 rounded-full h-2 mt-1"><div id="transBar" class="bg-green-500 h-2 rounded-full" style="width: 50%"></div></div>
                 </div>
             </div>
-
+            
             <div class="bg-white/70 rounded-xl p-3 mb-4">
                 <div class="text-xs text-purple-600">PROJECT METRICS</div>
                 <div class="grid grid-cols-2 gap-2 text-sm mt-1">
@@ -635,33 +501,27 @@
                     <div class="text-purple-800">🛫 Runway: <span id="runway">0</span> months</div>
                 </div>
             </div>
-
+            
             <h3 class="font-bold mb-2 text-purple-800">YOUR HAND</h3>
             <div id="hand" class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4 min-h-32"></div>
-
+            
             <div class="flex gap-2 mb-4">
-                <button id="playCardBtn"
-                    class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 px-4 py-2 rounded-full font-bold transition flex-1 text-white">▶
-                    PLAY CARD</button>
-                <button id="mulliganBtn"
-                    class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-full font-bold transition flex-1 text-white">🔄
-                    MULLIGAN</button>
-                <button id="readyBtn"
-                    class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-full font-bold transition flex-1 text-white">✅
-                    READY</button>
+                <button id="playCardBtn" class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 px-4 py-2 rounded-full font-bold transition flex-1 text-white">▶ PLAY CARD</button>
+                <button id="mulliganBtn" class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-full font-bold transition flex-1 text-white">🔄 MULLIGAN</button>
+                <button id="readyBtn" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-full font-bold transition flex-1 text-white">✅ READY</button>
             </div>
-
+            
             <div id="reactionTriggers" class="bg-purple-200/50 rounded-xl p-3 hidden">
                 <h3 class="font-bold mb-2 text-purple-800">⚡ REACTIONS AVAILABLE</h3>
                 <div id="reactionList2" class="flex gap-2 flex-wrap"></div>
             </div>
-
+            
             <div id="investors" class="bg-white/70 rounded-xl p-3">
                 <div class="text-xs text-purple-600">INVESTORS</div>
                 <div id="investorsList" class="text-sm text-purple-800">No investors yet</div>
             </div>
         </div>
-
+        
         <!-- End game screen (chi tiết) -->
         <div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden">
             <h2 class="text-3xl font-bold text-center mb-4 text-purple-800">🏆 GAME OVER 🏆</h2>
@@ -669,18 +529,9 @@
                 <div class="text-6xl font-bold text-pink-500"><span id="finalScore">0</span></div>
                 <div class="text-gray-600 mb-2">Your Final Score</div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mt-3">
-                    <div class="bg-purple-50 rounded-lg p-2">
-                        <div class="text-xs text-purple-600">Funding %</div>
-                        <div class="font-bold text-lg"><span id="finalFunding">0</span>%</div>
-                    </div>
-                    <div class="bg-purple-50 rounded-lg p-2">
-                        <div class="text-xs text-purple-600">Hype</div>
-                        <div class="font-bold text-lg"><span id="finalHype">0</span></div>
-                    </div>
-                    <div class="bg-purple-50 rounded-lg p-2">
-                        <div class="text-xs text-purple-600">Transparency</div>
-                        <div class="font-bold text-lg"><span id="finalTrans">0</span></div>
-                    </div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Funding %</div><div class="font-bold text-lg"><span id="finalFunding">0</span>%</div></div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Hype</div><div class="font-bold text-lg"><span id="finalHype">0</span></div></div>
+                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Transparency</div><div class="font-bold text-lg"><span id="finalTrans">0</span></div></div>
                 </div>
             </div>
             <h3 class="font-bold text-lg mb-3 text-purple-800">📊 COMPETITOR RANKING</h3>
@@ -689,218 +540,175 @@
                 <button onclick="location.reload()" class="btn-gradient flex-1 py-2 rounded-full font-bold text-white">🔄 PLAY AGAIN</button>
                 <button id="backToGameBtn" class="bg-gray-500 hover:bg-gray-600 flex-1 py-2 rounded-full font-bold text-white">◀ BACK TO GAME</button> -->
             <!-- </div> -->
-        </div>
-
-        <!-- INFO MODAL -->
-        <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
-            <div class="absolute inset-0 bg-black/50 modal-overlay" id="modalOverlay"></div>
-            <div class="relative bg-white rounded-2xl max-w-lg w-full mx-4 p-6 shadow-2xl border-t-8 border-pink-400">
-                <div class="flex justify-between items-center border-b border-pink-200 pb-2 mb-3">
-                    <h3 class="text-2xl font-bold text-purple-700" id="modalTitle">Info</h3>
-                    <button id="closeModalBtn"
-                        class="text-gray-400 hover:text-pink-500 text-3xl leading-5">&times;</button>
-                </div>
-                <div id="modalContent" class="text-sm space-y-2 max-h-96 overflow-y-auto pr-1"></div>
-                <button
-                    class="mt-5 bg-gradient-to-r from-pink-300 to-purple-300 hover:from-pink-400 hover:to-purple-400 w-full py-2 rounded-full font-bold text-purple-900 transition"
-                    id="modalCloseFooter">Got it</button>
             </div>
+
+    <!-- INFO MODAL -->
+    <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
+        <div class="absolute inset-0 bg-black/50 modal-overlay" id="modalOverlay"></div>
+        <div class="relative bg-white rounded-2xl max-w-lg w-full mx-4 p-6 shadow-2xl border-t-8 border-pink-400">
+            <div class="flex justify-between items-center border-b border-pink-200 pb-2 mb-3">
+                <h3 class="text-2xl font-bold text-purple-700" id="modalTitle">Info</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-pink-500 text-3xl leading-5">&times;</button>
+            </div>
+            <div id="modalContent" class="text-sm space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+            <button class="mt-5 bg-gradient-to-r from-pink-300 to-purple-300 hover:from-pink-400 hover:to-purple-400 w-full py-2 rounded-full font-bold text-purple-900 transition" id="modalCloseFooter">Got it</button>
         </div>
+    </div>
 
-        <script>
-            // ==================== GET ROOM & PLAYER FROM URL ====================
-            const pathParts = window.location.pathname.split('/');
-            const roomIdFromUrl = pathParts[2];
-            const playerIndexFromUrl = parseInt(pathParts[3]) || 0;
-
-            if (!roomIdFromUrl || roomIdFromUrl === 'undefined') {
-                alert('Invalid room link. Please use the link provided by the host.');
-                throw new Error('Missing room id in path');
+    <script>
+        // ==================== GET ROOM & PLAYER FROM URL ====================
+        const pathParts = window.location.pathname.split('/');
+        const roomIdFromUrl = pathParts[2];
+        const playerIndexFromUrl = parseInt(pathParts[3]) || 0;
+        
+        if (!roomIdFromUrl || roomIdFromUrl === 'undefined') {
+            alert('Invalid room link. Please use the link provided by the host.');
+            throw new Error('Missing room id in path');
+        }
+        
+        document.getElementById('playerName').innerText = `Player ${playerIndexFromUrl + 1}`;
+        document.getElementById('playerIndexDisplay').innerText = playerIndexFromUrl + 1;
+        document.getElementById('roomIdDisplay').innerText = roomIdFromUrl;
+        
+        const targetFundingConstraints = { S: { min: 30000, max: 99999 }, M: { min: 100000, max: 251999 }, L: { min: 252000, max: 500000 } };
+        const API_BASE = window.location.origin + '/api';
+                // Hàm xác định scale thực tế từ player (ưu tiên scale có sẵn, nếu không dùng max_phase)
+        function getPlayerScale(player) {
+            if (player.scale && player.scale !== 'M') return player.scale;
+            const maxPhase = player.max_phase || 7;
+            if (maxPhase === 5) return 'S';
+            if (maxPhase === 9) return 'L';
+            return 'M';
+        }
+        let activeCardsMaster = [];
+        let reactionCardsMaster = [];
+        
+        let pollingInterval = null;
+        let selectedCardIndex = null;
+        let deckSubmitted = false;   // Đã nộp deck thành công
+        
+        // State cho deck builder
+        let selectedActive = new Set();   // lưu index
+        let selectedReaction = new Set();
+        
+        // ==================== INFO MODAL ====================
+        const infoDatabase = {
+            scale: { title: "Project Scale", fields: [{ name: "Scale", meaning: "Choose project size: Small (5 phases), Medium (7 phases), Large (9 phases).", unit: "—", constraints: "S / M / L" }, { name: "Target Funding", meaning: "Amount to raise from investors.", unit: "USD", constraints: "Small: 30k–99,999 | Medium: 100k–251,999 | Large: 252k–500k" }] },
+            price_channels: { title: "Price & Sales Channels", fields: [{ name: "Retail price", meaning: "Listed price before fees.", unit: "USD", constraints: "10 – 1000" }, { name: "E-commerce fee", meaning: "Platform fee.", unit: "%", constraints: "0–100" }, { name: "Retail fee", meaning: "Margin for physical retail.", unit: "%", constraints: "0–100" }, { name: "Direct channel fee", meaning: "Own website cost.", unit: "%", constraints: "0–100" }] },
+            cogs: { title: "COGS", fields: [{ name: "Direct materials", meaning: "Raw materials per unit.", unit: "USD", constraints: "0.1–100" }, { name: "Direct packaging", meaning: "Packaging per unit.", unit: "USD", constraints: "0.1–100" }, { name: "Direct labor", meaning: "Wages per unit.", unit: "USD", constraints: "0.1–100" }, { name: "Defect allowance", meaning: "% lost to spoilage.", unit: "%", constraints: "0–10" }] },
+            forecast: { title: "Production Forecast", fields: [{ name: "Month 1 units", meaning: "Expected sales month 1.", unit: "units", constraints: "0 – 100,000" }, { name: "Month 3 units", meaning: "Expected sales month 3.", unit: "units", constraints: "0 – 100,000" }, { name: "Month 6 units", meaning: "Expected sales month 6.", unit: "units", constraints: "0 – 100,000" }] },
+            opex: { title: "Monthly Operating Costs", fields: [{ name: "Fixed operating cost", meaning: "Rent, salaries, utilities.", unit: "USD/month", constraints: "1000 – 100,000" }, { name: "Marketing cost", meaning: "Ads & promotions.", unit: "USD/month", constraints: "0 – 100,000" }] },
+            capital: { title: "Capital Structure", fields: [{ name: "Owner equity", meaning: "Founders' cash.", unit: "USD", constraints: "0 - 300,000" }, { name: "Bank loan", meaning: "Debt amount.", unit: "USD", constraints: "0 - 300,000" }, { name: "Loan interest rate", meaning: "Annual rate.", unit: "%/year", constraints: "5 – 100" }, { name: "Equity offered", meaning: "Equity sold to investors.", unit: "%", constraints: "0.1–99.9" }] }
+        };
+        
+        const modal = document.getElementById('infoModal');
+        function showModal(cat) { let d=infoDatabase[cat]; if(!d) return; document.getElementById('modalTitle').innerText=d.title; let html='<div class="space-y-3">'; d.fields.forEach(f=>{html+=`<div class="border-b border-pink-100 pb-2"><div class="font-bold text-purple-700">${f.name}</div><div class="text-gray-600 text-xs">${f.meaning}</div><div class="flex gap-3 mt-1 text-xs"><span class="bg-pink-100 px-2 py-0.5 rounded-full text-pink-800">Unit: ${f.unit}</span><span class="bg-purple-100 px-2 py-0.5 rounded-full text-purple-800">Constraints: ${f.constraints}</span></div></div>`;}); html+='</div>'; document.getElementById('modalContent').innerHTML=html; modal.classList.remove('hidden'); }
+        function closeModal(){ modal.classList.add('hidden'); }
+        document.querySelectorAll('.info-icon').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); let cat=icon.getAttribute('data-category'); if(cat) showModal(cat); }); });
+        document.getElementById('modalOverlay')?.addEventListener('click',closeModal);
+        document.getElementById('closeModalBtn')?.addEventListener('click',closeModal);
+        document.getElementById('modalCloseFooter')?.addEventListener('click',closeModal);
+        
+        function getTargetFundingFromScale(scale, override){ if(override && !isNaN(override) && override>0) return override; const def={S:55000, M:170000, L:350000}; return def[scale]; }
+        
+        // ==================== LOAD CARDS FROM BACKEND ====================
+        async function loadCards() {
+            try {
+                const res = await fetch(`${API_BASE}/card_lists`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                activeCardsMaster = data.active;
+                reactionCardsMaster = data.reaction;
+                console.log('Loaded cards OK');
+                return true;
+            } catch (err) {
+                console.error('Error loading cards:', err);
+                alert('Cannot load cards from server. Please refresh.');
+                return false;
             }
-
-            document.getElementById('playerName').innerText = `Player ${playerIndexFromUrl + 1}`;
-            document.getElementById('playerIndexDisplay').innerText = playerIndexFromUrl + 1;
-            document.getElementById('roomIdDisplay').innerText = roomIdFromUrl;
-
-            const targetFundingConstraints = { S: { min: 30000, max: 99999 }, M: { min: 100000, max: 251999 }, L: { min: 252000, max: 500000 } };
-            const API_BASE = window.location.origin + '/api';
-            // Hàm xác định scale thực tế từ player (ưu tiên scale có sẵn, nếu không dùng max_phase)
-            function getPlayerScale(player) {
-                if (player.scale && player.scale !== 'M') return player.scale;
-                const maxPhase = player.max_phase || 7;
-                if (maxPhase === 5) return 'S';
-                if (maxPhase === 9) return 'L';
-                return 'M';
+        }
+        
+        // Helper fetch JSON an toàn
+        async function fetchJSON(url, options) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
             }
-            let activeCardsMaster = [];
-            let reactionCardsMaster = [];
-
-            let pollingInterval = null;
-            let selectedCardIndex = null;
-            let deckSubmitted = false;   // Đã nộp deck thành công
-
-            // State cho deck builder
-            let selectedActive = new Set();   // lưu index
-            let selectedReaction = new Set();
-
-            // Info Modal
-            const infoDatabase = {
-                scale: { title: "Project Scale", content: "Choose project size:<br>• Small (5 phases, lower funding target)<br>• Medium (7 phases, standard target)<br>• Large (9 phases, higher target)<br><br>Constraints: S:30k-100k USD, M:100k-252k USD, L:252k-500k USD" },
-                price_channels: { title: "Price & Sales Channels", content: "• Retail price: Listed price before fees (10-1000 USD)<br>• E-commerce fee: Online marketplace fee (0-100%)<br>• Retail fee: Physical store margin (0-100%)<br>• Direct channel fee: Your own website cost (0-100%)" },
-                cogs: { title: "Cost of Goods Sold (COGS)", content: "• Direct materials: Raw materials per unit (0.1-100 USD)<br>• Direct packaging: Box, label per unit (0.1-100 USD)<br>• Direct labor: Assembly cost per unit (0.1-100 USD)<br>• Defect allowance: Expected defective rate (0-10%)" },
-                forecast: { title: "Production Forecast", content: "Expected unit sales:<br>• Month 1: First month after launch<br>• Month 3: Third month<br>• Month 6: Sixth month<br><br>Constraints: 0-100,000 units" },
-                opex: { title: "Monthly Operating Costs", content: "• Fixed operating cost: Rent, salaries, utilities (1000-100,000 USD/month)<br>• Marketing cost: Ads, promotions (0-100,000 USD/month)" },
-                capital: { title: "Capital & Equity", content: "• Owner equity: Founder investment (0-300,000 USD)<br>• Bank loan: Debt financing (0-300,000 USD)<br>• Loan interest rate: Annual rate (5-100%)<br>• Equity offered: % of company for investors (0.1-99.9%)" },
-                hype: { title: "HYPE", content: "Public interest and brand awareness (0-100).<br>Higher hype attracts more investors.<br>Increased by: Marketing Blitz, Viral Campaign, Flash Sale cards." },
-                transparency: { title: "TRANSPARENCY", content: "Openness about operations (0-100).<br>Higher transparency reduces regulatory risk.<br>Increased by: Third Party Audit, Open Financial Report cards." }
-            };
-
-            // ===== GÁN SỰ KIỆN CLICK CHO TẤT CẢ ICON "?" =====
-            // Lấy modal elements
-            const modal = document.getElementById('infoModal');
-            const modalOverlay = document.getElementById('modalOverlay');
-            const closeModalBtn = document.getElementById('closeModalBtn');
-            const modalCloseFooter = document.getElementById('modalCloseFooter');
-
-            function showModal(categoryKey) {
-                const data = infoDatabase[categoryKey];
-                if (!data) {
-                    console.warn(`No info found for category: ${categoryKey}`);
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                throw new Error(`Expected JSON but got ${contentType}: ${text.substring(0, 100)}`);
+            }
+            return response.json();
+        }
+        
+        // ==================== SUBMIT PROJECT ====================
+        document.getElementById('projectForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const scale = document.getElementById('scale').value;
+            const targetOverrideRaw = document.getElementById('targetFundingOverride').value;
+            let targetFunding = getTargetFundingFromScale(scale, parseFloat(targetOverrideRaw));
+            if (targetOverrideRaw && !isNaN(parseFloat(targetOverrideRaw))) {
+                const constraints = targetFundingConstraints[scale];
+                if (targetFunding < constraints.min || targetFunding > constraints.max) {
+                    alert(`Target funding must be between ${constraints.min.toLocaleString()} and ${constraints.max.toLocaleString()} USD`);
                     return;
                 }
-                document.getElementById('modalTitle').innerText = data.title;
-                document.getElementById('modalContent').innerHTML = `<div class="space-y-2">${data.content}</div>`;
-                modal.classList.remove('hidden');
             }
-
-            function closeModal() {
-                modal.classList.add('hidden');
-            }
-
-            // Gán sự kiện cho tất cả icon có class "info-icon"
-            document.querySelectorAll('.info-icon').forEach(icon => {
-                icon.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const category = icon.getAttribute('data-category');
-                    if (category) {
-                        showModal(category);
-                    }
-                });
-            });
-
-            // Gán sự kiện đóng modal
-            if (modalOverlay) modalOverlay.addEventListener('click', closeModal);
-            if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-            if (modalCloseFooter) modalCloseFooter.addEventListener('click', closeModal);
-
-
-            function showModal(cat) { let d = infoDatabase[cat]; if (!d) return; document.getElementById('modalTitle').innerText = d.title; let html = '<div class="space-y-3">'; d.fields.forEach(f => { html += `<div class="border-b border-pink-100 pb-2"><div class="font-bold text-purple-700">${f.name}</div><div class="text-gray-600 text-xs">${f.meaning}</div><div class="flex gap-3 mt-1 text-xs"><span class="bg-pink-100 px-2 py-0.5 rounded-full text-pink-800">Unit: ${f.unit}</span><span class="bg-purple-100 px-2 py-0.5 rounded-full text-purple-800">Constraints: ${f.constraints}</span></div></div>`; }); html += '</div>'; document.getElementById('modalContent').innerHTML = html; modal.classList.remove('hidden'); }
-            function closeModal() { modal.classList.add('hidden'); }
-            document.querySelectorAll('.info-icon').forEach(icon => { icon.addEventListener('click', (e) => { e.stopPropagation(); let cat = icon.getAttribute('data-category'); if (cat) showModal(cat); }); });
-            document.getElementById('modalOverlay')?.addEventListener('click', closeModal);
-            document.getElementById('closeModalBtn')?.addEventListener('click', closeModal);
-            document.getElementById('modalCloseFooter')?.addEventListener('click', closeModal);
-
-            function getTargetFundingFromScale(scale, override) { if (override && !isNaN(override) && override > 0) return override; const def = { S: 55000, M: 170000, L: 350000 }; return def[scale]; }
-
-            // ==================== LOAD CARDS FROM BACKEND ====================
-            async function loadCards() {
-                try {
-                    const res = await fetch(`${API_BASE}/card_lists`);
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const data = await res.json();
-                    activeCardsMaster = data.active;
-                    reactionCardsMaster = data.reaction;
-                    console.log('Loaded cards OK');
-                    return true;
-                } catch (err) {
-                    console.error('Error loading cards:', err);
-                    alert('Cannot load cards from server. Please refresh.');
-                    return false;
-                }
-            }
-
-            // Helper fetch JSON an toàn
-            async function fetchJSON(url, options) {
-                const response = await fetch(url, options);
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
-                }
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    throw new Error(`Expected JSON but got ${contentType}: ${text.substring(0, 100)}`);
-                }
-                return response.json();
-            }
-
-            // ==================== SUBMIT PROJECT ====================
-            document.getElementById('projectForm').onsubmit = async (e) => {
-                e.preventDefault();
-                const scale = document.getElementById('scale').value;
-                const targetOverrideRaw = document.getElementById('targetFundingOverride').value;
-                let targetFunding = getTargetFundingFromScale(scale, parseFloat(targetOverrideRaw));
-                if (targetOverrideRaw && !isNaN(parseFloat(targetOverrideRaw))) {
-                    const constraints = targetFundingConstraints[scale];
-                    if (targetFunding < constraints.min || targetFunding > constraints.max) {
-                        alert(`Target funding must be between ${constraints.min.toLocaleString()} and ${constraints.max.toLocaleString()} USD`);
-                        return;
-                    }
-                }
-
-                const projectData = {
-                    project_name: `Player ${playerIndexFromUrl + 1}'s Project`,
-                    scale: scale,
-                    target_funding: targetFunding,
-                    price: parseFloat(document.getElementById('price').value),
-                    fee_ecom: parseFloat(document.getElementById('feesEcom').value),
-                    fee_retail: parseFloat(document.getElementById('feesRetail').value),
-                    fee_direct: parseFloat(document.getElementById('feesDirect').value),
-                    material: parseFloat(document.getElementById('cogsMaterial').value),
-                    packaging: parseFloat(document.getElementById('cogsPackaging').value),
-                    labor: parseFloat(document.getElementById('cogsLabor').value),
-                    defect_rate: parseFloat(document.getElementById('defectAllowance').value),
-                    units_m1: parseFloat(document.getElementById('month1Units').value),
-                    units_m3: parseFloat(document.getElementById('month3Units').value),
-                    units_m6: parseFloat(document.getElementById('month6Units').value),
-                    fixed_cost: parseFloat(document.getElementById('fixedOpex').value),
-                    marketing_cost: parseFloat(document.getElementById('marketingCost').value),
-                    owner_equity: parseFloat(document.getElementById('ownerEquity').value),
-                    loan: parseFloat(document.getElementById('bankLoan').value),
-                    interest_rate: parseFloat(document.getElementById('loanRate').value),
-                    equity_offered: parseFloat(document.getElementById('equity').value),
-                    hype: 50,
-                    transparency: 50,
-                    visibility: 50
-                };
-
-                try {
-                    const data = await fetchJSON(`${API_BASE}/submit_project`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, project: projectData })
-                    });
-                    if (!data.ok) throw new Error(data.error || 'Submit failed');
-                    alert(`✅ Project submitted! Target funding: $${targetFunding.toLocaleString()}. Now build your deck.`);
-                    document.getElementById('projectFormPanel').classList.add('hidden');
-                    await showDeckBuilder();
-                } catch (err) {
-                    alert(`❌ Submit failed: ${err.message}`);
-                    console.error(err);
-                }
+            
+            const projectData = {
+                project_name: `Player ${playerIndexFromUrl+1}'s Project`,
+                scale: scale,
+                target_funding: targetFunding,
+                price: parseFloat(document.getElementById('price').value),
+                fee_ecom: parseFloat(document.getElementById('feesEcom').value),
+                fee_retail: parseFloat(document.getElementById('feesRetail').value),
+                fee_direct: parseFloat(document.getElementById('feesDirect').value),
+                material: parseFloat(document.getElementById('cogsMaterial').value),
+                packaging: parseFloat(document.getElementById('cogsPackaging').value),
+                labor: parseFloat(document.getElementById('cogsLabor').value),
+                defect_rate: parseFloat(document.getElementById('defectAllowance').value),
+                units_m1: parseFloat(document.getElementById('month1Units').value),
+                units_m3: parseFloat(document.getElementById('month3Units').value),
+                units_m6: parseFloat(document.getElementById('month6Units').value),
+                fixed_cost: parseFloat(document.getElementById('fixedOpex').value),
+                marketing_cost: parseFloat(document.getElementById('marketingCost').value),
+                owner_equity: parseFloat(document.getElementById('ownerEquity').value),
+                loan: parseFloat(document.getElementById('bankLoan').value),
+                interest_rate: parseFloat(document.getElementById('loanRate').value),
+                equity_offered: parseFloat(document.getElementById('equity').value),
+                hype: 50,
+                transparency: 50,
+                visibility: 50
             };
-
-            // ==================== DECK BUILDER ====================
-            async function showDeckBuilder() {
-                // Đảm bảo cards đã được load
-                if (!activeCardsMaster.length) {
-                    const loaded = await loadCards();
-                    if (!loaded) return;
-                }
-
-                const deckPanel = document.getElementById('deckPanel');
-                deckPanel.innerHTML = `
+            
+            try {
+                const data = await fetchJSON(`${API_BASE}/submit_project`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, project: projectData })
+                });
+                if (!data.ok) throw new Error(data.error || 'Submit failed');
+                alert(`✅ Project submitted! Target funding: $${targetFunding.toLocaleString()}. Now build your deck.`);
+                document.getElementById('projectFormPanel').classList.add('hidden');
+                await showDeckBuilder();
+            } catch (err) {
+                alert(`❌ Submit failed: ${err.message}`);
+                console.error(err);
+            }
+        };
+        
+        // ==================== DECK BUILDER ====================
+        async function showDeckBuilder() {
+            // Đảm bảo cards đã được load
+            if (!activeCardsMaster.length) {
+                const loaded = await loadCards();
+                if (!loaded) return;
+            }
+            
+            const deckPanel = document.getElementById('deckPanel');
+            deckPanel.innerHTML = `
                 <h2 class="text-2xl font-bold mb-4 text-purple-800">BUILD YOUR DECK</h2>
                 <div class="mb-4 flex justify-end">
                     <button id="autoDeckBtn" class="auto-deck-btn">🎲 AUTO-SELECT RANDOM DECK (Preview & Edit)</button>
@@ -915,481 +723,429 @@
                 <div class="mb-6"><h3 class="font-bold mb-2">REACTION CARDS (choose up to 3)</h3><div id="reactionList" class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="reactionCount">0</span>/3</div></div>
                 <button id="submitDeckBtn" class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-lg text-lg">CONFIRM DECK</button>
             `;
-                deckPanel.classList.remove('hidden');
-
-                // Reset selection state
-                selectedActive.clear();
-                selectedReaction.clear();
-                renderDeckSelectionUI();
-
-                // Nút Auto chỉ random local, KHÔNG tự động submit
-                document.getElementById('autoDeckBtn').onclick = () => {
-                    autoSelectRandomLocally();
-                };
+            deckPanel.classList.remove('hidden');
+            
+            // Reset selection state
+            selectedActive.clear();
+            selectedReaction.clear();
+            renderDeckSelectionUI();
+            
+            // Nút Auto chỉ random local, KHÔNG tự động submit
+            document.getElementById('autoDeckBtn').onclick = () => {
+                autoSelectRandomLocally();
+            };
+        }
+        
+        // Random 22 active cards (từ tổng số) và 0-3 reaction cards, cập nhật UI
+        function autoSelectRandomLocally() {
+            if (!activeCardsMaster.length) {
+                alert('Cards not ready yet. Please wait.');
+                return;
             }
-
-            // Random 22 active cards (từ tổng số) và 0-3 reaction cards, cập nhật UI
-            function autoSelectRandomLocally() {
-                if (!activeCardsMaster.length) {
-                    alert('Cards not ready yet. Please wait.');
-                    return;
-                }
-                const totalActive = activeCardsMaster.length;
-                const totalReaction = reactionCardsMaster.length;
-
-                // Random 22 active indices (không trùng)
-                const shuffledActive = [...Array(totalActive).keys()];
-                for (let i = shuffledActive.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffledActive[i], shuffledActive[j]] = [shuffledActive[j], shuffledActive[i]];
-                }
-                const newActiveIndices = shuffledActive.slice(0, 22);
-
-                // Random 0-3 reaction indices
-                const numReactions = Math.floor(Math.random() * 4); // 0..3
-                const shuffledReaction = [...Array(totalReaction).keys()];
-                for (let i = shuffledReaction.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [shuffledReaction[i], shuffledReaction[j]] = [shuffledReaction[j], shuffledReaction[i]];
-                }
-                const newReactionIndices = shuffledReaction.slice(0, numReactions);
-
-                // Cập nhật selected sets
-                selectedActive.clear();
-                newActiveIndices.forEach(idx => selectedActive.add(idx));
-                selectedReaction.clear();
-                newReactionIndices.forEach(idx => selectedReaction.add(idx));
-
-                // Render lại UI để highlight
-                renderDeckSelectionUI();
-
-                alert(`✨ Auto selected ${selectedActive.size} Active cards and ${selectedReaction.size} Reaction cards.\nYou can still change your selection before confirming.`);
+            const totalActive = activeCardsMaster.length;
+            const totalReaction = reactionCardsMaster.length;
+            
+            // Random 22 active indices (không trùng)
+            const shuffledActive = [...Array(totalActive).keys()];
+            for (let i = shuffledActive.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledActive[i], shuffledActive[j]] = [shuffledActive[j], shuffledActive[i]];
             }
-
-            function renderDeckSelectionUI() {
-                const activeContainer = document.getElementById('activeList');
-                const reactionContainer = document.getElementById('reactionList');
-                if (!activeContainer || !reactionContainer) return;
-
-                activeContainer.innerHTML = '';
-                activeCardsMaster.forEach((card, idx) => {
-                    let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
-                    const isSelected = selectedActive.has(idx);
-                    const selectedClass = isSelected ? 'selected-card' : '';
-                    activeContainer.innerHTML += `
+            const newActiveIndices = shuffledActive.slice(0, 22);
+            
+            // Random 0-3 reaction indices
+            const numReactions = Math.floor(Math.random() * 4); // 0..3
+            const shuffledReaction = [...Array(totalReaction).keys()];
+            for (let i = shuffledReaction.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledReaction[i], shuffledReaction[j]] = [shuffledReaction[j], shuffledReaction[i]];
+            }
+            const newReactionIndices = shuffledReaction.slice(0, numReactions);
+            
+            // Cập nhật selected sets
+            selectedActive.clear();
+            newActiveIndices.forEach(idx => selectedActive.add(idx));
+            selectedReaction.clear();
+            newReactionIndices.forEach(idx => selectedReaction.add(idx));
+            
+            // Render lại UI để highlight
+            renderDeckSelectionUI();
+            
+            alert(`✨ Auto selected ${selectedActive.size} Active cards and ${selectedReaction.size} Reaction cards.\nYou can still change your selection before confirming.`);
+        }
+        
+        function renderDeckSelectionUI() {
+            const activeContainer = document.getElementById('activeList');
+            const reactionContainer = document.getElementById('reactionList');
+            if (!activeContainer || !reactionContainer) return;
+            
+            activeContainer.innerHTML = '';
+            activeCardsMaster.forEach((card, idx) => {
+                let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
+                const isSelected = selectedActive.has(idx);
+                const selectedClass = isSelected ? 'selected-card' : '';
+                activeContainer.innerHTML += `
                     <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedClass}" data-idx="${idx}" data-type="active" style="background-color:${bgColor};">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
                         <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0, 40)}</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
                     </div>
                 `;
-                });
-
-                reactionContainer.innerHTML = '';
-                reactionCardsMaster.forEach((card, idx) => {
-                    const isSelected = selectedReaction.has(idx);
-                    const selectedClass = isSelected ? 'selected-card' : '';
-                    reactionContainer.innerHTML += `
+            });
+            
+            reactionContainer.innerHTML = '';
+            reactionCardsMaster.forEach((card, idx) => {
+                const isSelected = selectedReaction.has(idx);
+                const selectedClass = isSelected ? 'selected-card' : '';
+                reactionContainer.innerHTML += `
                     <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" data-idx="${idx}" data-type="reaction">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0, 40)}</div>
+                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
                     </div>
                 `;
-                });
-
-                // Gắn sự kiện click cho active cards
-                document.querySelectorAll('.active-card').forEach(el => {
-                    el.onclick = (e) => {
-                        e.stopPropagation();
-                        const idx = parseInt(el.dataset.idx);
-                        if (selectedActive.has(idx)) {
-                            selectedActive.delete(idx);
-                        } else {
-                            if (selectedActive.size >= 22) {
-                                alert('You can only select 22 Active cards!');
-                                return;
-                            }
-                            selectedActive.add(idx);
+            });
+            
+            // Gắn sự kiện click cho active cards
+            document.querySelectorAll('.active-card').forEach(el => {
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    const idx = parseInt(el.dataset.idx);
+                    if (selectedActive.has(idx)) {
+                        selectedActive.delete(idx);
+                    } else {
+                        if (selectedActive.size >= 22) {
+                            alert('You can only select 22 Active cards!');
+                            return;
                         }
-                        renderDeckSelectionUI(); // re-render để cập nhật giao diện
-                    };
-                });
-
-                // Gắn sự kiện click cho reaction cards
-                document.querySelectorAll('.reaction-card').forEach(el => {
-                    el.onclick = (e) => {
-                        e.stopPropagation();
-                        const idx = parseInt(el.dataset.idx);
-                        if (selectedReaction.has(idx)) {
-                            selectedReaction.delete(idx);
-                        } else {
-                            if (selectedReaction.size >= 3) {
-                                alert('You can only select up to 3 Reaction cards!');
-                                return;
-                            }
-                            selectedReaction.add(idx);
-                        }
-                        renderDeckSelectionUI();
-                    };
-                });
-
-                document.getElementById('activeCount').innerText = selectedActive.size;
-                document.getElementById('reactionCount').innerText = selectedReaction.size;
-            }
-
-            // Gửi deck lên server
-            async function submitDeckToServer() {
-                if (selectedActive.size !== 22) {
-                    alert('You must select exactly 22 Active cards!');
-                    return false;
-                }
-                const activeIndices = Array.from(selectedActive);
-                const reactionIndices = Array.from(selectedReaction);
-                try {
-                    const data = await fetchJSON(`${API_BASE}/submit_deck`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, active_indices: activeIndices, reaction_indices: reactionIndices })
-                    });
-                    if (!data.ok) throw new Error(data.error);
-                    alert(`✅ Deck submitted! Waiting for host to start the game.`);
-                    deckSubmitted = true;
-                    document.getElementById('deckPanel').classList.add('hidden');
-                    startGamePolling();
-                    return true;
-                } catch (err) {
-                    alert(`❌ Submit deck failed: ${err.message}`);
-                    console.error(err);
-                    return false;
-                }
-            }
-
-            // ==================== GAME POLLING ====================
-            function startGamePolling() {
-                if (pollingInterval) clearInterval(pollingInterval);
-
-                const statusDiv = document.getElementById('connectionStatus');
-                statusDiv.className = 'connection-status bg-blue-100 text-blue-800 p-3 rounded-xl mb-4';
-                statusDiv.innerHTML = '⏳ Waiting for host to start the game...';
-                statusDiv.classList.remove('hidden');
-
-                pollingInterval = setInterval(async () => {
-                    try {
-                        const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
-
-                        if (data.game_started && !data.game_ended) {
-                            if (document.getElementById('gamePanel').classList.contains('hidden')) {
-                                statusDiv.classList.add('hidden');
-                                document.getElementById('gamePanel').classList.remove('hidden');
-                            }
-                            updateGameUIFromData(data);
-                        } else if (data.game_ended || data.ended) {
-                            document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
-                            document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
-                            document.getElementById('endgamePanel').classList.remove('hidden');
-                            renderFinalRanking();
-                            document.getElementById('gamePanel').classList.add('hidden');
-                            if (pollingInterval) clearInterval(pollingInterval);
-                        } else if (data.choosing_deck === true && !deckSubmitted) {
-                            // Nếu chưa submit deck và game đang ở giai đoạn chọn deck, hiển thị deck builder
-                            if (document.getElementById('deckPanel').classList.contains('hidden') && document.getElementById('gamePanel').classList.contains('hidden')) {
-                                showDeckBuilder();
-                            }
-                        }
-                    } catch (err) {
-                        console.error('Polling error:', err);
-                        statusDiv.innerHTML = '⚠️ Error connecting to server. Retrying...';
+                        selectedActive.add(idx);
                     }
-                }, 2000);
+                    renderDeckSelectionUI(); // re-render để cập nhật giao diện
+                };
+            });
+            
+            // Gắn sự kiện click cho reaction cards
+            document.querySelectorAll('.reaction-card').forEach(el => {
+                el.onclick = (e) => {
+                    e.stopPropagation();
+                    const idx = parseInt(el.dataset.idx);
+                    if (selectedReaction.has(idx)) {
+                        selectedReaction.delete(idx);
+                    } else {
+                        if (selectedReaction.size >= 3) {
+                            alert('You can only select up to 3 Reaction cards!');
+                            return;
+                        }
+                        selectedReaction.add(idx);
+                    }
+                    renderDeckSelectionUI();
+                };
+            });
+            
+            document.getElementById('activeCount').innerText = selectedActive.size;
+            document.getElementById('reactionCount').innerText = selectedReaction.size;
+        }
+        
+        // Gửi deck lên server
+        async function submitDeckToServer() {
+            if (selectedActive.size !== 22) {
+                alert('You must select exactly 22 Active cards!');
+                return false;
             }
-
-            function updateGameUIFromData(data) {
-                document.getElementById('funding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
-                document.getElementById('energy').innerText = (data.energy_left !== undefined ? data.energy_left : 3);
-                document.getElementById('hype').innerText = data.hype || 50;
-                document.getElementById('hypeBar').style.width = `${data.hype || 50}%`;
-                document.getElementById('transparency').innerText = data.transparency || 50;
-                document.getElementById('transBar').style.width = `${data.transparency || 50}%`;
-                document.getElementById('intrinsic').innerText = data.metrics?.intrinsic?.toFixed(1) || 0;
-                document.getElementById('valuation').innerText = data.metrics?.valuation_sanity?.toFixed(1) || 0;
-                document.getElementById('roi').innerText = data.metrics?.roi_norm?.toFixed(1) || 0;
-                document.getElementById('runway').innerText = data.metrics?.runway || 0;
-                document.getElementById('scenarioDisplay').innerHTML = `📢 ${data.last_scenario || 'Waiting for phase...'}`;
-                document.getElementById('currentPhase').innerText = data.phase || 1;
-                document.getElementById('maxPhase').innerText = data.max_phase || 7;
-                document.getElementById('fundingBarFill').style.width = ((data.metrics?.funding_progress || 0) * 100) + '%';
-
-                const handDiv = document.getElementById('hand');
-                if (data.hand && data.hand.length > 0) {
-                    handDiv.innerHTML = data.hand.map((card, idx) => {
-                        let borderColor = card.type === 'red' ? '#f43f5e' : (card.type === 'green' ? '#0ea5e9' : '#a855f7');
-                        return `<div class="hand-card" style="border-left:4px solid ${borderColor};" data-cardidx="${idx}">
+            const activeIndices = Array.from(selectedActive);
+            const reactionIndices = Array.from(selectedReaction);
+            try {
+                const data = await fetchJSON(`${API_BASE}/submit_deck`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, active_indices: activeIndices, reaction_indices: reactionIndices })
+                });
+                if (!data.ok) throw new Error(data.error);
+                alert(`✅ Deck submitted! Waiting for host to start the game.`);
+                deckSubmitted = true;
+                document.getElementById('deckPanel').classList.add('hidden');
+                startGamePolling();
+                return true;
+            } catch (err) {
+                alert(`❌ Submit deck failed: ${err.message}`);
+                console.error(err);
+                return false;
+            }
+        }
+        
+        // ==================== GAME POLLING ====================
+        function startGamePolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
+            
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.className = 'connection-status bg-blue-100 text-blue-800 p-3 rounded-xl mb-4';
+            statusDiv.innerHTML = '⏳ Waiting for host to start the game...';
+            statusDiv.classList.remove('hidden');
+            
+            pollingInterval = setInterval(async () => {
+                try {
+                    const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
+                    
+                    if (data.game_started && !data.game_ended) {
+                        if (document.getElementById('gamePanel').classList.contains('hidden')) {
+                            statusDiv.classList.add('hidden');
+                            document.getElementById('gamePanel').classList.remove('hidden');
+                        }
+                        updateGameUIFromData(data);
+                    } else if (data.game_ended || data.ended) {
+                        document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
+                        document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
+                        document.getElementById('endgamePanel').classList.remove('hidden');
+                        renderFinalRanking();
+                        document.getElementById('gamePanel').classList.add('hidden');
+                        if (pollingInterval) clearInterval(pollingInterval);
+                    } else if (data.choosing_deck === true && !deckSubmitted) {
+                        // Nếu chưa submit deck và game đang ở giai đoạn chọn deck, hiển thị deck builder
+                        if (document.getElementById('deckPanel').classList.contains('hidden') && document.getElementById('gamePanel').classList.contains('hidden')) {
+                            showDeckBuilder();
+                        }
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                    statusDiv.innerHTML = '⚠️ Error connecting to server. Retrying...';
+                }
+            }, 2000);
+        }
+        
+        function updateGameUIFromData(data) {
+            document.getElementById('funding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
+            document.getElementById('energy').innerText = (data.energy_left !== undefined ? data.energy_left : 3);
+            document.getElementById('hype').innerText = data.hype || 50;
+            document.getElementById('hypeBar').style.width = `${data.hype || 50}%`;
+            document.getElementById('transparency').innerText = data.transparency || 50;
+            document.getElementById('transBar').style.width = `${data.transparency || 50}%`;
+            document.getElementById('intrinsic').innerText = data.metrics?.intrinsic?.toFixed(1) || 0;
+            document.getElementById('valuation').innerText = data.metrics?.valuation_sanity?.toFixed(1) || 0;
+            document.getElementById('roi').innerText = data.metrics?.roi_norm?.toFixed(1) || 0;
+            document.getElementById('runway').innerText = data.metrics?.runway || 0;
+            document.getElementById('scenarioDisplay').innerHTML = `📢 ${data.last_scenario || 'Waiting for phase...'}`;
+            document.getElementById('currentPhase').innerText = data.phase || 1;
+            document.getElementById('maxPhase').innerText = data.max_phase || 7;
+            document.getElementById('fundingBarFill').style.width = ((data.metrics?.funding_progress || 0) * 100) + '%';
+            
+            const handDiv = document.getElementById('hand');
+            if (data.hand && data.hand.length > 0) {
+                handDiv.innerHTML = data.hand.map((card, idx) => {
+                    let borderColor = card.type === 'red' ? '#f43f5e' : (card.type === 'green' ? '#0ea5e9' : '#a855f7');
+                    return `<div class="hand-card" style="border-left:4px solid ${borderColor};" data-cardidx="${idx}">
                         <div class="font-bold text-sm">${card.name}</div>
                         <div class="text-xs">Cost: ${card.cost}</div>
-                        <div class="text-xs">${card.desc?.substring(0, 30)}</div>
+                        <div class="text-xs">${card.desc?.substring(0,30)}</div>
                     </div>`;
-                    }).join('');
-                    document.querySelectorAll('.hand-card').forEach(el => {
-                        el.onclick = () => {
-                            document.querySelectorAll('.hand-card').forEach(c => c.classList.remove('bg-pink-200'));
-                            el.classList.add('bg-pink-200');
-                            selectedCardIndex = parseInt(el.dataset.cardidx);
-                        };
-                    });
-                } else {
-                    handDiv.innerHTML = '<div class="col-span-5 text-center text-purple-500">Waiting for cards...</div>';
-                }
+                }).join('');
+                document.querySelectorAll('.hand-card').forEach(el => {
+                    el.onclick = () => {
+                        document.querySelectorAll('.hand-card').forEach(c => c.classList.remove('bg-pink-200'));
+                        el.classList.add('bg-pink-200');
+                        selectedCardIndex = parseInt(el.dataset.cardidx);
+                    };
+                });
+            } else {
+                handDiv.innerHTML = '<div class="col-span-5 text-center text-purple-500">Waiting for cards...</div>';
+            }
+            
+            const invDiv = document.getElementById('investorsList');
+            if (data.investors?.length) invDiv.innerHTML = data.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
+            else invDiv.innerHTML = 'No investors yet';
 
-                const invDiv = document.getElementById('investorsList');
-                if (data.investors?.length) invDiv.innerHTML = data.investors.map(inv => `<div>🐋 ${inv.type}: ${inv.amount.toLocaleString()} USD</div>`).join('');
-                else invDiv.innerHTML = 'No investors yet';
 
-
-                // ========== ĐOẠN REACTION TRIGGERS ĐƯỢC CHUYỂN VÀO ĐÂY ==========
-                const reactionTriggersDiv = document.getElementById('reactionTriggers');
-                const reactionListDiv = document.getElementById('reactionList2');
-                if (data.triggers && data.triggers.length > 0) {
-                    reactionTriggersDiv.classList.remove('hidden');
-                    reactionListDiv.innerHTML = data.triggers.map(rc => `
+        // ========== ĐOẠN REACTION TRIGGERS ĐƯỢC CHUYỂN VÀO ĐÂY ==========
+            const reactionTriggersDiv = document.getElementById('reactionTriggers');
+            const reactionListDiv = document.getElementById('reactionList2');
+            if (data.triggers && data.triggers.length > 0) {
+                reactionTriggersDiv.classList.remove('hidden');
+                reactionListDiv.innerHTML = data.triggers.map(rc => `
                     <button class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-sm reaction-btn" data-id="${rc.id}" data-name="${rc.name}">
                         ${rc.name}
                     </button>
                 `).join('');
-                    document.querySelectorAll('.reaction-btn').forEach(btn => {
-                        btn.onclick = async () => {
-                            const reactionId = btn.dataset.id;
-                            const reactionIndex = (data.reaction_hand || []).findIndex(r => r.id === reactionId);
-                            if (reactionIndex === -1) { alert('Reaction not available'); return; }
-                            try {
-                                const res = await fetch(`${API_BASE}/use_reaction`, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, reaction_index: reactionIndex })
-                                });
-                                const result = await res.json();
-                                if (result.ok) alert(`Đã kích hoạt: ${btn.dataset.name}`);
-                                else alert(result.error || 'Failed');
-                            } catch (err) { alert(err.message); }
-                        };
-                    });
-                } else {
-                    reactionTriggersDiv.classList.add('hidden');
-                }
-            }   // <-- HÀM KẾT THÚC Ở ĐÂY
-
-            // Hàm hiển thị bảng xếp hạng cuối game
-            async function renderFinalRanking() {
-                try {
-                    const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
-                    if (!roomData.players) return;
-                    const sorted = [...roomData.players].filter(p => p.status !== 'not_joined').sort((a, b) => (b.score || 0) - (a.score || 0));
-                    let html = `<table class="leaderboard-table"><thead><tr><th>#</th><th>Player</th><th>Scale</th><th>Funding %</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead><tbody>`;
-                    sorted.forEach((p, idx) => {
-                        html += `<tr>
-                        <td>${idx + 1}</td>
-                        <td>${p.name || `Player ${p.id + 1}`}</td>
-                        <td>${getPlayerScale(p)}</td>
-                        <td>${((p.funding || 0) * 100).toFixed(1)}%</td>
-                        <td>${p.hype || 0}</td>
-                        <td>${p.transparency || 0}</td>
-                        <td><strong>${(p.score || 0).toFixed(2)}</strong></td>
-                    </tr>`;
-                    });
-                    html += `</tbody></table>`;
-                    document.getElementById('finalRanking').innerHTML = html;
-                    const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
-                    if (myData) {
-                        document.getElementById('finalFunding').innerText = ((myData.funding || 0) * 100).toFixed(1);
-                        document.getElementById('finalHype').innerText = myData.hype || 0;
-                        document.getElementById('finalTrans').innerText = myData.transparency || 0;
-                        document.getElementById('finalRunway').innerText = myData.runway || 0;
-                    }
-                } catch (err) { console.error(err); }
+                document.querySelectorAll('.reaction-btn').forEach(btn => {
+                    btn.onclick = async () => {
+                        const reactionId = btn.dataset.id;
+                        const reactionIndex = (data.reaction_hand || []).findIndex(r => r.id === reactionId);
+                        if (reactionIndex === -1) { alert('Reaction not available'); return; }
+                        try {
+                            const res = await fetch(`${API_BASE}/use_reaction`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, reaction_index: reactionIndex })
+                            });
+                            const result = await res.json();
+                            if (result.ok) alert(`Đã kích hoạt: ${btn.dataset.name}`);
+                            else alert(result.error || 'Failed');
+                        } catch (err) { alert(err.message); }
+                    };
+                });
+            } else {
+                reactionTriggersDiv.classList.add('hidden');
             }
+        }   // <-- HÀM KẾT THÚC Ở ĐÂY
 
-            // ==================== PLAYER ACTIONS ====================
-            document.getElementById('playCardBtn')?.addEventListener('click', async () => {
-                if (selectedCardIndex === null) { alert('Select a card first'); return; }
-                try {
-                    const data = await fetchJSON(`${API_BASE}/play_card`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, card_index: selectedCardIndex })
-                    });
-                    if (!data.ok) throw new Error(data.error);
-                    alert(`✅ ${data.message || 'Card played!'}`);
-                    selectedCardIndex = null;
-                    // Gọi lại player_state để cập nhật UI ngay
-                    const newState = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
-                    updateGameUIFromData(newState);
-                } catch (err) {
-                    alert(`❌ ${err.message}`);
-                    console.error(err);
+        // Hàm hiển thị bảng xếp hạng cuối game
+        async function renderFinalRanking() {
+            try {
+                const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
+                if (!roomData.players) return;
+                const sorted = [...roomData.players].filter(p => p.status !== 'not_joined').sort((a,b) => (b.score||0) - (a.score||0));
+                let html = `<table class="leaderboard-table"><thead><tr><th>#</th><th>Player</th><th>Scale</th><th>Funding %</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead><tbody>`;
+                sorted.forEach((p, idx) => {
+                    html += `<tr>
+                        <td>${idx+1}</td>
+                        <td>${p.name || `Player ${p.id+1}`}</td>
+                        <td>${getPlayerScale(p)}</td>
+                        <td>${((p.funding||0)*100).toFixed(1)}%</td>
+                        <td>${p.hype||0}</td>
+                        <td>${p.transparency||0}</td>
+                        <td><strong>${(p.score||0).toFixed(2)}</strong></td>
+                    </tr>`;
+                });
+                html += `</tbody></table>`;
+                document.getElementById('finalRanking').innerHTML = html;
+                const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
+                if (myData) {
+                    document.getElementById('finalFunding').innerText = ((myData.funding||0)*100).toFixed(1);
+                    document.getElementById('finalHype').innerText = myData.hype || 0;
+                    document.getElementById('finalTrans').innerText = myData.transparency || 0;
+                    document.getElementById('finalRunway').innerText = myData.runway || 0;
                 }
-            });
-
-            document.getElementById('mulliganBtn')?.addEventListener('click', async () => {
-                try {
-                    const data = await fetchJSON(`${API_BASE}/mulligan`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            room_id: roomIdFromUrl,
-                            player_index: playerIndexFromUrl
-                        })
-                    });
-                    if (!data.ok) throw new Error(data.error);
-                    alert(`🃏 ${data.message || 'Mulligan successful!'}`);
-
-                    // *** Cập nhật UI ngay sau khi Mulligan thành công ***
-                    const newState = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
-                    updateGameUIFromData(newState);
-
-                } catch (err) {
-                    alert(`❌ ${err.message}`);
-                    console.error(err);
-                }
-            });
-
-            document.getElementById('readyBtn')?.addEventListener('click', async () => {
-                try {
-                    const data = await fetchJSON(`${API_BASE}/player_ready_phase`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl })
-                    });
-                    if (data.ok) alert('✅ You are ready! Waiting for host to run next phase.');
-                    else alert('Ready failed');
-                } catch (err) {
-                    alert(`❌ ${err.message}`);
-                    console.error(err);
-                }
-            });
-            document.getElementById('backToGameBtn')?.addEventListener('click', () => {
-                document.getElementById('endgamePanel').classList.add('hidden');
-                document.getElementById('gamePanel').classList.remove('hidden');
-            });
-            // Gắn sự kiện cho nút submit deck (sau khi render lại)
-            document.addEventListener('click', (e) => {
-                if (e.target && e.target.id === 'submitDeckBtn') {
-                    submitDeckToServer();
-                }
-            });
-
-            // ==================== INIT ====================
-            (async () => {
-                await loadCards();  // đảm bảo cards có sẵn
-                // Kiểm tra trạng thái ban đầu
-                try {
-                    const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
-                    if (data.hype !== undefined && data.deck_ready === false && data.choosing_deck === true) {
-                        document.getElementById('projectFormPanel').classList.add('hidden');
-                        await showDeckBuilder();
-                    } else if (data.game_started) {
-                        document.getElementById('projectFormPanel').classList.add('hidden');
-                        startGamePolling();
-                    } else if (data.hype !== undefined && data.deck_ready === true) {
-                        document.getElementById('projectFormPanel').classList.add('hidden');
-                        deckSubmitted = true;
-                        startGamePolling();
-                    } else {
-                        document.getElementById('projectFormPanel').classList.remove('hidden');
-                    }
-                } catch (err) {
-                    console.error('Initial state check failed:', err);
-                    // vẫn hiển thị form
+            } catch(err) { console.error(err); }
+        }
+    
+        // ==================== PLAYER ACTIONS ====================
+        document.getElementById('playCardBtn')?.addEventListener('click', async () => {
+            if (selectedCardIndex === null) { alert('Select a card first'); return; }
+            try {
+                const data = await fetchJSON(`${API_BASE}/play_card`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, card_index: selectedCardIndex })
+                });
+                if (!data.ok) throw new Error(data.error);
+                alert(`✅ ${data.message || 'Card played!'}`);
+                selectedCardIndex = null;
+                // Gọi lại player_state để cập nhật UI ngay
+                const newState = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
+                updateGameUIFromData(newState);
+            } catch (err) {
+                alert(`❌ ${err.message}`);
+                console.error(err);
+            }
+        });
+        
+        document.getElementById('mulliganBtn')?.addEventListener('click', async () => {
+            try {
+                const data = await fetchJSON(`${API_BASE}/mulligan`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        room_id: roomIdFromUrl, 
+                        player_index: playerIndexFromUrl 
+                    })
+                });
+                if (!data.ok) throw new Error(data.error);
+                alert(`🃏 ${data.message || 'Mulligan successful!'}`);
+                
+                // *** Cập nhật UI ngay sau khi Mulligan thành công ***
+                const newState = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
+                updateGameUIFromData(newState);
+                
+            } catch (err) {
+                alert(`❌ ${err.message}`);
+                console.error(err);
+            }
+        });
+        
+        document.getElementById('readyBtn')?.addEventListener('click', async () => {
+            try {
+                const data = await fetchJSON(`${API_BASE}/player_ready_phase`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl })
+                });
+                if (data.ok) alert('✅ You are ready! Waiting for host to run next phase.');
+                else alert('Ready failed');
+            } catch (err) {
+                alert(`❌ ${err.message}`);
+                console.error(err);
+            }
+        });
+        document.getElementById('backToGameBtn')?.addEventListener('click', () => {
+            document.getElementById('endgamePanel').classList.add('hidden');
+            document.getElementById('gamePanel').classList.remove('hidden');
+        });
+        // Gắn sự kiện cho nút submit deck (sau khi render lại)
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.id === 'submitDeckBtn') {
+                submitDeckToServer();
+            }
+        });
+        
+        // ==================== INIT ====================
+        (async () => {
+            await loadCards();  // đảm bảo cards có sẵn
+            // Kiểm tra trạng thái ban đầu
+            try {
+                const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
+                if (data.hype !== undefined && data.deck_ready === false && data.choosing_deck === true) {
+                    document.getElementById('projectFormPanel').classList.add('hidden');
+                    await showDeckBuilder();
+                } else if (data.game_started) {
+                    document.getElementById('projectFormPanel').classList.add('hidden');
+                    startGamePolling();
+                } else if (data.hype !== undefined && data.deck_ready === true) {
+                    document.getElementById('projectFormPanel').classList.add('hidden');
+                    deckSubmitted = true;
+                    startGamePolling();
+                } else {
                     document.getElementById('projectFormPanel').classList.remove('hidden');
                 }
-            })();
-            // Game Rules Sidebar Controller
-            function initRulesSidebar() {
-                const rulesButton = document.getElementById('rulesButton');
-                const rulesSidebar = document.getElementById('rulesSidebar');
-                const rulesOverlay = document.getElementById('rulesOverlay');
-                const closeRulesBtn = document.getElementById('closeRulesBtn');
-
-                if (!rulesButton || !rulesSidebar) {
-                    console.log('Rules sidebar elements not found');
-                    return;
-                }
-
-                function openRules() {
-                    rulesSidebar.classList.add('open');
-                    rulesOverlay.classList.add('show');
-                    document.body.style.overflow = 'hidden';
-                }
-
-                function closeRules() {
-                    rulesSidebar.classList.remove('open');
-                    rulesOverlay.classList.remove('show');
-                    document.body.style.overflow = '';
-                }
-
-                rulesButton.addEventListener('click', openRules);
-                closeRulesBtn.addEventListener('click', closeRules);
-                rulesOverlay.addEventListener('click', closeRules);
-
-                document.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
-                        closeRules();
-                    }
-                });
+            } catch (err) {
+                console.error('Initial state check failed:', err);
+                // vẫn hiển thị form
+                document.getElementById('projectFormPanel').classList.remove('hidden');
             }
+        })();
 
-            // Khởi tạo rules sidebar khi trang load
-            document.addEventListener('DOMContentLoaded', function () {
-                initRulesSidebar();
+        // ==================== RULES SIDEBAR CONTROLLER ====================
+        function initRulesSidebar() {
+            const rulesButton = document.getElementById('rulesButton');
+            const rulesSidebar = document.getElementById('rulesSidebar');
+            const rulesOverlay = document.getElementById('rulesOverlay');
+            const closeRulesBtn = document.getElementById('closeRulesBtn');
+            
+            function openRules() {
+                rulesSidebar.classList.add('open');
+                rulesOverlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeRules() {
+                rulesSidebar.classList.remove('open');
+                rulesOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+            
+            if (rulesButton) rulesButton.addEventListener('click', openRules);
+            if (closeRulesBtn) closeRulesBtn.addEventListener('click', closeRules);
+            if (rulesOverlay) rulesOverlay.addEventListener('click', closeRules);
+            
+            // ESC key to close
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
+                    closeRules();
+                }
             });
-
-            // Game Rules Sidebar Controller - ĐÃ CÓ SẴN, chỉ cần đảm bảo hoạt động
-function initRulesSidebar() {
-    const rulesButton = document.getElementById('rulesButton');
-    const rulesSidebar = document.getElementById('rulesSidebar');
-    const rulesOverlay = document.getElementById('rulesOverlay');
-    const closeRulesBtn = document.getElementById('closeRulesBtn');
-
-    if (!rulesButton || !rulesSidebar) {
-        console.log('Rules sidebar elements not found');
-        return;
-    }
-
-    function openRules() {
-        rulesSidebar.classList.add('open');
-        rulesOverlay.classList.add('show');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeRules() {
-        rulesSidebar.classList.remove('open');
-        rulesOverlay.classList.remove('show');
-        document.body.style.overflow = '';
-    }
-
-    rulesButton.addEventListener('click', openRules);
-    closeRulesBtn.addEventListener('click', closeRules);
-    rulesOverlay.addEventListener('click', closeRules);
-
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
-            closeRules();
         }
-    });
-}
 
-// Các hàm helper (thêm vào để tránh lỗi)
-function updateRulesButtonVisibility() {
-    // Rules button luôn hiển thị ở mọi màn hình
-    const rulesButton = document.getElementById('rulesButton');
-    if (rulesButton) {
-        rulesButton.style.display = 'flex';
-    }
-}
+// Khởi tạo khi trang load xong
+document.addEventListener('DOMContentLoaded', initRulesSidebar);
+        
+    </script>
+</body>
+</html>
 
-// Khởi tạo rules sidebar khi trang load
-document.addEventListener('DOMContentLoaded', function () {
-    initRulesSidebar();
-    updateRulesButtonVisibility();
-});
 
-// Đảm bảo rules button luôn hiển thị (không cần override vì không có lỗi)
-console.log('Rules sidebar ready - click the 📖 button at bottom left to view game rules');
