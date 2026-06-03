@@ -401,28 +401,7 @@
         .rules-sidebar-overlay.show {
             display: block;
         }
-
-        .phase-detail-player {
-    background: rgba(255,255,255,0.7);
-    border-radius: 16px;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-left: 3px solid #8b5cf6;
-}
-.phase-meta {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin: 12px 0;
-    font-size: 13px;
-    color: #4a2b7a;
-}
-.empty-phase-msg {
-    text-align: center;
-    padding: 30px;
-    color: #94a3b8;
-    font-style: italic;
-}
+        
     </style>
 </head>
 <body>
@@ -750,7 +729,8 @@
         
         const gameStatusSpan = document.getElementById('gameStatus');
         const canStartDeck = roomData.can_start_deck === true;
-        // const isGameActive = roomData.status === 'playing' && !roomData.ended;
+        const canStart = (roomData.status === 'choosing_deck');
+        const isPlaying = (roomData.status === 'playing' && !roomData.ended);
         
         if (roomData.ended) {
             gameStatusSpan.innerHTML = '🏁 ENDED';
@@ -769,14 +749,14 @@
             gameStatusSpan.className = 'loading-placeholder';
         }
         
-        const canStart = (roomData.status === 'choosing_deck');
-        const isPlaying = (roomData.status === 'playing' && !roomData.ended);
         document.getElementById('runPhaseBtn').disabled = !(canStart || isPlaying);
         document.getElementById('endGameBtn').disabled = roomData.ended;
         document.getElementById('resetGameBtn').disabled = false;
 
                 // Leaderboard - Overall and by Scale
         if (roomData.players && roomData.players.length > 0) {
+            console.log('Player scales:', roomData.players.map(p => ({ name: p.name, scale: p.scale })));
+            // 1. Xếp hạng chung (tất cả player)
             const allPlayers = roomData.players.filter(p => p.status !== 'not_joined');
             const sortedOverall = [...allPlayers].sort((a, b) => (b.score || 0) - (a.score || 0));
             let overallHtml = '';
@@ -803,7 +783,6 @@
                 `;
             });
             document.getElementById('rankingsOverall').innerHTML = overallHtml || '<div class="data-empty">Chưa có người chơi</div>';
-            
 
             // 2. Xếp hạng theo scale (S, M, L)
             const scales = ['S', 'M', 'L'];
@@ -833,7 +812,6 @@
                     const isEnded = player.status === 'ended';
                     const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
                     const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-                    const deckStatus = player.deck_ready ? '✅ Đã chọn deck' : '⏳ Chưa chọn deck';
                     scaleHtml += `
                         <div class="rank-card ${cardClass}" style="margin-bottom: 8px;">
                             <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id + 1}`}
@@ -846,7 +824,6 @@
                                 <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                                 <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                             </div>
-                            <div class="text-xs mt-2">📦 ${deckStatus}</div>
                         </div>
                     `;
                 });
@@ -865,24 +842,6 @@
         } else {
             document.getElementById('logsArea').innerHTML = '<div class="data-empty">📭 Chưa có sự kiện nào</div>';
         }
-
-        // Cập nhật phase selector nếu có phase mới - giữ nguyên lựa chọn hiện tại nếu có thể
-if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
-    const select = document.getElementById('phaseSelect');
-    const currentSelected = select.value;
-    const sortedPhases = [...roomData.phaseDetails].sort((a,b) => a.phase - b.phase);
-    const newOptions = '<option value="">-- Chọn phase để xem chi tiết --</option>' + 
-        sortedPhases.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || 'Đã diễn ra'})</option>`).join('');
-    
-    // Chỉ cập nhật nếu nội dung thay đổi
-    if (select.innerHTML !== newOptions) {
-        select.innerHTML = newOptions;
-        // Nếu phase đã chọn trước đó vẫn tồn tại, giữ nguyên
-        if (currentSelected && roomData.phaseDetails.some(d => d.phase.toString() === currentSelected)) {
-            select.value = currentSelected;
-        }
-    }
-}
 
         // Join Links
         if (roomData.joinLinks && roomData.joinLinks.length > 0) {
@@ -908,11 +867,15 @@ if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
         } else {
             document.getElementById('joinLinksList').innerHTML = '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>';
         }
+
+        // Phase details
+        if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
+            const select = document.getElementById('phaseSelect');
+            select.innerHTML = roomData.phaseDetails.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || ''})</option>`).join('');
+        }
     }
-}
 
-
-async function showPhaseDetails() {
+    async function showPhaseDetails() {
     if (!currentRoomId) return;
     const roomData = await fetchRoomData();
     if (!roomData || !roomData.phaseDetails) return;
@@ -930,7 +893,7 @@ async function showPhaseDetails() {
         return;
     }
     
-    // Lấy thông tin scale của từng player (nếu có)
+    // Lấy thông tin scale của từng player
     const playersScaleMap = new Map();
     if (roomData.players) {
         roomData.players.forEach(p => {
@@ -964,7 +927,6 @@ async function showPhaseDetails() {
     html += `</div>`;
     container.innerHTML = html;
 }
-
     async function runPhase() {
         if (!currentRoomId) return;
         try {
