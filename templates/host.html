@@ -788,7 +788,14 @@
                             <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                             <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                         </div>
-                        <div class="text-xs mt-1">${player.ready ? '✅ Ready' : '⏳ Not ready'}</div>
+                        <div class="text-xs mt-1">
+                            ${roomData.status === 'choosing_deck' 
+                                ? (player.deck_ready ? '📦 Submitted deck' : '📦 Not ready')
+                                : (roomData.status === 'playing' 
+                                    ? (player.ready ? '✅ Ready for next phase' : '⏳ Not ready')
+                                    : '')
+                            }
+                        </div>
                     </div>
                 `;
             });
@@ -834,7 +841,13 @@
                                 <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                                 <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                             </div>
-                            <div class="text-xs mt-1">${player.ready ? '✅ Ready' : '⏳ Not ready'}</div>
+                            <div class="text-xs mt-1">
+                            ${roomData.status === 'choosing_deck' 
+                                ? (player.deck_ready ? '📦 Submitted deck' : '📦 Not ready')
+                                : (roomData.status === 'playing' 
+                                    ? (player.ready ? '✅ Ready for next phase' : '⏳ Not ready')
+                                    : '')
+                            }
                         </div>
                     `;
                 });
