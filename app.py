@@ -1027,25 +1027,34 @@ def run_phase():
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
-    
+
+    # ----- THÊM ĐOẠN NÀY: NẾU ĐANG Ở GIAI ĐOẠN CHỌN DECK, HÃY KHỞI ĐỘNG GAME -----
+    if room['status'] == 'choosing_deck':
+        # Kiểm tra tất cả người chơi đã submit deck chưa
+        all_ready = True
+        for i, p in enumerate(room['players']):
+            if p is not None and not room['deck_ready'][i]:
+                all_ready = False
+                break
+        if not all_ready:
+            return jsonify({'error': 'Chưa sẵn sàng: một số người chơi chưa submit deck'}), 400
+        
+        success = try_start_game(room)
+        if not success:
+            return jsonify({'error': 'Không thể khởi tạo game. Kiểm tra deck của từng người chơi.'}), 400
+        
+        room['logs'].append("🚀 Game đã được bắt đầu bởi host (nút RUN PHASE).")
+        # Sau khi start, room['status'] = 'playing', room['phase'] = 1
+        # LƯU Ý: không return ở đây, mà tiếp tục xuống dưới để xử lý phase đầu tiên
+
+    # ----- KIỂM TRA TRẠNG THÁI GAME (CHỈ CHO PHÉP KHI ĐANG PLAYING) -----
     if room['status'] != 'playing':
         return jsonify({'error': 'Game not active'}), 400
 
-    phase = room['phase']
-    # Chỉ kiểm tra ready từ phase 2 trở đi
-    if phase > 1:
-        active_players_ready = all(
-            room['player_ready'][i] 
-            for i in range(room['num_players']) 
-            if room['players'][i] and room['players'][i].get('status') == 'active'
-        )
-        if not active_players_ready:
-            return jsonify({'error': 'Chưa phải tất cả người chơi đều Ready'}), 400
-    # Phase 1: không cần kiểm tra, cứ chạy
-
-    phase = room['phase']
+    phase = room['phase']  # Lúc này phase = 1 (vì vừa được set trong try_start_game)
     players = room['players']
     logs = []
+
 
     for i in range(room['num_players']):
         room['player_triggers'][i] = {'available_reactions': []}
