@@ -638,7 +638,6 @@ if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
 if (modalCloseFooter) modalCloseFooter.addEventListener('click', closeModal);
     
         
-        const modal = document.getElementById('infoModal');
         function showModal(cat) { let d=infoDatabase[cat]; if(!d) return; document.getElementById('modalTitle').innerText=d.title; let html='<div class="space-y-3">'; d.fields.forEach(f=>{html+=`<div class="border-b border-pink-100 pb-2"><div class="font-bold text-purple-700">${f.name}</div><div class="text-gray-600 text-xs">${f.meaning}</div><div class="flex gap-3 mt-1 text-xs"><span class="bg-pink-100 px-2 py-0.5 rounded-full text-pink-800">Unit: ${f.unit}</span><span class="bg-purple-100 px-2 py-0.5 rounded-full text-purple-800">Constraints: ${f.constraints}</span></div></div>`;}); html+='</div>'; document.getElementById('modalContent').innerHTML=html; modal.classList.remove('hidden'); }
         function closeModal(){ modal.classList.add('hidden'); }
         document.querySelectorAll('.info-icon').forEach(icon=>{ icon.addEventListener('click',(e)=>{ e.stopPropagation(); let cat=icon.getAttribute('data-category'); if(cat) showModal(cat); }); });
@@ -1146,12 +1145,17 @@ if (modalCloseFooter) modalCloseFooter.addEventListener('click', closeModal);
                 document.getElementById('projectFormPanel').classList.remove('hidden');
             }
         })();
-                // Game Rules Sidebar Controller
+// Game Rules Sidebar Controller
 function initRulesSidebar() {
     const rulesButton = document.getElementById('rulesButton');
     const rulesSidebar = document.getElementById('rulesSidebar');
     const rulesOverlay = document.getElementById('rulesOverlay');
     const closeRulesBtn = document.getElementById('closeRulesBtn');
+    
+    if (!rulesButton || !rulesSidebar) {
+        console.log('Rules sidebar elements not found');
+        return;
+    }
     
     function openRules() {
         rulesSidebar.classList.add('open');
@@ -1165,47 +1169,22 @@ function initRulesSidebar() {
         document.body.style.overflow = '';
     }
     
-    if (rulesButton) {
-        rulesButton.addEventListener('click', openRules);
-    }
-    if (closeRulesBtn) {
-        closeRulesBtn.addEventListener('click', closeRules);
-    }
-    if (rulesOverlay) {
-        rulesOverlay.addEventListener('click', closeRules);
-    }
+    rulesButton.addEventListener('click', openRules);
+    closeRulesBtn.addEventListener('click', closeRules);
+    rulesOverlay.addEventListener('click', closeRules);
     
-    // ESC key to close
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
             closeRules();
         }
     });
-    
-    return { openRules, closeRules };
 }
 
-// Function to show/hide rules button based on current screen
-function updateRulesButtonVisibility() {
-    const rulesButton = document.getElementById('rulesButton');
-    if (!rulesButton) return;
-    
-    const setupPanel = document.getElementById('setupPanel');
-    const gamePanel = document.getElementById('gamePanel');
-    const leaderboardModal = document.getElementById('leaderboardModal');
-    
-    // Hide rules button on setup screen, game panel hidden, or when leaderboard modal is visible
-    if ((setupPanel && setupPanel.style.display !== 'none') || 
-        (gamePanel && gamePanel.style.display === 'none') ||
-        (leaderboardModal && leaderboardModal.parentElement)) {
-        rulesButton.style.display = 'none';
-    } else {
-        rulesButton.style.display = 'flex';
-    }
-}
-// Initialize rules sidebar
-initRulesSidebar();
-
+// Khởi tạo rules sidebar khi trang load
+document.addEventListener('DOMContentLoaded', function() {
+    initRulesSidebar();
+});
+        
 // Override relevant functions to update rules button visibility
 const originalUpdateDisplay = updateDisplay;
 updateDisplay = function() {
