@@ -392,21 +392,25 @@ def process_phase(room, phase, players, logs):
             desired = invested * withdraw_ratio
             max_withdraw = invested * max_ratio
             actual = min(desired, max_withdraw)
-            if actual > 0:
-                if actual <= players[idx]['available_cash']:
-                    players[idx]['available_cash'] -= actual
-                    players[idx]['total_invested'] -= actual
-                    players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
-                if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
-                    players[idx]['funding_complete_phase'] = phase
-                    alloc_entry['perProject'][idx] -= actual
-                    alloc_entry['idle'] += actual
-                    logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
-                else:
-                    players[idx]['status'] = 'bankrupt'
-                    players[idx]['funding_progress'] = 0
-                    players[idx]['total_invested'] = 0
-                    logs.append(f"Dự án {idx+1} PHÁ SẢN!")
+           if actual > 0:
+    if actual <= players[idx]['available_cash']:
+        # Đủ tiền: rút bình thường
+        players[idx]['available_cash'] -= actual
+        players[idx]['total_invested'] -= actual
+        players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
+        # Cập nhật allocation của bot
+        alloc_entry['perProject'][idx] -= actual
+        alloc_entry['idle'] += actual
+        logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
+    else:
+        # Không đủ tiền -> phá sản
+        players[idx]['status'] = 'bankrupt'
+        players[idx]['funding_progress'] = 0
+        players[idx]['total_invested'] = 0
+        # Xóa toàn bộ investment của bot khỏi project này
+        alloc_entry['idle'] += alloc_entry['perProject'][idx]
+        alloc_entry['perProject'][idx] = 0
+        logs.append(f"Dự án {idx+1} PHÁ SẢN!")
 
 
     for bot in active_bots:
@@ -435,6 +439,8 @@ def process_phase(room, phase, players, logs):
                     players[idx]['total_invested'] += cap
                     players[idx]['available_cash'] += cap
                     players[idx]['funding_progress'] = min(1.0, players[idx]['total_invested'] / players[idx]['target_funding'])
+                    if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
+    players[idx]['funding_complete_phase'] = phase
                     alloc_entry['perProject'][idx] += cap
                     remaining -= cap
                     logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
