@@ -752,10 +752,10 @@
             gameStatusSpan.className = 'loading-placeholder';
         }
         
-        // Enable/disable nút run phase (chỉ cần game đang playing, backend sẽ kiểm tra ready)
+        // Enable nút run phase khi đang choosing_deck (để bắt đầu game) hoặc đang playing (chạy phase)
         const runBtn = document.getElementById('runPhaseBtn');
-        if (roomData.status === 'playing' && !roomData.ended) {
-            runBtn.disabled = false;   // Luôn enable để host có thể bấm, backend sẽ báo lỗi nếu chưa ready
+        if ((roomData.status === 'choosing_deck' || roomData.status === 'playing') && !roomData.ended) {
+            runBtn.disabled = false;
         } else {
             runBtn.disabled = true;
         }
