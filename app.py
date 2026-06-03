@@ -687,8 +687,8 @@ def submit_deck():
         room['deck_ready'][player_index] = True
         room['logs'].append(f"✅ Player {player_index + 1} đã chọn deck ({len(active_indices)} active, {len(reaction_indices)} reaction).")
 
-
-        return jsonify({'ok': True, 'game_started': game_started})
+        
+        return jsonify({'ok': True, 'game_started': False})
 
     except Exception as e:
         import traceback
