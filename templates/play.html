@@ -1172,6 +1172,15 @@ updateDisplay = function() {
     originalUpdateDisplay();
     updateRulesButtonVisibility();
 };
+        
+const originalCloseLeaderboardModal = closeLeaderboardModal;
+closeLeaderboardModal = function() {
+    if (originalCloseLeaderboardModal) originalCloseLeaderboardModal();
+    updateRulesButtonVisibility();
+};
+
+// Initial call
+updateRulesButtonVisibility();
     </script>
 </body>
 </html>
