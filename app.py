@@ -1008,6 +1008,9 @@ def run_phase():
     
     room = rooms[room_id]
 
+    # Flag để bỏ qua kiểm tra ready nếu vừa khởi tạo game
+    skip_ready_check = False
+
     # ===== 1. TRƯỜNG HỢP: GAME ĐANG Ở GIAI ĐOẠN CHỌN DECK =====
     if room['status'] == 'choosing_deck':
         # Kiểm tra tất cả người chơi đã submit deck chưa
@@ -1027,12 +1030,8 @@ def run_phase():
         # Reset trạng thái ready cho các player (bắt buộc ready phase 1)
         room['player_ready'] = [False] * room['num_players']
         
-        room['logs'].append("🚀 Game đã được khởi tạo. Các người chơi cần nhấn READY cho Phase 1, sau đó host nhấn RUN PHASE lần nữa.")
-        return jsonify({
-            'game_started': True,
-            'phase': room['phase'],
-            'message': 'Game started. Please wait for players to ready and click RUN PHASE again.'
-        })
+        room['logs'].append("🚀 Game đã được khởi tạo. Tiến hành PHASE 1 ngay.")
+        skip_ready_check = True  # Bỏ qua kiểm tra ready cho phase 1
 
     # ===== 2. CHỈ CHO PHÉP CHẠY KHI GAME Ở TRẠNG THÁI PLAYING =====
     if room['status'] != 'playing':
@@ -1042,14 +1041,15 @@ def run_phase():
     players = room['players']
     logs = []
 
-    # ===== 3. KIỂM TRA TẤT CẢ ACTIVE PLAYER ĐÃ READY =====
-    active_indices = []
-    for i, p in enumerate(players):
-        if p and p.get('status') == 'active' and p.get('current_phase', 0) < p.get('max_phase', 999):
-            active_indices.append(i)
-    not_ready = [i for i in active_indices if not room['player_ready'][i]]
-    if not_ready:
-        return jsonify({'error': f'Players {[i+1 for i in not_ready]} chưa ready'}), 400
+    # ===== 3. KIỂM TRA TẤT CẢ ACTIVE PLAYER ĐÃ READY (TRỪ KHI VỪA KHỞI TẠO) =====
+    if not skip_ready_check:
+        active_indices = []
+        for i, p in enumerate(players):
+            if p and p.get('status') == 'active' and p.get('current_phase', 0) < p.get('max_phase', 999):
+                active_indices.append(i)
+        not_ready = [i for i in active_indices if not room['player_ready'][i]]
+        if not_ready:
+            return jsonify({'error': f'Players {[i+1 for i in not_ready]} chưa ready'}), 400
 
     logs.append(f"🚀 BẮT ĐẦU PHASE {phase}")
 
@@ -1116,7 +1116,7 @@ def run_phase():
                     proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
                 logs.append(f" → Dự án {idx+1} chơi thẻ {card['name']}")
 
-        # Kích hoạt reaction (chỉ hiển thị, không tự động dùng)
+        # Kích hoạt reaction (chỉ hiển thị)
         triggers = []
         for rc in proj.get('reaction_hand', []):
             if rc.get('trigger') == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
