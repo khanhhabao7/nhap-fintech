@@ -424,8 +424,8 @@ def process_phase(room, phase, players, logs):
                     alloc_entry['perProject'][idx] += cap
                     remaining -= cap
                     logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
-                        if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
-                            players[idx]['funding_complete_phase'] = phase
+                    if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
+                        players[idx]['funding_complete_phase'] = phase
         alloc_entry['idle'] = remaining
 
 # ==================== FLASK APP & ROOMS ====================
@@ -671,10 +671,6 @@ def submit_deck():
         room['deck_ready'][player_index] = True
         room['logs'].append(f"✅ Player {player_index + 1} đã chọn deck ({len(active_indices)} active, {len(reaction_indices)} reaction).")
 
-        # Thử bắt đầu game nếu tất cả đã sẵn sàng
-        game_started = try_start_game(room)
-        if game_started:
-            room['logs'].append("🚀 Game đã được khởi động tự động!")
 
         return jsonify({'ok': True, 'game_started': game_started})
 
@@ -727,41 +723,7 @@ def auto_select_deck():
         'message': f'Đã tạo {len(active_indices)} active cards và {len(reaction_indices)} reaction cards ngẫu nhiên. Bạn có thể chỉnh sửa trước khi submit.'
     })
 
-@app.route('/api/force_auto_deck', methods=['POST'])
-def force_auto_deck():
-    """Host ép các player chưa chọn deck phải auto chọn random VÀ SUBMIT LUÔN"""
-    data = request.json
-    room_id = data['room_id']
 
-    if room_id not in rooms:
-        return jsonify({'error': 'Room not found'}), 404
-    room = rooms[room_id]
-
-    if room['status'] != 'choosing_deck':
-        return jsonify({'error': 'Không thể force lúc này'}), 400
-
-    forced_count = 0
-    for idx, proj in enumerate(room['players']):
-        if proj is not None and not room['deck_ready'][idx]:
-            # Auto chọn deck cho player này
-            total_active = len(ACTIVE_CARDS_FULL)
-            active_indices = random.sample(range(total_active), 22)
-            total_reaction = len(REACTION_CARDS)
-            num_reactions = random.randint(0, 3)
-            reaction_indices = random.sample(range(total_reaction), num_reactions) if num_reactions > 0 else []
-
-            proj['active_deck'] = [ACTIVE_CARDS_FULL[i] for i in active_indices]
-            proj['reaction_hand'] = [REACTION_CARDS[i].copy() for i in reaction_indices]
-
-            room['deck_ready'][idx] = True
-            forced_count += 1
-            room['logs'].append(f"⚡ Host force auto-chọn deck và submit cho Player {idx + 1}.")
-
-    room['logs'].append(f"🔧 Đã force auto deck cho {forced_count} người chơi.")
-
-    try_start_game(room)
-
-    return jsonify({'ok': True, 'forced_count': forced_count})
 
 @app.route('/api/host_state', methods=['GET'])
 def host_state():
