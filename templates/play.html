@@ -930,9 +930,20 @@
 
                         // Cập nhật trạng thái ready của bản thân (nếu backend trả 'ready')
             const readySpan = document.getElementById('myReadyStatus');
-            if (readySpan && data.ready !== undefined) {
-                readySpan.innerText = data.ready ? '✅' : '⏳';
-                readySpan.title = data.ready ? 'Ready' : 'Not ready';
+            if (readySpan) {
+                // Nếu game đang ở giai đoạn chọn deck -> hiển thị trạng thái deck_ready
+                if (data.choosing_deck === true) {
+                    readySpan.innerText = data.deck_ready ? '📦 Đã chọn deck' : '📦 Chưa chọn deck';
+                    readySpan.title = data.deck_ready ? 'Bạn đã chọn xong bộ bài' : 'Bạn cần chọn 22 lá bài Active và nhấn CONFIRM DECK';
+                } 
+                // Nếu game đang chơi -> hiển thị trạng thái ready cho phase
+                else if (data.game_started === true && data.game_ended !== true) {
+                    readySpan.innerText = data.ready ? '✅ Ready' : '⏳ Chưa ready';
+                    readySpan.title = data.ready ? 'Bạn đã sẵn sàng cho phase tiếp theo' : 'Hãy nhấn nút READY để báo hiệu sẵn sàng';
+                }
+                else {
+                    readySpan.innerText = '';
+                }
             }
             
             const handDiv = document.getElementById('hand');
