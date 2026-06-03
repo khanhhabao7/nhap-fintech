@@ -671,8 +671,8 @@ def submit_deck():
         room['deck_ready'][player_index] = True
         room['logs'].append(f"✅ Player {player_index + 1} đã chọn deck ({len(active_indices)} active, {len(reaction_indices)} reaction).")
 
-
-        return jsonify({'ok': True, 'game_started': game_started})
+        # Không tự động bắt đầu game, host sẽ nhấn RUN PHASE
+        return jsonify({'ok': True, 'game_started': False})
 
     except Exception as e:
         import traceback
@@ -822,7 +822,10 @@ def player_state():
             'valuation_sanity': metrics.get('valuation_sanity', 0),
             'roi_norm': metrics.get('roi_norm', 0),
             'runway': metrics.get('runway', 0),
-            'funding_progress': proj.get('funding_progress', 0)
+            'funding_progress': proj.get('funding_progress', 0),
+            'ready': room.get('player_ready', [False])[player_index] if player_index < len(room.get('player_ready', [])) else False,   
+            'choosing_deck': room['status'] == 'choosing_deck',
+            'game_started': room['status'] == 'playing'
         },
         'hype': proj.get('hype', 50),
         'transparency': proj.get('transparency', 50),
