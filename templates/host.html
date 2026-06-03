@@ -797,6 +797,31 @@
                             <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                             <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                         </div>
+
+            sortedOverall.forEach((player, idx) => {
+                const isJoined = player.status === 'active';
+                const isEnded = player.status === 'ended';
+                const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
+                const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
+                const deckStatus = player.deck_ready ? '✅ Đã chọn deck' : '⏳ Chưa chọn deck';
+                overallHtml += `
+                    <div class="rank-card ${cardClass}">
+                        <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id + 1}`}
+                            <span class="player-join-tag ${isJoined ? 'joined' : (isEnded ? 'joined' : 'waiting')}">${player.status === 'active' ? 'Active' : (player.status === 'ended' ? 'Finished' : 'Not Joined')}</span>
+                        </h3>
+                        <div class="player-funding">💰 Funding: <span>${fundingPercent}%</span></div>
+                        <div class="funding-bar"><div class="funding-bar-fill" style="width: ${fundingPercent}%;"></div></div>
+                        <div class="player-metric-list">
+                            <span class="metric-tag hype-tag">📈 Hype ${player.hype ?? 0}</span>
+                            <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
+                            <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
+                        </div>
+                        <div class="text-xs mt-2">📦 ${deckStatus}</div>
+                    </div>
+                `;
+            });
+
+                        
                     </div>
                 `;
             });
@@ -830,6 +855,7 @@
                     const isEnded = player.status === 'ended';
                     const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
                     const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
+                    const deckStatus = player.deck_ready ? '✅ Đã chọn deck' : '⏳ Chưa chọn deck';
                     scaleHtml += `
                         <div class="rank-card ${cardClass}" style="margin-bottom: 8px;">
                             <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id + 1}`}
@@ -842,6 +868,7 @@
                                 <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                                 <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                             </div>
+                            <div class="text-xs mt-2">📦 ${deckStatus}</div>
                         </div>
                     `;
                 });
