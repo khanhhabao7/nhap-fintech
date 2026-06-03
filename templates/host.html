@@ -260,6 +260,147 @@
         .category-header.small { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #1e1b2b; }
         .category-header.medium { background: linear-gradient(135deg, #fa709a, #fee140); color: #1e1b2b; }
         .category-header.large { background: linear-gradient(135deg, #a18cd1, #fbc2eb); color: #1e1b2b; }
+
+        /* Game Rules Sidebar Styles (Host version) */
+        .rules-button {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            border: none;
+            color: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .rules-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        
+        .rules-sidebar {
+            position: fixed;
+            top: 0;
+            right: -500px;
+            width: 500px;
+            max-width: 90vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1e1b2b 0%, #2d2a44 100%);
+            color: #f0f0f0;
+            z-index: 1000;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .rules-sidebar.open {
+            right: 0;
+        }
+        
+        .rules-sidebar-header {
+            padding: 24px;
+            background: linear-gradient(135deg, #ec4899, #8b5cf6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .rules-sidebar-header h2 {
+            color: white;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .close-rules {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .close-rules:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .rules-sidebar-content {
+            padding: 24px;
+        }
+        
+        .rules-sidebar-content h3 {
+            color: #f472b6;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.25rem;
+        }
+        
+        .rules-sidebar-content h4 {
+            color: #a78bfa;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .rules-sidebar-content p, 
+        .rules-sidebar-content li {
+            color: #e0e0e0;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+        
+        .rules-sidebar-content ul, 
+        .rules-sidebar-content ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .rules-sidebar-content li {
+            margin: 6px 0;
+        }
+        
+        .rules-sidebar-content .highlight {
+            background: rgba(236, 72, 153, 0.2);
+            padding: 2px 6px;
+            border-radius: 6px;
+            color: #f472b6;
+            font-weight: 600;
+        }
+        
+        .rules-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            display: none;
+        }
+        
+        .rules-sidebar-overlay.show {
+            display: block;
+        }
         
     </style>
 </head>
@@ -844,6 +985,44 @@
     fetch(`${API_BASE_URL}/health`).catch(err => {
         updateConnectionStatus(false, 'Backend không khả dụng.');
     });
+
+    // ==================== RULES SIDEBAR CONTROLLER (Host) ====================
+    function initRulesSidebar() {
+        const rulesButton = document.getElementById('rulesButton');
+        const rulesSidebar = document.getElementById('rulesSidebar');
+        const rulesOverlay = document.getElementById('rulesOverlay');
+        const closeRulesBtn = document.getElementById('closeRulesBtn');
+        
+        if (!rulesButton || !rulesSidebar) return;
+        
+        function openRules() {
+            rulesSidebar.classList.add('open');
+            rulesOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeRules() {
+            rulesSidebar.classList.remove('open');
+            rulesOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        rulesButton.addEventListener('click', openRules);
+        if (closeRulesBtn) closeRulesBtn.addEventListener('click', closeRules);
+        if (rulesOverlay) rulesOverlay.addEventListener('click', closeRules);
+        
+        // ESC key to close
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
+                closeRules();
+            }
+        });
+    }
+    
+    // Khởi tạo khi trang load xong
+    document.addEventListener('DOMContentLoaded', initRulesSidebar);
+
+    
 </script>
         <!-- Modal Leaderboard chi tiết -->
     <div id="leaderboardModal" class="modal-overlay" style="display: none;">
@@ -855,6 +1034,64 @@
             <div id="leaderboardModalBody"></div>
         </div>
     </div>
+
+        <!-- Game Rules Sidebar (Host) -->
+        <button class="rules-button" id="rulesButton">📖</button>
+        
+        <div class="rules-sidebar-overlay" id="rulesOverlay"></div>
+        
+        <div class="rules-sidebar" id="rulesSidebar">
+            <div class="rules-sidebar-header">
+                <h2>📖 Fun(d) Raising - Host & Game Guide</h2>
+                <button class="close-rules" id="closeRulesBtn">&times;</button>
+            </div>
+            <div class="rules-sidebar-content">
+                <h3>🎮 Vai trò của Host</h3>
+                <p>Host là người tạo phòng, quản lý tiến trình game, và có toàn quyền điều khiển các phase.</p>
+                
+                <h4>1. Tạo phòng</h4>
+                <p>Nhập số lượng người chơi (2-10) và nhấn <span class="highlight">CREATE ROOM</span>. Hệ thống sẽ sinh ra các link riêng cho từng người chơi. Host gửi mỗi link tương ứng cho từng player.</p>
+                
+                <h4>2. Quản lý phòng</h4>
+                <p>Sau khi tạo, host thấy danh sách link và trạng thái tham gia của từng người. Khi tất cả đã gửi dự án và chọn bài (deck), host có thể bắt đầu game.</p>
+                
+                <h4>3. Điều khiển game</h4>
+                <p>Host nhấn <span class="highlight">▶ RUN NEXT PHASE</span> để chuyển sang phase tiếp theo. Hệ thống sẽ tự động:</p>
+                <ul>
+                    <li>Áp dụng sự kiện ngẫu nhiên cho mỗi dự án.</li>
+                    <li>Tính toán lại funding, hype, transparency, runway, điểm số.</li>
+                    <li>Cập nhật hành vi của 200 bot (FOMO, Value Hunter, Whale, Random).</li>
+                    <li>Lưu lại kết quả phase vào lịch sử.</li>
+                </ul>
+                <p>Host có thể kết thúc game sớm bằng nút <span class="highlight">⛔ END GAME</span> hoặc reset toàn bộ game.</p>
+                
+                <h4>4. Xem kết quả</h4>
+                <p>Bảng xếp hạng hiển thị theo tổng thể và theo từng scale (Small/Medium/Large). Host có thể xem chi tiết từng phase trong mục <span class="highlight">Phase archive</span>.</p>
+                
+                <h3>📜 Hướng dẫn cho người chơi (tóm tắt)</h3>
+                <p><strong>Gửi dự án:</strong> Điền các thông số về giá, chi phí, dự báo sản xuất, vốn, equity.</p>
+                <p><strong>Chọn bài (Deck):</strong> Mỗi người chọn 22 Active Cards (tấn công, phòng thủ, vốn) và tối đa 3 Reaction Cards (kích hoạt tự động).</p>
+                <p><strong>Trong mỗi phase:</strong> Người chơi nhận 5 lá bài, có năng lượng (3/phase). Có thể:</p>
+                <ul>
+                    <li>Chọn một lá bài → nhấn <span class="highlight">▶ PLAY CARD</span> (tốn năng lượng).</li>
+                    <li><span class="highlight">🔄 MULLIGAN</span> (đổi bài, tốn 1 năng lượng, giảm transparency).</li>
+                    <li><span class="highlight">✅ READY</span> để báo hiệu sẵn sàng sang phase tiếp theo.</li>
+                </ul>
+                <p><strong>Reaction Cards:</strong> Xuất hiện dưới dạng nút khi điều kiện kích hoạt, có thể nhấn bất kỳ lúc nào trong phase.</p>
+                
+                <h3>🏁 Kết thúc game</h3>
+                <p>Game kết thúc khi tất cả dự án đã qua hết số phase tương ứng với scale (5,7,9) hoặc bị phá sản. Điểm số cuối cùng dựa trên funding đạt được, hype, transparency, ROI và phạt nếu định giá không thực tế. Người chơi có điểm cao nhất thắng.</p>
+                
+                <h3>💡 Mẹo nhanh</h3>
+                <ul>
+                    <li>Cân bằng giữa tấn công (tăng hype) và phòng thủ (tăng transparency).</li>
+                    <li>Tiết kiệm năng lượng cho những lá bài có hiệu ứng mạnh.</li>
+                    <li>Chọn Reaction Cards phù hợp với chiến lược (ví dụ: chống rút vốn, giảm rủi ro pháp lý).</li>
+                    <li>Bot Value Hunter thích các dự án có intrinsic value cao (margin, growth, hiệu quả vốn).</li>
+                </ul>
+            </div>
+        </div>
+    
 </body>
 </html>
 
