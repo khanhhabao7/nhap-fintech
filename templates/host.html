@@ -494,6 +494,7 @@
         <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
             <button onclick="runPhase()" id="runPhaseBtn" disabled>▶ RUN PHASE <span id="phaseNumberLabel">?</span></button>
             <button onclick="endGame()" id="endGameBtn" disabled>⛔ END GAME</button>
+            <button onclick="resetGame()" id="resetGameBtn" disabled>🔄 RESET GAME</button>
         </div>
     </div>
 </div>
@@ -723,13 +724,16 @@
         document.getElementById('maxPlayers').innerText = roomData.maxPlayers || '?';
         document.getElementById('currentPhase').innerText = roomData.currentPhase ?? '?';
         document.getElementById('maxPhase').innerText = roomData.maxPhase ?? 7;
+                // Cập nhật nhãn phase sắp chạy
+        const nextPhase = (roomData.currentPhase || 0) + 1;
+        const phaseLabelSpan = document.getElementById('phaseNumberLabel');
+        if (phaseLabelSpan) phaseLabelSpan.innerText = nextPhase;
         let progFill = document.querySelector('#gamePanel .bg-pink-500');
         if (progFill) progFill.style.width = (roomData.phase_progress || 0) + '%';
         
         const gameStatusSpan = document.getElementById('gameStatus');
         const canStartDeck = roomData.can_start_deck === true;
-        const canStart = (roomData.status === 'choosing_deck');
-        const isPlaying = (roomData.status === 'playing' && !roomData.ended);
+        const isGameActive = roomData.status === 'playing' && !roomData.ended;
         
         if (roomData.ended) {
             gameStatusSpan.innerHTML = '🏁 ENDED';
@@ -748,16 +752,6 @@
             gameStatusSpan.className = 'loading-placeholder';
         }
         
-        document.getElementById('runPhaseBtn').disabled = !(canStart || isPlaying);
-        document.getElementById('endGameBtn').disabled = roomData.ended;
-        document.getElementById('resetGameBtn').disabled = false;
-
-
-        // Cập nhật nhãn phase sắp chạy
-        const nextPhase = (roomData.currentPhase || 0) + 1;
-        const phaseLabelSpan = document.getElementById('phaseNumberLabel');
-        if (phaseLabelSpan) phaseLabelSpan.innerText = nextPhase;
-    
         // Enable/disable nút run phase (phải ready hết active player)
         const runBtn = document.getElementById('runPhaseBtn');
         if (roomData.status === 'playing' && !roomData.ended) {
@@ -767,10 +761,9 @@
         } else {
             runBtn.disabled = true;
         }
+        document.getElementById('endGameBtn').disabled = roomData.ended;
+        document.getElementById('resetGameBtn').disabled = false;
 
-
-
-        
                 // Leaderboard - Overall and by Scale
         if (roomData.players && roomData.players.length > 0) {
             console.log('Player scales:', roomData.players.map(p => ({ name: p.name, scale: p.scale })));
@@ -783,7 +776,6 @@
                 const isEnded = player.status === 'ended';
                 const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
                 const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-                const deckStatus = player.deck_ready ? '✅ Đã chọn deck' : '⏳ Chưa chọn deck';
                 overallHtml += `
                     <div class="rank-card ${cardClass}">
                         <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id + 1}`}
@@ -796,7 +788,6 @@
                             <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                             <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                         </div>
-                        <div class="text-xs mt-2">📦 ${deckStatus}</div>
                         <div class="text-xs mt-1">${player.ready ? '✅ Ready' : '⏳ Not ready'}</div>
                     </div>
                 `;
@@ -842,8 +833,8 @@
                                 <span class="metric-tag hype-tag">📈 Hype ${player.hype ?? 0}</span>
                                 <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                                 <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
-                            <div class="text-xs mt-1">${player.ready ? '✅ Ready' : '⏳ Not ready'}</div>
                             </div>
+                            <div class="text-xs mt-1">${player.ready ? '✅ Ready' : '⏳ Not ready'}</div>
                         </div>
                     `;
                 });
@@ -896,57 +887,26 @@
     }
 
     async function showPhaseDetails() {
-    if (!currentRoomId) return;
-    const roomData = await fetchRoomData();
-    if (!roomData || !roomData.phaseDetails) return;
-    const select = document.getElementById('phaseSelect');
-    const selectedPhaseValue = select.value;
-    if (!selectedPhaseValue) {
-        document.getElementById('phaseDetails').innerHTML = '<div class="data-empty">📌 Chọn một phase từ danh sách để xem chi tiết</div>';
-        return;
-    }
-    const selectedPhase = parseInt(selectedPhaseValue);
-    const detail = roomData.phaseDetails.find(d => d.phase === selectedPhase);
-    const container = document.getElementById('phaseDetails');
-    if (!detail) {
-        container.innerHTML = '<div class="data-empty">⚠️ Không có dữ liệu chi tiết cho phase này</div>';
-        return;
-    }
-    
-    // Lấy thông tin scale của từng player
-    const playersScaleMap = new Map();
-    if (roomData.players) {
-        roomData.players.forEach(p => {
-            let scale = p.scale || 'M';
-            if (scale !== 'S' && scale !== 'L') scale = 'M';
-            playersScaleMap.set(p.id, { name: p.name || `Player ${p.id+1}`, scale: scale, maxPhase: p.max_phase || (scale === 'S' ? 5 : scale === 'L' ? 9 : 7) });
+        if (!currentRoomId) return;
+        const roomData = await fetchRoomData();
+        if (!roomData || !roomData.phaseDetails) return;
+        const select = document.getElementById('phaseSelect');
+        const selectedPhase = parseInt(select.value);
+        const detail = roomData.phaseDetails.find(d => d.phase === selectedPhase);
+        const container = document.getElementById('phaseDetails');
+        if (!detail) {
+            container.innerHTML = '<div class="data-empty">Không có dữ liệu cho phase này</div>';
+            return;
+        }
+        let html = `<div style="margin-bottom:10px;"><strong style="color:#2e1a47;">📅 ${detail.event} (${detail.date})</strong></div>`;
+        html += `<div class="rankings" style="margin-top:10px;">`;
+        detail.players.forEach(p => {
+            html += `<div class="rank-card"><h3>${p.name}</h3><div>💰 Funding: ${(p.funding*100).toFixed(1)}%</div><div>🔥 Hype: ${p.hype}</div><div>🏅 Score: ${p.score}</div></div>`;
         });
+        html += `</div>`;
+        container.innerHTML = html;
     }
-    
-    let html = `<div style="margin-bottom:10px;"><strong style="color:#2e1a47;">📅 ${detail.event || `Phase ${detail.phase}`} (${detail.date || 'Đã diễn ra'})</strong></div>`;
-    html += `<div style="font-size:13px; color:#6b21a5; margin-bottom:12px;">📊 Kết quả chi tiết phase ${detail.phase}:</div>`;
-    html += `<div class="rankings" style="margin-top:10px;">`;
-    
-    const playersInPhase = detail.players || [];
-    if (playersInPhase.length === 0) {
-        html += `<div class="data-empty">Không có dữ liệu người chơi cho phase này</div>`;
-    } else {
-        playersInPhase.forEach(p => {
-            const playerInfo = playersScaleMap.get(p.id) || { name: p.name || `Player ${p.id+1}`, scale: 'M' };
-            const scaleBadge = playerInfo.scale === 'S' ? '🟢 Small (5 phases)' : (playerInfo.scale === 'L' ? '🔴 Large (9 phases)' : '🟡 Medium (7 phases)');
-            html += `<div class="rank-card">
-                <h3 style="display:flex; justify-content:space-between; flex-wrap:wrap;">${playerInfo.name} <span style="font-size:12px; background:#e2d4f0; padding:2px 10px; border-radius:20px;">${scaleBadge}</span></h3>
-                <div>💰 Funding: ${((p.funding || 0)*100).toFixed(1)}%</div>
-                <div>🔥 Hype: ${p.hype || 0}</div>
-                <div>🔍 Transparency: ${p.transparency || 0}</div>
-                <div>🏅 Score: ${(p.score || 0).toFixed(2)}</div>
-                ${p.event_effect ? `<div style="margin-top:8px; font-size:12px; color:#7c3aed;">✨ Event: ${p.event_effect}</div>` : ''}
-            </div>`;
-        });
-    }
-    html += `</div>`;
-    container.innerHTML = html;
-}
+
     async function runPhase() {
         if (!currentRoomId) return;
         try {
@@ -958,6 +918,10 @@
             if (!response.ok) {
                 const error = await response.json();
                 throw new Error(error.error || 'Cannot run phase');
+            }
+            const result = await response.json();
+            if (result.message) {
+                alert(result.message);
             }
             await fetchAndUpdateUI();
         } catch (error) {
@@ -983,6 +947,21 @@
         }
     }
 
+    async function resetGame() {
+        if (!currentRoomId) return;
+        if (confirm('RESET toàn bộ game? Dữ liệu hiện tại sẽ bị mất.')) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/reset`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) throw new Error('Cannot reset game');
+                await fetchAndUpdateUI();
+            } catch (error) {
+                alert(`❌ Lỗi: ${error.message}`);
+            }
+        }
+    }
 
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => alert('✅ Đã copy link!'));
