@@ -689,11 +689,11 @@ def submit_deck():
         room['logs'].append(f"✅ Player {player_index + 1} đã chọn deck ({len(active_indices)} active, {len(reaction_indices)} reaction).")
 
         # Thử bắt đầu game nếu tất cả đã sẵn sàng
-        game_started = try_start_game(room)
-        if game_started:
-            room['logs'].append("🚀 Game đã được khởi động tự động!")
+        # game_started = try_start_game(room)
+        # if game_started:
+        #     room['logs'].append("🚀 Game đã được khởi động tự động!")
 
-        return jsonify({'ok': True, 'game_started': game_started})
+        return jsonify({'ok': True, 'game_started': False)
 
     except Exception as e:
         import traceback
