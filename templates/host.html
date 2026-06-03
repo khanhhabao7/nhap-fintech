@@ -811,7 +811,7 @@
                 if (maxPhase === 9) return 'L';
                 return 'M';
             }
-            
+
             let byScaleHtml = '';
             for (const scale of scales) {
                 const playersOfScale = allPlayers.filter(p => getPlayerScale(p) === scale);
@@ -846,13 +846,15 @@
                                     ? (player.ready ? '✅ Ready for next phase' : '⏳ Not ready')
                                     : '')
                             }
+                            </div>
                         </div>
                     `;
                 });
                 scaleHtml += `</div></div>`;
                 byScaleHtml += scaleHtml;
             }
-            document.getElementById('rankingsByScale').innerHTML = byScaleHtml || '<div class="data-empty">Chưa có dữ liệu</div>';
+            document.getElementById('rankingsByScale').innerHTML = byScaleHtml;
+
         } else {
             document.getElementById('rankingsOverall').innerHTML = '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
             document.getElementById('rankingsByScale').innerHTML = '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
