@@ -757,10 +757,11 @@ def host_state():
                 'status': proj.get('status', 'active'),
                 'current_phase': proj.get('current_phase', 0),
                 'max_phase': proj.get('max_phase', 5),
-                'deck_ready': room.get('deck_ready', [False])[i] if i < len(room.get('deck_ready', [])) else False
+                'deck_ready': room.get('deck_ready', [False])[i] if i < len(room.get('deck_ready', [])) else False,
+                'ready': room.get('player_ready', [False])[i] if i < len(room.get('player_ready', [])) else False
             })
         else:
-            rankings.append({'name': f"Player {i+1}", 'funding': 0, 'score': 0, 'status': 'not_joined', 'deck_ready': False})
+            rankings.append({'name': f"Player {i+1}", 'funding': 0, 'score': 0, 'status': 'not_joined', 'deck_ready': False, 'ready': False})
     
     return jsonify({
         'status': room['status'],
@@ -1055,6 +1056,16 @@ def run_phase():
     players = room['players']
     logs = []
 
+        # ===== KIỂM TRA TẤT CẢ ACTIVE PLAYER ĐÃ READY (CHO MỌI PHASE) =====
+    active_indices = []
+    for i, p in enumerate(players):
+        if p and p.get('status') == 'active' and p.get('current_phase', 0) < p.get('max_phase', 999):
+            active_indices.append(i)
+    not_ready = [i for i in active_indices if not room['player_ready'][i]]
+    if not_ready:
+        return jsonify({'error': f'Players {[i+1 for i in not_ready]} chưa ready'}), 400
+
+    logs.append(f"🚀 BẮT ĐẦU PHASE {phase}")
 
     for i in range(room['num_players']):
         room['player_triggers'][i] = {'available_reactions': []}
@@ -1295,7 +1306,8 @@ def api_get_room(room_id):
                 'score': score,
                 'current_phase': proj.get('current_phase', 0),
                 'max_phase': proj.get('max_phase', 5),
-                'deck_ready': room.get('deck_ready', [False])[i] if i < len(room.get('deck_ready', [])) else False
+                'deck_ready': room.get('deck_ready', [False])[i] if i < len(room.get('deck_ready', [])) else False,
+                'ready': room.get('player_ready', [False])[i] if i < len(room.get('player_ready', [])) else False
             })
         else:
             players_list.append({
@@ -1308,7 +1320,8 @@ def api_get_room(room_id):
                 'score': 0,
                 'current_phase': 0,
                 'max_phase': 5,
-                'deck_ready': False
+                'deck_ready': False,
+                'ready': False
             })
     
     base_url = request.host_url.rstrip('/')
