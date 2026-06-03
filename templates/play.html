@@ -774,36 +774,59 @@
             alert(`✨ Auto selected ${selectedActive.size} Active cards and ${selectedReaction.size} Reaction cards.\nYou can still change your selection before confirming.`);
         }
         
-        function renderDeckSelectionUI() {
-            const activeContainer = document.getElementById('activeList');
-            const reactionContainer = document.getElementById('reactionList');
-            if (!activeContainer || !reactionContainer) return;
+function renderDeckSelectionUI() {
+    const activeContainer = document.getElementById('activeList');
+    const reactionContainer = document.getElementById('reactionList');
+    if (!activeContainer || !reactionContainer) return;
+
+    // Hiển thị Active Cards
+    activeContainer.innerHTML = '';
+    if (activeCardsMaster.length === 0) {
+        activeContainer.innerHTML = '<div class="col-span-4 text-center text-red-500 p-4">Loading cards from server...</div>';
+    } else {
+        activeCardsMaster.forEach((card, idx) => {
+            let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
+            const isSelected = selectedActive.has(idx);
+            const selectedClass = isSelected ? 'selected-card' : '';
             
-            activeContainer.innerHTML = '';
-            activeCardsMaster.forEach((card, idx) => {
-                let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
-                const isSelected = selectedActive.has(idx);
-                const selectedClass = isSelected ? 'selected-card' : '';
-                activeContainer.innerHTML += `
-                    <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedClass}" data-idx="${idx}" data-type="active" style="background-color:${bgColor};">
-                        <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
-                    </div>
-                `;
-            });
+            // Xử lý description để hiển thị đẹp hơn
+            let shortDesc = card.desc || '';
+            if (shortDesc.length > 50) shortDesc = shortDesc.substring(0, 47) + '...';
             
-            reactionContainer.innerHTML = '';
-            reactionCardsMaster.forEach((card, idx) => {
-                const isSelected = selectedReaction.has(idx);
-                const selectedClass = isSelected ? 'selected-card' : '';
-                reactionContainer.innerHTML += `
-                    <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" data-idx="${idx}" data-type="reaction">
-                        <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
-                    </div>
-                `;
-            });
+            activeContainer.innerHTML += `
+                <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedClass}" 
+                     data-idx="${idx}" data-type="active" 
+                     style="background-color:${bgColor}; border: ${isSelected ? '2px solid #ec4899' : '1px solid #e2e8f0'};">
+                    <div class="font-bold text-sm text-purple-800">${card.name || 'Unknown'}</div>
+                    <div class="text-xs text-purple-600 mt-1">⚡ Cost: ${card.cost || 0}</div>
+                    <div class="text-xs text-gray-600 mt-1 line-clamp-2">📝 ${shortDesc}</div>
+                </div>
+            `;
+        });
+    }
+
+    // Hiển thị Reaction Cards
+    reactionContainer.innerHTML = '';
+    if (reactionCardsMaster.length === 0) {
+        reactionContainer.innerHTML = '<div class="col-span-3 text-center text-red-500 p-4">Loading reaction cards...</div>';
+    } else {
+        reactionCardsMaster.forEach((card, idx) => {
+            const isSelected = selectedReaction.has(idx);
+            const selectedClass = isSelected ? 'selected-card' : '';
+            
+            let shortDesc = card.desc || '';
+            if (shortDesc.length > 50) shortDesc = shortDesc.substring(0, 47) + '...';
+            
+            reactionContainer.innerHTML += `
+                <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" 
+                     data-idx="${idx}" data-type="reaction"
+                     style="border: ${isSelected ? '2px solid #10b981' : '1px solid #d1fae5'};">
+                    <div class="font-bold text-sm text-purple-800">${card.name || 'Unknown'}</div>
+                    <div class="text-xs text-gray-600 mt-1 line-clamp-2">📝 ${shortDesc}</div>
+                </div>
+            `;
+        });
+    }
             
             // Gắn sự kiện click cho active cards
             document.querySelectorAll('.active-card').forEach(el => {
