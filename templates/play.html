@@ -580,24 +580,54 @@
         </div>
         
         <!-- End game screen (chi tiết) -->
-        <div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden">
-            <h2 class="text-3xl font-bold text-center mb-4 text-purple-800">🏆 GAME OVER 🏆</h2>
-            <div class="text-center mb-6">
-                <div class="text-6xl font-bold text-pink-500"><span id="finalScore">0</span></div>
-                <div class="text-gray-600 mb-2">Your Final Score</div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mt-3">
-                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Funding %</div><div class="font-bold text-lg"><span id="finalFunding">0</span>%</div></div>
-                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Hype</div><div class="font-bold text-lg"><span id="finalHype">0</span></div></div>
-                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Transparency</div><div class="font-bold text-lg"><span id="finalTrans">0</span></div></div>
-                </div>
+<!-- End game screen (chi tiết) -->
+<div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden">
+    <h2 class="text-3xl font-bold text-center mb-6 text-purple-800">🏆 GAME OVER 🏆</h2>
+    
+    <!-- Phần điểm của bạn - căn giữa -->
+    <div class="text-center mb-8">
+        <div class="inline-block bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-6 shadow-lg">
+            <div class="text-7xl font-bold text-white mb-2"><span id="finalScore">0</span></div>
+            <div class="text-pink-100 font-semibold">Your Final Score</div>
+        </div>
+        
+        <!-- Các chỉ số phụ - căn giữa -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto mt-6">
+            <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
+                <div class="text-xs text-purple-500 font-medium">📊 FUNDING</div>
+                <div class="font-bold text-2xl text-purple-700"><span id="finalFunding">0</span>%</div>
             </div>
-            <h3 class="font-bold text-lg mb-3 text-purple-800">📊 COMPETITOR RANKING</h3>
-            <div id="finalRanking" class="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2"></div>
-            <!-- <div class="flex gap-3">
-                <button onclick="location.reload()" class="btn-gradient flex-1 py-2 rounded-full font-bold text-white">🔄 PLAY AGAIN</button>
-                <button id="backToGameBtn" class="bg-gray-500 hover:bg-gray-600 flex-1 py-2 rounded-full font-bold text-white">◀ BACK TO GAME</button> -->
-            <!-- </div> -->
+            <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
+                <div class="text-xs text-purple-500 font-medium">🔥 HYPE</div>
+                <div class="font-bold text-2xl text-pink-600"><span id="finalHype">0</span></div>
             </div>
+            <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
+                <div class="text-xs text-purple-500 font-medium">👁️ TRANSPARENCY</div>
+                <div class="font-bold text-2xl text-green-600"><span id="finalTrans">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bảng xếp hạng - căn giữa -->
+    <div class="max-w-4xl mx-auto">
+        <h3 class="font-bold text-xl mb-4 text-purple-800 text-center flex items-center justify-center gap-2">
+            <span>🏆</span> COMPETITOR RANKING <span>🏆</span>
+        </h3>
+        <div id="finalRanking" class="bg-white/70 rounded-xl p-4 max-h-96 overflow-y-auto"></div>
+    </div>
+    
+    <!-- Nút hành động - căn giữa -->
+    <div class="flex justify-center gap-4 mt-6">
+        <button onclick="location.reload()" 
+                class="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-lg">
+            🔄 PLAY AGAIN
+        </button>
+        <button id="backToGameBtn" 
+                class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-xl font-bold text-white transition-all shadow-lg">
+            ◀ BACK TO GAME
+        </button>
+    </div>
+</div>
 
     <!-- INFO MODAL -->
     <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
@@ -1032,7 +1062,83 @@ function renderDeckSelectionUI() {
                 return false;
             }
         }
+        // ==================== RENDER FINAL RANKING ====================
+async function renderFinalRanking() {
+    try {
+        const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
+        if (!roomData.players) return;
         
+        // Sắp xếp theo score giảm dần
+        const sorted = [...roomData.players]
+            .filter(p => p.status !== 'not_joined')
+            .sort((a, b) => (b.score || 0) - (a.score || 0));
+        
+        // Tạo bảng xếp hạng
+        let html = `
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Player</th>
+                        <th>Scale</th>
+                        <th>Funding</th>
+                        <th>Hype</th>
+                        <th>Transparency</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        sorted.forEach((p, idx) => {
+            // Highlight hàng của player hiện tại
+            const isCurrentPlayer = p.id === playerIndexFromUrl;
+            const rowClass = isCurrentPlayer ? 'style="background: linear-gradient(135deg, #fce7f3, #f3e8ff); font-weight: bold;"' : '';
+            
+            html += `<tr ${rowClass}>
+                <td><strong>${idx + 1}</strong>${idx === 0 ? ' 👑' : ''}</td>
+                <td>${p.name || `Player ${p.id + 1}`}${isCurrentPlayer ? ' (You)' : ''}</td>
+                <td>${getPlayerScale(p)}</td>
+                <td>${((p.funding || 0) * 100).toFixed(1)}%</td>
+                <td>${p.hype || 0}</td>
+                <td>${p.transparency || 0}</td>
+                <td><strong>${(p.score || 0).toFixed(2)}</strong></td>
+            </table>`;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        document.getElementById('finalRanking').innerHTML = html;
+        
+        // Cập nhật các chỉ số của player hiện tại (nếu chưa được cập nhật từ data)
+        const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
+        if (myData) {
+            // Chỉ cập nhật nếu các element chưa có giá trị
+            const finalFundingEl = document.getElementById('finalFunding');
+            const finalHypeEl = document.getElementById('finalHype');
+            const finalTransEl = document.getElementById('finalTrans');
+            
+            if (finalFundingEl && finalFundingEl.innerText === '0') {
+                finalFundingEl.innerText = ((myData.funding || 0) * 100).toFixed(1);
+            }
+            if (finalHypeEl && finalHypeEl.innerText === '0') {
+                finalHypeEl.innerText = myData.hype || 0;
+            }
+            if (finalTransEl && finalTransEl.innerText === '0') {
+                finalTransEl.innerText = myData.transparency || 0;
+            }
+        }
+    } catch (err) { 
+        console.error('Error rendering final ranking:', err);
+        const rankingDiv = document.getElementById('finalRanking');
+        if (rankingDiv) {
+            rankingDiv.innerHTML = '<p class="text-center text-red-500">Unable to load ranking</p>';
+        }
+    }
+}
         // ==================== GAME POLLING ====================
         function startGamePolling() {
             if (pollingInterval) clearInterval(pollingInterval);
@@ -1147,34 +1253,69 @@ function renderDeckSelectionUI() {
         }   // <-- HÀM KẾT THÚC Ở ĐÂY
 
         // Hàm hiển thị bảng xếp hạng cuối game
-        async function renderFinalRanking() {
-            try {
-                const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
-                if (!roomData.players) return;
-                const sorted = [...roomData.players].filter(p => p.status !== 'not_joined').sort((a,b) => (b.score||0) - (a.score||0));
-                let html = `<table class="leaderboard-table"><thead><tr><th>#</th><th>Player</th><th>Scale</th><th>Funding %</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead><tbody>`;
-                sorted.forEach((p, idx) => {
-                    html += `<tr>
-                        <td>${idx+1}</td>
-                        <td>${p.name || `Player ${p.id+1}`}</td>
-                        <td>${getPlayerScale(p)}</td>
-                        <td>${((p.funding||0)*100).toFixed(1)}%</td>
-                        <td>${p.hype||0}</td>
-                        <td>${p.transparency||0}</td>
-                        <td><strong>${(p.score||0).toFixed(2)}</strong></td>
-                    </tr>`;
-                });
-                html += `</tbody></table>`;
-                document.getElementById('finalRanking').innerHTML = html;
-                const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
-                if (myData) {
-                    document.getElementById('finalFunding').innerText = ((myData.funding||0)*100).toFixed(1);
-                    document.getElementById('finalHype').innerText = myData.hype || 0;
-                    document.getElementById('finalTrans').innerText = myData.transparency || 0;
-                    document.getElementById('finalRunway').innerText = myData.runway || 0;
-                }
-            } catch(err) { console.error(err); }
+async function renderFinalRanking() {
+    try {
+        const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
+        if (!roomData.players) return;
+        
+        // Sắp xếp theo score giảm dần
+        const sorted = [...roomData.players]
+            .filter(p => p.status !== 'not_joined')
+            .sort((a, b) => (b.score || 0) - (a.score || 0));
+        
+        // Tạo bảng xếp hạng
+        let html = `
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Player</th>
+                        <th>Scale</th>
+                        <th>Funding</th>
+                        <th>Hype</th>
+                        <th>Transparency</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        sorted.forEach((p, idx) => {
+            // Highlight hàng của player hiện tại
+            const isCurrentPlayer = p.id === playerIndexFromUrl;
+            const rowClass = isCurrentPlayer ? 'style="background: linear-gradient(135deg, #fce7f3, #f3e8ff); font-weight: bold;"' : '';
+            
+            html += `<tr ${rowClass}>
+                <td><strong>${idx + 1}</strong>${idx === 0 ? ' 👑' : ''}</td>
+                <td>${p.name || `Player ${p.id + 1}`}${isCurrentPlayer ? ' (You)' : ''}</td>
+                <td>${getPlayerScale(p)}</td>
+                <td>${((p.funding || 0) * 100).toFixed(1)}%</td>
+                <td>${p.hype || 0}</td>
+                <td>${p.transparency || 0}</td>
+                <td><strong>${(p.score || 0).toFixed(2)}</strong></td>
+            </tr>`;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        document.getElementById('finalRanking').innerHTML = html;
+        
+        // Cập nhật các chỉ số của player hiện tại
+        const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
+        if (myData) {
+            document.getElementById('finalFunding').innerText = ((myData.funding || 0) * 100).toFixed(1);
+            document.getElementById('finalHype').innerText = myData.hype || 0;
+            document.getElementById('finalTrans').innerText = myData.transparency || 0;
         }
+    } catch (err) { 
+        console.error('Error rendering final ranking:', err);
+        document.getElementById('finalRanking').innerHTML = '<p class="text-center text-red-500">Unable to load ranking</p>';
+    }
+}
+        
     
         // ==================== PLAYER ACTIONS ====================
         document.getElementById('playCardBtn')?.addEventListener('click', async () => {
