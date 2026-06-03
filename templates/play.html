@@ -395,10 +395,10 @@
                         <div class="info-icon" data-category="price_channels">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail price <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="price" value="35" step="1" min="10" max="1000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">E-commerce fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesEcom" value="10" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesRetail" value="15" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct channel fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesDirect" value="5" min="0" max="100" step="0.5" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail price <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="price" value="35" step="0.5" min="10" max="1000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">E-commerce fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesEcom" value="10" min="0" max="100" step="0.1" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Retail fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesRetail" value="15" min="0" max="100" step="0.1" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct channel fee <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="feesDirect" value="5" min="0" max="100" step="0.1" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
                 
@@ -412,7 +412,7 @@
                         <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct materials <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="cogsMaterial" value="12" step="0.01" min="0.1" max="100" class="w-full rounded-xl px-3 py-2"></div>
                         <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct packaging <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="cogsPackaging" value="3" step="0.01" min="0.1" max="100" class="w-full rounded-xl px-3 py-2"></div>
                         <div><label class="block text-sm font-medium mb-1 text-purple-900">Direct labor <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="cogsLabor" value="4" step="0.01" min="0.1" max="100" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Defect allowance <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="defectAllowance" value="2" step="0.5" min="0" max="10" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Defect allowance <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="defectAllowance" value="2" step="0.1" min="0" max="10" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
                 
@@ -423,9 +423,9 @@
                         <div class="info-icon" data-category="forecast">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 1 units</label><input type="number" id="month1Units" value="1200" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 3 units</label><input type="number" id="month3Units" value="2500" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 6 units</label><input type="number" id="month6Units" value="4000" step="100" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 1 units</label><input type="number" id="month1Units" value="1200" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 3 units</label><input type="number" id="month3Units" value="2500" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Month 6 units</label><input type="number" id="month6Units" value="4000" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
                 
@@ -436,8 +436,8 @@
                         <div class="info-icon" data-category="opex">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Fixed operating cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="fixedOpex" value="15000" step="1000" min="1000" max="100000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Marketing cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="marketingCost" value="8000" step="1000" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Fixed operating cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="fixedOpex" value="15000" step="1" min="1000" max="100000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Marketing cost <span class="text-xs text-gray-500">(USD/month)</span></label><input type="number" id="marketingCost" value="8000" step="1" min="0" max="100000" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
                 </div>
                 
@@ -448,8 +448,8 @@
                         <div class="info-icon" data-category="capital">?</div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Owner equity <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="ownerEquity" value="50000" step="1000" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
-                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Bank loan <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="bankLoan" value="30000" step="1000" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Owner equity <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="ownerEquity" value="50000" step="1" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
+                        <div><label class="block text-sm font-medium mb-1 text-purple-900">Bank loan <span class="text-xs text-gray-500">(USD)</span></label><input type="number" id="bankLoan" value="30000" step="1" min="0" max="300000" class="w-full rounded-xl px-3 py-2"></div>
                         <div><label class="block text-sm font-medium mb-1 text-purple-900">Loan interest rate <span class="text-xs text-gray-500">(%/year)</span></label><input type="number" id="loanRate" value="8" step="0.1" min="5" max="100" class="w-full rounded-xl px-3 py-2"></div>
                         <div><label class="block text-sm font-medium mb-1 text-purple-900">Equity offered <span class="text-xs text-gray-500">(%)</span></label><input type="number" id="equity" value="15" step="0.1" min="0.1" max="99.9" class="w-full rounded-xl px-3 py-2"></div>
                     </div>
@@ -525,23 +525,36 @@
         
         <!-- End game screen (chi tiết) -->
         <div id="endgamePanel" class="glass-card rounded-3xl p-6 shadow-xl hidden">
-            <h2 class="text-3xl font-bold text-center mb-4 text-purple-800">🏆 GAME OVER 🏆</h2>
-            <div class="text-center mb-6">
-                <div class="text-6xl font-bold text-pink-500"><span id="finalScore">0</span></div>
-                <div class="text-gray-600 mb-2">Your Final Score</div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto mt-3">
-                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Funding %</div><div class="font-bold text-lg"><span id="finalFunding">0</span>%</div></div>
-                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Hype</div><div class="font-bold text-lg"><span id="finalHype">0</span></div></div>
-                    <div class="bg-purple-50 rounded-lg p-2"><div class="text-xs text-purple-600">Transparency</div><div class="font-bold text-lg"><span id="finalTrans">0</span></div></div>
+            <h2 class="text-3xl font-bold text-center mb-6 text-purple-800">🏆 GAME OVER 🏆</h2>
+            <div class="text-center mb-8">
+                <div class="inline-block bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl p-6 shadow-lg">
+                    <div class="text-7xl font-bold text-white mb-2"><span id="finalScore">0</span></div>
+                    <div class="text-pink-100 font-semibold">Your Final Score</div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 max-w-2xl mx-auto mt-6">
+                    <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
+                        <div class="text-xs text-purple-500">📊 Funding</div>
+                        <div class="font-bold text-xl text-purple-700"><span id="finalFunding">0</span>%</div>
+                    </div>
+                    <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
+                        <div class="text-xs text-purple-500">🔥 Hype</div>
+                        <div class="font-bold text-xl text-pink-600"><span id="finalHype">0</span></div>
+                    </div>
+                    <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
+                        <div class="text-xs text-purple-500">🔎 Transparency</div>
+                        <div class="font-bold text-xl text-green-600"><span id="finalTrans">0</span></div>
+                    </div>
+                    <div class="bg-white/80 rounded-xl p-3 shadow-md text-center">
+                        <div class="text-xs text-purple-500">📏 Scale</div>
+                        <div class="font-bold text-xl text-blue-600"><span id="finalScale">-</span></div>
+                    </div>
                 </div>
             </div>
-            <h3 class="font-bold text-lg mb-3 text-purple-800">📊 COMPETITOR RANKING</h3>
-            <div id="finalRanking" class="space-y-4 mb-6 max-h-96 overflow-y-auto pr-2"></div>
-            <!-- <div class="flex gap-3">
-                <button onclick="location.reload()" class="btn-gradient flex-1 py-2 rounded-full font-bold text-white">🔄 PLAY AGAIN</button>
-                <button id="backToGameBtn" class="bg-gray-500 hover:bg-gray-600 flex-1 py-2 rounded-full font-bold text-white">◀ BACK TO GAME</button> -->
-            <!-- </div> -->
-            </div>
+            <h3 class="font-bold text-xl mb-4 text-purple-800 text-center flex items-center justify-center gap-2">
+                <span>🏆</span> COMPETITOR RANKING <span>🏆</span>
+            </h3>
+            <div id="finalRanking" class="bg-white/70 rounded-xl p-4 max-h-96 overflow-y-auto"></div>
+        </div>
 
     <!-- INFO MODAL -->
     <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
