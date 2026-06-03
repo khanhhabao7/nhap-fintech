@@ -1185,21 +1185,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initRulesSidebar();
 });
         
-// Override relevant functions to update rules button visibility
-const originalUpdateDisplay = updateDisplay;
-updateDisplay = function() {
-    originalUpdateDisplay();
-    updateRulesButtonVisibility();
-};
-        
-const originalCloseLeaderboardModal = closeLeaderboardModal;
-closeLeaderboardModal = function() {
-    if (originalCloseLeaderboardModal) originalCloseLeaderboardModal();
-    updateRulesButtonVisibility();
-};
-
-// Initial call
-updateRulesButtonVisibility();
     </script>
 </body>
 </html>
