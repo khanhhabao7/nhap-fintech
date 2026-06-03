@@ -492,9 +492,8 @@
 
         <!-- Game control buttons -->
         <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
-            <button onclick="runPhase()" id="runPhaseBtn" disabled>▶ RUN NEXT PHASE</button>
+            <button onclick="runPhase()" id="runPhaseBtn" disabled>▶ RUN PHASE <span id="phaseNumberLabel">?</span></button>
             <button onclick="endGame()" id="endGameBtn" disabled>⛔ END GAME</button>
-            <button onclick="resetGame()" id="resetGameBtn" disabled>🔄 RESET GAME</button>
         </div>
     </div>
 </div>
@@ -753,6 +752,25 @@
         document.getElementById('endGameBtn').disabled = roomData.ended;
         document.getElementById('resetGameBtn').disabled = false;
 
+
+        // Cập nhật nhãn phase sắp chạy
+        const nextPhase = (roomData.currentPhase || 0) + 1;
+        const phaseLabelSpan = document.getElementById('phaseNumberLabel');
+        if (phaseLabelSpan) phaseLabelSpan.innerText = nextPhase;
+    
+        // Enable/disable nút run phase (phải ready hết active player)
+        const runBtn = document.getElementById('runPhaseBtn');
+        if (roomData.status === 'playing' && !roomData.ended) {
+            const activePlayers = roomData.players.filter(p => p.status === 'active');
+            const allReady = activePlayers.length > 0 && activePlayers.every(p => p.ready === true);
+            runBtn.disabled = !allReady;
+        } else {
+            runBtn.disabled = true;
+        }
+
+
+
+        
                 // Leaderboard - Overall and by Scale
         if (roomData.players && roomData.players.length > 0) {
             console.log('Player scales:', roomData.players.map(p => ({ name: p.name, scale: p.scale })));
@@ -779,6 +797,7 @@
                             <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                         </div>
                         <div class="text-xs mt-2">📦 ${deckStatus}</div>
+                        <div class="text-xs mt-1">${player.ready ? '✅ Ready' : '⏳ Not ready'}</div>
                     </div>
                 `;
             });
@@ -823,6 +842,7 @@
                                 <span class="metric-tag hype-tag">📈 Hype ${player.hype ?? 0}</span>
                                 <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                                 <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
+                            <div class="text-xs mt-1">${player.ready ? '✅ Ready' : '⏳ Not ready'}</div>
                             </div>
                         </div>
                     `;
@@ -963,21 +983,6 @@
         }
     }
 
-    async function resetGame() {
-        if (!currentRoomId) return;
-        if (confirm('RESET toàn bộ game? Dữ liệu hiện tại sẽ bị mất.')) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/reset`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Cannot reset game');
-                await fetchAndUpdateUI();
-            } catch (error) {
-                alert(`❌ Lỗi: ${error.message}`);
-            }
-        }
-    }
 
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => alert('✅ Đã copy link!'));
