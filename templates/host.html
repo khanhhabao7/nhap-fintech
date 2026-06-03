@@ -940,7 +940,7 @@ async function showPhaseDetails() {
         return;
     }
     
-    // Lấy thông tin scale của từng player để hiển thị đúng số phase
+    // Lấy thông tin scale của từng player (nếu có)
     const playersScaleMap = new Map();
     if (roomData.players) {
         roomData.players.forEach(p => {
@@ -954,7 +954,6 @@ async function showPhaseDetails() {
     html += `<div style="font-size:13px; color:#6b21a5; margin-bottom:12px;">📊 Kết quả chi tiết phase ${detail.phase}:</div>`;
     html += `<div class="rankings" style="margin-top:10px;">`;
     
-    // Hiển thị tất cả players có trong phase này
     const playersInPhase = detail.players || [];
     if (playersInPhase.length === 0) {
         html += `<div class="data-empty">Không có dữ liệu người chơi cho phase này</div>`;
