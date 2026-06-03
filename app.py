@@ -394,25 +394,25 @@ def process_phase(room, phase, players, logs):
             actual = min(desired, max_withdraw)
 
             
-    if actual > 0:
-        if actual <= players[idx]['available_cash']:
-                    # Đủ tiền: rút bình thường
-            players[idx]['available_cash'] -= actual
-            players[idx]['total_invested'] -= actual
-            players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
-                    # Cập nhật allocation của bot
-            alloc_entry['perProject'][idx] -= actual
-            alloc_entry['idle'] += actual
-            logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
-        else:
-                    # Không đủ tiền -> phá sản
-            players[idx]['status'] = 'bankrupt'
-            players[idx]['funding_progress'] = 0
-            players[idx]['total_invested'] = 0
-                    # Xóa toàn bộ investment của bot khỏi project này
-            alloc_entry['idle'] += alloc_entry['perProject'][idx]
-            alloc_entry['perProject'][idx] = 0
-            logs.append(f"Dự án {idx+1} PHÁ SẢN!")
+            if actual > 0:
+                if actual <= players[idx]['available_cash']:
+                            # Đủ tiền: rút bình thường
+                    players[idx]['available_cash'] -= actual
+                    players[idx]['total_invested'] -= actual
+                    players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
+                            # Cập nhật allocation của bot
+                    alloc_entry['perProject'][idx] -= actual
+                    alloc_entry['idle'] += actual
+                    logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
+                else:
+                            # Không đủ tiền -> phá sản
+                    players[idx]['status'] = 'bankrupt'
+                    players[idx]['funding_progress'] = 0
+                    players[idx]['total_invested'] = 0
+                            # Xóa toàn bộ investment của bot khỏi project này
+                    alloc_entry['idle'] += alloc_entry['perProject'][idx]
+                    alloc_entry['perProject'][idx] = 0
+                    logs.append(f"Dự án {idx+1} PHÁ SẢN!")
 
 
     for bot in active_bots:
@@ -695,7 +695,7 @@ def submit_deck():
         # if game_started:
         #     room['logs'].append("🚀 Game đã được khởi động tự động!")
 
-        return jsonify({'ok': True, 'game_started': False)
+        return jsonify({'ok': True, 'game_started': False})
 
 @app.route('/api/start_game', methods=['POST'])
 def start_game():
@@ -1123,7 +1123,7 @@ def run_phase():
             return jsonify({'error': 'Chưa phải tất cả người chơi đều Ready'}), 400
 
 
-    phase = room['phase']
+    # phase = room['phase']
     players = room['players']
     logs = []
 
