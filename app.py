@@ -500,6 +500,8 @@ def play_page(room_id, player_index):
         return "Chỉ số người chơi không hợp lệ", 400
     return render_template('play.html', room_id=room_id, player_index=player_index, max_players=room['num_players'])
 
+
+
 @app.route('/api/create_room', methods=['POST'])
 def create_room():
     data = request.json
@@ -1077,6 +1079,30 @@ def run_phase():
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
+
+    # Nếu game chưa bắt đầu (đang ở giai đoạn chọn deck)
+    if room['status'] == 'choosing_deck':
+        # Kiểm tra tất cả người chơi đã tham gia (có project) đều đã chọn deck
+        all_ready = True
+        missing_players = []
+        for i, p in enumerate(room['players']):
+            if p is not None and not room['deck_ready'][i]:
+                all_ready = False
+                missing_players.append(i+1)
+        
+        if not all_ready:
+            return jsonify({'error': f'Chưa sẵn sàng: người chơi {missing_players} chưa submit deck'}), 400
+        
+        # Đủ điều kiện: bắt đầu game
+        success = try_start_game(room)
+        if not success:
+            return jsonify({'error': 'Không thể khởi tạo game. Kiểm tra deck của từng người chơi.'}), 400
+        
+        room['logs'].append("🚀 Game đã được bắt đầu bởi host (nút RUN PHASE).")
+        # Sau khi start, room['status'] = 'playing', room['phase'] = 1
+        # Tiếp tục xuống dưới để chạy phase 1
+
+
     
     if room['status'] != 'playing':
         return jsonify({'error': 'Game not active'}), 400
