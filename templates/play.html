@@ -1028,29 +1028,62 @@
             try {
                 const roomData = await fetchJSON(`${API_BASE}/rooms/${roomIdFromUrl}`);
                 if (!roomData.players) return;
-                const sorted = [...roomData.players].filter(p => p.status !== 'not_joined').sort((a,b) => (b.score||0) - (a.score||0));
-                let html = `<table class="leaderboard-table"><thead><tr><th>#</th><th>Player</th><th>Scale</th><th>Funding %</th><th>Hype</th><th>Transparency</th><th>Score</th></tr></thead><tbody>`;
-                sorted.forEach((p, idx) => {
-                    html += `<tr>
-                        <td>${idx+1}</td>
-                        <td>${p.name || `Player ${p.id+1}`}</td>
-                        <td>${getPlayerScale(p)}</td>
-                        <td>${((p.funding||0)*100).toFixed(1)}%</td>
-                        <td>${p.hype||0}</td>
-                        <td>${p.transparency||0}</td>
-                        <td><strong>${(p.score||0).toFixed(2)}</strong></td>
-                    </tr>`;
-                });
-                html += `</tbody></table>`;
-                document.getElementById('finalRanking').innerHTML = html;
+                
+                // Lưu scale của mình để hiển thị
                 const myData = roomData.players.find(p => p.id === playerIndexFromUrl);
                 if (myData) {
                     document.getElementById('finalFunding').innerText = ((myData.funding||0)*100).toFixed(1);
                     document.getElementById('finalHype').innerText = myData.hype || 0;
                     document.getElementById('finalTrans').innerText = myData.transparency || 0;
-                    document.getElementById('finalRunway').innerText = myData.runway || 0;
+                    const scaleText = myData.scale === 'S' ? 'Small (5 phases)' : (myData.scale === 'L' ? 'Large (9 phases)' : 'Medium (7 phases)');
+                    document.getElementById('finalScale').innerText = scaleText;
                 }
-            } catch(err) { console.error(err); }
+                
+                // Sắp xếp tất cả player theo score giảm dần
+                const sorted = [...roomData.players]
+                    .filter(p => p.status !== 'not_joined')
+                    .sort((a,b) => (b.score||0) - (a.score||0));
+                
+                let html = `
+                    <table class="leaderboard-table w-full">
+                        <thead class="bg-purple-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left">#</th>
+                                <th class="px-4 py-2 text-left">Player</th>
+                                <th class="px-4 py-2 text-left">Scale</th>
+                                <th class="px-4 py-2 text-left">Funding</th>
+                                <th class="px-4 py-2 text-left">Hype</th>
+                                <th class="px-4 py-2 text-left">Transparency</th>
+                                <th class="px-4 py-2 text-left">Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                sorted.forEach((p, idx) => {
+                    const isMe = p.id === playerIndexFromUrl;
+                    const rowClass = isMe ? 'bg-pink-100 font-bold' : '';
+                    const scaleDisplay = p.scale === 'S' ? 'Small' : (p.scale === 'L' ? 'Large' : 'Medium');
+                    html += `
+                        <tr class="${rowClass} border-b border-purple-100">
+                            <td class="px-4 py-2">${idx+1}${idx === 0 ? ' 👑' : ''}</td>
+                            <td class="px-4 py-2">${p.name || `Player ${p.id+1}`}${isMe ? ' (You)' : ''}</td>
+                            <td class="px-4 py-2">${scaleDisplay}</td>
+                            <td class="px-4 py-2">${((p.funding||0)*100).toFixed(1)}%</td>
+                            <td class="px-4 py-2">${p.hype||0}</td>
+                            <td class="px-4 py-2">${p.transparency||0}</td>
+                            <td class="px-4 py-2 font-bold">${(p.score||0).toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `</tbody></table>`;
+                document.getElementById('finalRanking').innerHTML = html;
+                
+            } catch(err) { 
+                console.error('Error rendering final ranking:', err);
+                document.getElementById('finalRanking').innerHTML = '<div class="text-center text-red-500">Unable to load ranking</div>';
+            }
         }
     
         // ==================== PLAYER ACTIONS ====================
