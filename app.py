@@ -822,11 +822,11 @@ def player_state():
             'valuation_sanity': metrics.get('valuation_sanity', 0),
             'roi_norm': metrics.get('roi_norm', 0),
             'runway': metrics.get('runway', 0),
-            'funding_progress': proj.get('funding_progress', 0),
-            'ready': room.get('player_ready', [False])[player_index] if player_index < len(room.get('player_ready', [])) else False,   
-            'choosing_deck': room['status'] == 'choosing_deck',
-            'game_started': room['status'] == 'playing'
+            'funding_progress': proj.get('funding_progress', 0)
         },
+        'ready': room.get('player_ready', [False])[player_index] if player_index < len(room.get('player_ready', [])) else False,
+        'choosing_deck': room['status'] == 'choosing_deck',
+        'game_started': room['status'] == 'playing',
         'hype': proj.get('hype', 50),
         'transparency': proj.get('transparency', 50),
         'hand': proj.get('current_hand', []),
@@ -841,8 +841,6 @@ def player_state():
         'final_score': final_score_value,
         'triggers': triggers.get('available_reactions', []),
         'deck_ready': room.get('deck_ready', [False])[player_index] if player_index < len(room.get('deck_ready', [])) else False,
-        'choosing_deck': room['status'] == 'choosing_deck',
-        'game_started': room['status'] == 'playing'
     })
 
 @app.route('/api/play_card', methods=['POST'])
