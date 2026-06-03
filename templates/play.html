@@ -714,12 +714,18 @@
                 <div class="mb-4 flex justify-end">
                     <button id="autoDeckBtn" class="auto-deck-btn">🎲 AUTO-SELECT RANDOM DECK (Preview & Edit)</button>
                 </div>
-                <p class="text-sm mb-4">
-                    <span style="color:#ff69b4;">● Hot Pink: Attack</span> | 
-                    <span style="color:#87ceeb;">● Baby Blue: Defense</span> | 
-                    <span style="color:#a855f7;">● Purple: Capital</span> |
-                    <span style="color:#10b981;">● Mint: Reaction Cards</span>
-                </p>
+                <div class="text-sm mb-4">
+                    <div class="flex flex-wrap gap-3 items-center mb-2">
+                        <span style="color:#ff69b4;">● Attack</span>
+                        <span style="color:#87ceeb;">● Defense</span>
+                        <span style="color:#a855f7;">● Capital</span>
+                        <span style="color:#10b981;">● Reaction</span>
+                    </div>
+                    <div class="text-purple-700 bg-purple-50 rounded-lg p-2 text-center">
+                        📊 Hệ thống hiện có <strong>${activeCardsMaster.length}</strong> Active cards và <strong>${reactionCardsMaster.length}</strong> Reaction cards.
+                        <br>Bạn cần chọn <strong>22 Active cards</strong> (bắt buộc) và tối đa <strong>3 Reaction cards</strong>.
+                    </div>
+                </div>
                 <div class="mb-6"><h3 class="font-bold mb-2">ACTION CARDS (choose 22 cards)</h3><div id="activeList" class="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="activeCount">0</span>/22</div></div>
                 <div class="mb-6"><h3 class="font-bold mb-2">REACTION CARDS (choose up to 3)</h3><div id="reactionList" class="grid grid-cols-2 md:grid-cols-3 gap-2 p-2 bg-white/50 rounded-lg"></div><div class="text-sm mt-2 text-purple-700">Selected: <span id="reactionCount">0</span>/3</div></div>
                 <button id="submitDeckBtn" class="btn-gradient w-full py-3 rounded-2xl font-extrabold text-white shadow-lg text-lg">CONFIRM DECK</button>
