@@ -695,6 +695,31 @@ def submit_deck():
 
         return jsonify({'ok': True, 'game_started': False)
 
+@app.route('/api/start_game', methods=['POST'])
+def start_game():
+    data = request.json
+    room_id = data.get('room_id')
+    if not room_id or room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    
+    room = rooms[room_id]
+    if room['status'] != 'choosing_deck':
+        return jsonify({'error': 'Game không ở trạng thái chọn deck'}), 400
+    
+    # Kiểm tra có ít nhất 2 người chơi đã submit project (không nhất thiết phải chọn deck hết)
+    active_projects = [p for p in room['players'] if p is not None]
+    if len(active_projects) < 2:
+        return jsonify({'error': 'Cần ít nhất 2 dự án để bắt đầu'}), 400
+    
+    # Gọi hàm khởi tạo game (giống try_start_game nhưng không tự động)
+    success = try_start_game(room)
+    if not success:
+        return jsonify({'error': 'Không thể khởi tạo game, kiểm tra deck của người chơi'}), 400
+    
+    room['logs'].append("🚀 Host đã bắt đầu game!")
+    return jsonify({'ok': True, 'message': 'Game started'})
+    
+
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
