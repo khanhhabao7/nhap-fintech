@@ -913,14 +913,6 @@ if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
             document.getElementById('joinLinksList').innerHTML = '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>';
         }
 
-// Phase details - FIX: hiển thị tất cả phase đã chơi theo đúng scale từng player
-if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
-    const select = document.getElementById('phaseSelect');
-    // Sắp xếp phase theo thứ tự tăng dần
-    const sortedPhases = [...roomData.phaseDetails].sort((a,b) => a.phase - b.phase);
-    select.innerHTML = '<option value="">-- Chọn phase để xem chi tiết --</option>' + 
-        sortedPhases.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || 'Đã diễn ra'})</option>`).join('');
-}
 
 async function showPhaseDetails() {
     if (!currentRoomId) return;
