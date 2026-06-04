@@ -371,19 +371,16 @@ def process_phase(room, phase, players, logs):
                     logs.append(f"Bot {bot['type']} rút toàn bộ {invested:.0f} từ dự án {idx+1} (kết thúc)")
                 continue
             diff = A.get((bot['id'], best_idx), -1e9) - A.get((bot['id'], idx), -1e9)
-            if diff > 25:
-                withdraw_ratio = 0.5
-            elif diff > 15:
-                withdraw_ratio = 0.25
+            if diff > 15:
+                withdraw_ratio = 1.0
             elif diff > 5:
-                withdraw_ratio = 0.
+                withdraw_ratio = 0.3
             else:
                 withdraw_ratio = 0.0
             max_ratio = min(0.6, 0.2 + (phase - 1) * 0.05)
             desired = invested * withdraw_ratio
             max_withdraw = invested * max_ratio
             actual = min(desired, max_withdraw)
-            if players[idx]['funding_progress'] > 0.8: withdraw_ratio *= 0.3 # giảm mạnh động lực rút khi gần xong 
             if actual > 0:
                 if actual <= players[idx]['available_cash']:
                     players[idx]['available_cash'] -= actual
@@ -409,18 +406,16 @@ def process_phase(room, phase, players, logs):
         attrs = [A.get((bot['id'], i), -1e9) for i in candidates]
         min_a = min(attrs)
         shifted = [max(0, a - min_a + 0.01) for a in attrs]
-        sum_exp = sum(math.exp(a / 35) for a in shifted)
-        probs = [math.exp(a / 35) / sum_exp for a in shifted]
+        sum_exp = sum(math.exp(a / 20) for a in shifted)
+        probs = [math.exp(a / 20) / sum_exp for a in shifted]
         remaining = idle
         for _ in range(5):
             if remaining <= 0:
                 break
             for j, idx in enumerate(candidates):
-            already_invested = alloc_entry['perProject'][idx] saturation = already_invested / players[idx]['target_funding'] # 0→1 diversity_penalty = saturation * 30 # phạt dự án đã đầy 
-            shifted[j] = max(0, shifted[j] - diversity_penalty) 
                 invest = remaining * probs[j]
                 invested_by_bot = alloc_entry['perProject'][idx]
-                max_per_bot = players[idx]['target_funding'] * (0.15 if phase == 1 else 0.2)
+                max_per_bot = players[idx]['target_funding'] * (0.2 if phase == 1 else 0.25)
                 cap = min(invest, max_per_bot - invested_by_bot)
                 if cap > 0:
                     players[idx]['total_invested'] += cap
@@ -741,15 +736,14 @@ def host_state():
     
     for i, proj in enumerate(room['players']):
         if proj:
-            is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or \
-                       proj.get('current_phase', 0) >= proj.get('max_phase', 5)
-            if is_ended:
+            is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5)
+            if is_ended and proj.get('funding_progress', 0) >= 0.5:
                 metrics = calculate_metrics(proj)
                 score = final_score(proj, proj.get('max_phase', 5), metrics)
+            elif is_ended:
+                score = 0
             else:
-                score = 0   # chỉ một else duy nhất
-        else:
-            score = 0
+                score = 0
             
             rankings.append({
                 'name': f"Player {i+1}",
@@ -1454,5 +1448,6 @@ def api_reset_game(room_id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
 
 
