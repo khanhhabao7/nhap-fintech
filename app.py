@@ -510,6 +510,8 @@ def process_phase(room, phase, players, logs):
             invested = alloc_entry['perProject'][idx]
             if invested == 0:
                 continue
+            if players[idx].get('status') in ['ended', 'funded']:
+                continue
             if players[idx].get('status') != 'active' or players[idx].get('current_phase', 0) >= players[idx]['max_phase']:
                 if invested > 0:
                     players[idx]['available_cash'] -= invested
