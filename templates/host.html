@@ -1,783 +1,1081 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
     <title>Startup Game · Fundraising Simulator | Teacher Host Dashboard</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #fce4ec 0%, #e1d5e7 50%, #c5d9f0 100%);
-            color: #1e1b2b;
-            padding: 20px; 
-            min-height: 100vh;
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          "Inter",
+          system-ui,
+          -apple-system,
+          "Segoe UI",
+          sans-serif;
+        background: linear-gradient(
+          135deg,
+          #fce4ec 0%,
+          #e1d5e7 50%,
+          #c5d9f0 100%
+        );
+        color: #1e1b2b;
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+      .panel {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(8px);
+        border-radius: 1.5rem;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s;
+      }
+      button {
+        background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 10px;
+        transition: all 0.25s;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+      button:hover {
+        background: linear-gradient(95deg, #ff80ab, #c47eff, #7eaeff);
+        transform: scale(0.98);
+        box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+        filter: grayscale(0.05);
+      }
+      input,
+      select {
+        background-color: rgba(255, 255, 255, 0.95);
+        border: 1px solid #c9b1e6;
+        padding: 8px 12px;
+        border-radius: 12px;
+        color: #1e1b2b;
+        margin: 0 5px;
+        font-weight: 500;
+      }
+      input:focus,
+      select:focus {
+        outline: none;
+        ring: 2px solid #b77eff;
+        border-color: #b77eff;
+        box-shadow: 0 0 0 2px rgba(183, 126, 255, 0.3);
+      }
+      .rankings {
+        display: grid;
+        gap: 14px;
+        margin-top: 15px;
+      }
+      .rank-card {
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 1.2rem;
+        padding: 14px;
+        border-left: 4px solid #ec4899;
+        transition: all 0.2s;
+      }
+      .player-card-joined {
+        background: rgba(34, 197, 94, 0.12);
+        border-left-color: #22c55e;
+      }
+      .player-card-not-joined {
+        background: #ffffffdd;
+        border-left-color: #94a3b8;
+      }
+      .player-card-ended {
+        background: rgba(245, 158, 11, 0.12);
+        border-left-color: #f59e0b;
+      }
+      .player-join-tag {
+        display: inline-block;
+        margin-left: 10px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .player-join-tag.joined {
+        background: #16a34a;
+        color: white;
+      }
+      .player-join-tag.waiting {
+        background: #cbd5e1;
+        color: #1e293b;
+      }
+      .join-status-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .player-funding {
+        font-size: 18px;
+        font-weight: 700;
+        color: #f59e0b;
+        margin-bottom: 6px;
+      }
+      .player-metric-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0 6px;
+      }
+      .metric-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+        background: #f3e5ff;
+        color: #4a2b7a;
+        border: 1px solid #e2c6ff;
+      }
+      .metric-tag.hype-tag {
+        background: rgba(59, 130, 246, 0.15);
+        color: #2563eb;
+        border-color: rgba(59, 130, 246, 0.3);
+      }
+      .metric-tag.transparency-tag {
+        background: rgba(16, 185, 129, 0.12);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.3);
+      }
+      .metric-tag.score-tag {
+        background: rgba(168, 85, 247, 0.12);
+        color: #7c3aed;
+        border-color: rgba(168, 85, 247, 0.3);
+      }
+      .metric-tag.status-tag {
+        background: rgba(148, 163, 184, 0.14);
+        color: #475569;
+        border-color: rgba(148, 163, 184, 0.3);
+      }
+      .funding-bar {
+        width: 100%;
+        height: 10px;
+        background: #e2d4f0;
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 4px;
+      }
+      .funding-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #facc15 0%, #f59e0b 100%);
+        border-radius: 999px;
+        transition: width 0.2s ease;
+      }
+      .join-status-tag.joined {
+        background: #16a34a;
+        color: white;
+      }
+      .join-status-tag.waiting {
+        background: #cbd5e1;
+        color: #1e293b;
+      }
+      .logs {
+        background: rgba(0, 0, 0, 0.06);
+        border-radius: 1rem;
+        padding: 14px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: "SF Mono", monospace;
+        font-size: 13px;
+        margin-top: 15px;
+        border: 1px solid #e2d4f0;
+      }
+      .flex {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .link-item {
+        background: rgba(255, 255, 255, 0.7);
+        padding: 12px;
+        border-radius: 16px;
+        margin-bottom: 8px;
+        word-break: break-all;
+      }
+      .success {
+        color: #16a34a;
+        font-weight: 700;
+      }
+      .error {
+        color: #dc2626;
+        font-weight: 700;
+      }
+      .loading-placeholder {
+        background: rgba(236, 72, 153, 0.1);
+        border-radius: 16px;
+        padding: 12px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: #9d4edd;
+        animation: pulse 1.5s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.6;
         }
-        .container { max-width: 1280px; margin: 0 auto; }
-        .panel { 
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(8px);
-            border-radius: 1.5rem;
-            padding: 20px; 
-            margin-bottom: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15);
-            transition: all 0.2s;
+        50% {
+          opacity: 1;
         }
-        button { 
-            background: linear-gradient(95deg, #f48fb1, #ba6bff, #5e9bff);
-            color: white; 
-            border: none; 
-            padding: 10px 24px; 
-            border-radius: 40px; 
-            cursor: pointer; 
-            font-size: 16px;
-            font-weight: 600;
-            margin-top: 10px;
-            transition: all 0.25s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        button:hover { 
-            background: linear-gradient(95deg, #ff80ab, #c47eff, #7eaeff);
-            transform: scale(0.98);
-            box-shadow: 0 8px 20px rgba(156, 39, 176, 0.3);
-        }
-        button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; filter: grayscale(0.05);}
-        input, select { 
-            background-color: rgba(255, 255, 255, 0.95);
-            border: 1px solid #c9b1e6;
-            padding: 8px 12px; 
-            border-radius: 12px; 
-            color: #1e1b2b; 
-            margin: 0 5px;
-            font-weight: 500;
-        }
-        input:focus, select:focus {
-            outline: none;
-            ring: 2px solid #b77eff;
-            border-color: #b77eff;
-            box-shadow: 0 0 0 2px rgba(183,126,255,0.3);
-        }
-        .rankings { 
-            display: grid; 
-            gap: 14px; 
-            margin-top: 15px; 
-        }
-        .rank-card { 
-            background: rgba(255, 255, 255, 0.85);
-            border-radius: 1.2rem; 
-            padding: 14px; 
-            border-left: 4px solid #ec4899;
-            transition: all 0.2s;
-        }
-        .player-card-joined { 
-            background: rgba(34, 197, 94, 0.12);
-            border-left-color: #22c55e;
-        }
-        .player-card-not-joined {
-            background: #ffffffdd;
-            border-left-color: #94a3b8;
-        }
-        .player-card-ended {
-            background: rgba(245, 158, 11, 0.12);
-            border-left-color: #f59e0b;
-        }
-        .player-join-tag {
-            display: inline-block;
-            margin-left: 10px;
-            padding: 3px 10px;
-            border-radius: 999px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .player-join-tag.joined { background: #16a34a; color: white; }
-        .player-join-tag.waiting { background: #cbd5e1; color: #1e293b; }
-        .join-status-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .player-funding {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f59e0b;
-            margin-bottom: 6px;
-        }
-        .player-metric-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 10px 0 6px;
-        }
-        .metric-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 600;
-            background: #f3e5ff;
-            color: #4a2b7a;
-            border: 1px solid #e2c6ff;
-        }
-        .metric-tag.hype-tag { background: rgba(59, 130, 246, 0.15); color: #2563eb; border-color: rgba(59, 130, 246, 0.3); }
-        .metric-tag.transparency-tag { background: rgba(16, 185, 129, 0.12); color: #059669; border-color: rgba(16, 185, 129, 0.3); }
-        .metric-tag.score-tag { background: rgba(168, 85, 247, 0.12); color: #7c3aed; border-color: rgba(168, 85, 247, 0.3); }
-        .metric-tag.status-tag { background: rgba(148, 163, 184, 0.14); color: #475569; border-color: rgba(148, 163, 184, 0.3); }
-        .funding-bar {
-            width: 100%;
-            height: 10px;
-            background: #e2d4f0;
-            border-radius: 999px;
-            overflow: hidden;
-            margin-top: 4px;
-        }
-        .funding-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #facc15 0%, #f59e0b 100%);
-            border-radius: 999px;
-            transition: width 0.2s ease;
-        }
-        .join-status-tag.joined { background: #16a34a; color: white; }
-        .join-status-tag.waiting { background: #cbd5e1; color: #1e293b; }
-        .logs { 
-            background: rgba(0, 0, 0, 0.06);
-            border-radius: 1rem; 
-            padding: 14px; 
-            max-height: 300px; 
-            overflow-y: auto; 
-            font-family: 'SF Mono', monospace; 
-            font-size: 13px; 
-            margin-top: 15px;
-            border: 1px solid #e2d4f0;
-        }
-        .flex { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-        .link-item { 
-            background: rgba(255, 255, 255, 0.7);
-            padding: 12px; 
-            border-radius: 16px; 
-            margin-bottom: 8px; 
-            word-break: break-all; 
-        }
-        .success { color: #16a34a; font-weight: 700; }
-        .error { color: #dc2626; font-weight: 700; }
-        .loading-placeholder {
-            background: rgba(236, 72, 153, 0.1);
-            border-radius: 16px;
-            padding: 12px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: 500;
-            color: #9d4edd;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-        .section-panel {
-            background: rgba(255, 255, 255, 0.7);
-            border-radius: 1.2rem;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(210, 180, 255, 0.5);
-        }
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
-        h2, h3 { color: #2e1a47; letter-spacing: -0.2px; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #edd9ff; border-radius: 20px; }
-        ::-webkit-scrollbar-thumb { background: #a569e6; border-radius: 20px; }
-        .floating-switch {
-            position: fixed; bottom: 20px; right: 20px; z-index: 1000;
-        }
-        .data-empty {
-            color: #94a3b8;
-            text-align: center;
-            padding: 20px;
-            font-style: italic;
-        }
-        .room-selector {
-            background: rgba(255,255,240,0.8);
-            border-radius: 40px;
-            padding: 8px 16px;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .room-selector select {
-            background: white;
-            border-radius: 32px;
-            padding: 6px 16px;
-            font-weight: 500;
-        }
-        .create-additional-btn {
-            background: linear-gradient(95deg, #10b981, #059669);
-            margin-left: 8px;
-        }
-        .force-start-btn {
-            background: linear-gradient(95deg, #f59e0b, #ea580c);
-            margin-left: 8px;
-        }
+      }
+      .section-panel {
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 1.2rem;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(210, 180, 255, 0.5);
+      }
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 18px;
+        font-weight: 600;
+      }
+      h2,
+      h3 {
+        color: #2e1a47;
+        letter-spacing: -0.2px;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #edd9ff;
+        border-radius: 20px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #a569e6;
+        border-radius: 20px;
+      }
+      .floating-switch {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+      }
+      .data-empty {
+        color: #94a3b8;
+        text-align: center;
+        padding: 20px;
+        font-style: italic;
+      }
+      .room-selector {
+        background: rgba(255, 255, 240, 0.8);
+        border-radius: 40px;
+        padding: 8px 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .room-selector select {
+        background: white;
+        border-radius: 32px;
+        padding: 6px 16px;
+        font-weight: 500;
+      }
+      .create-additional-btn {
+        background: linear-gradient(95deg, #10b981, #059669);
+        margin-left: 8px;
+      }
+      .force-start-btn {
+        background: linear-gradient(95deg, #f59e0b, #ea580c);
+        margin-left: 8px;
+      }
 
-                /* Modal leaderboard */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
-            z-index: 1000; display: flex; align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: white; border-radius: 24px; max-width: 90vw; width: 800px;
-            max-height: 85vh; overflow-y: auto; padding: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-        }
-        .close-modal {
-            float: right; background: #ef4444; color: white; border: none;
-            padding: 8px 16px; border-radius: 40px; cursor: pointer;
-        }
-        .leaderboard-table { width: 100%; border-collapse: collapse; }
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.1);
-        }
-        .leaderboard-table th { background: rgba(0,0,0,0.05); }
-        .category-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 12px 20px; font-weight: bold; font-size: 1.2rem;
-            margin-top: 20px; border-radius: 12px;
-        }
-        .category-header.small { background: linear-gradient(135deg, #43e97b, #38f9d7); color: #1e1b2b; }
-        .category-header.medium { background: linear-gradient(135deg, #fa709a, #fee140); color: #1e1b2b; }
-        .category-header.large { background: linear-gradient(135deg, #a18cd1, #fbc2eb); color: #1e1b2b; }
+      /* Modal leaderboard */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background: white;
+        border-radius: 24px;
+        max-width: 90vw;
+        width: 800px;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+      .close-modal {
+        float: right;
+        background: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 40px;
+        cursor: pointer;
+      }
+      .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .leaderboard-table th,
+      .leaderboard-table td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      .leaderboard-table th {
+        background: rgba(0, 0, 0, 0.05);
+      }
+      .category-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 20px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-top: 20px;
+        border-radius: 12px;
+      }
+      .category-header.small {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+        color: #1e1b2b;
+      }
+      .category-header.medium {
+        background: linear-gradient(135deg, #fa709a, #fee140);
+        color: #1e1b2b;
+      }
+      .category-header.large {
+        background: linear-gradient(135deg, #a18cd1, #fbc2eb);
+        color: #1e1b2b;
+      }
 
-        /* Game Rules Sidebar Styles (Host version) */
-        .rules-button {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 999;
-            background: linear-gradient(135deg, #8b5cf6, #6366f1);
-            border: none;
-            color: white;
-            width: 56px;
-            height: 56px;
-            border-radius: 28px;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .rules-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-        }
-        
-        .rules-sidebar {
-            position: fixed;
-            top: 0;
-            right: -500px;
-            width: 500px;
-            max-width: 90vw;
-            height: 100vh;
-            background: linear-gradient(135deg, #1e1b2b 0%, #2d2a44 100%);
-            color: #f0f0f0;
-            z-index: 1000;
-            transition: right 0.3s ease;
-            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
-            overflow-y: auto;
-            font-family: 'Inter', sans-serif;
-        }
-        
-        .rules-sidebar.open {
-            right: 0;
-        }
-        
-        .rules-sidebar-header {
-            padding: 24px;
-            background: linear-gradient(135deg, #ec4899, #8b5cf6);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        .rules-sidebar-header h2 {
-            color: white;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-        
-        .close-rules {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 28px;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        
-        .close-rules:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-        
-        .rules-sidebar-content {
-            padding: 24px;
-        }
-        
-        .rules-sidebar-content h3 {
-            color: #f472b6;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-size: 1.25rem;
-        }
-        
-        .rules-sidebar-content h4 {
-            color: #a78bfa;
-            margin-top: 15px;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-        
-        .rules-sidebar-content p, 
-        .rules-sidebar-content li {
-            color: #e0e0e0;
-            line-height: 1.6;
-            font-size: 0.9rem;
-        }
-        
-        .rules-sidebar-content ul, 
-        .rules-sidebar-content ol {
-            padding-left: 20px;
-            margin: 10px 0;
-        }
-        
-        .rules-sidebar-content li {
-            margin: 6px 0;
-        }
-        
-        .rules-sidebar-content .highlight {
-            background: rgba(236, 72, 153, 0.2);
-            padding: 2px 6px;
-            border-radius: 6px;
-            color: #f472b6;
-            font-weight: 600;
-        }
-        
-        .rules-sidebar-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 998;
-            display: none;
-        }
-        
-        .rules-sidebar-overlay.show {
-            display: block;
-        }
-        
+      /* Game Rules Sidebar Styles (Host version) */
+      .rules-button {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 999;
+        background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        border: none;
+        color: white;
+        width: 56px;
+        height: 56px;
+        border-radius: 28px;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .rules-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+      }
+
+      .rules-sidebar {
+        position: fixed;
+        top: 0;
+        right: -500px;
+        width: 500px;
+        max-width: 90vw;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e1b2b 0%, #2d2a44 100%);
+        color: #f0f0f0;
+        z-index: 1000;
+        transition: right 0.3s ease;
+        box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+        overflow-y: auto;
+        font-family: "Inter", sans-serif;
+      }
+
+      .rules-sidebar.open {
+        right: 0;
+      }
+
+      .rules-sidebar-header {
+        padding: 24px;
+        background: linear-gradient(135deg, #ec4899, #8b5cf6);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .rules-sidebar-header h2 {
+        color: white;
+        margin: 0;
+        font-size: 1.5rem;
+      }
+
+      .close-rules {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 28px;
+        cursor: pointer;
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+
+      .close-rules:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+      }
+
+      .rules-sidebar-content {
+        padding: 24px;
+      }
+
+      .rules-sidebar-content h3 {
+        color: #f472b6;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-size: 1.25rem;
+      }
+
+      .rules-sidebar-content h4 {
+        color: #a78bfa;
+        margin-top: 15px;
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
+
+      .rules-sidebar-content p,
+      .rules-sidebar-content li {
+        color: #e0e0e0;
+        line-height: 1.6;
+        font-size: 0.9rem;
+      }
+
+      .rules-sidebar-content ul,
+      .rules-sidebar-content ol {
+        padding-left: 20px;
+        margin: 10px 0;
+      }
+
+      .rules-sidebar-content li {
+        margin: 6px 0;
+      }
+
+      .rules-sidebar-content .highlight {
+        background: rgba(236, 72, 153, 0.2);
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: #f472b6;
+        font-weight: 600;
+      }
+
+      .rules-sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 998;
+        display: none;
+      }
+
+      .rules-sidebar-overlay.show {
+        display: block;
+      }
     </style>
-</head>
-<body>
-<div class="container">
-    <div class="panel">
+  </head>
+  <body>
+    <div class="container">
+      <div class="panel">
         <h2>✨ Fun(d) raising - When you have funds you have fun ✨</h2>
         <div class="loading-placeholder" id="connectionStatus">
-            🔌 Đang kết nối đến Backend...
+          🔌 Đang kết nối đến Backend...
         </div>
-    </div>
+      </div>
 
-    <!-- ROOM SETUP (create first room) -->
-    <div class="panel" id="setupPanel">
+      <!-- ROOM SETUP (create first room) -->
+      <div class="panel" id="setupPanel">
         <h2>🎮 Create New Room (Host)</h2>
         <div class="flex">
-            <label style="color:#2e1a47; font-weight:600;">🏷️ Room name:</label>
-            <input type="text" id="roomName" placeholder="e.g. Startup F2025" value="Startup Arena">
-            <label style="color:#2e1a47; font-weight:600;">👥 Players:</label>
-            <input type="number" id="numPlayers" min="2" max="10" value="4">
-            <button onclick="createNewRoom()">🚀 CREATE ROOM & START GAME</button>
+          <label style="color: #2e1a47; font-weight: 600">🏷️ Room name:</label>
+          <input
+            type="text"
+            id="roomName"
+            placeholder="e.g. Startup F2025"
+            value="Startup Arena"
+          />
+          <label style="color: #2e1a47; font-weight: 600">👥 Players:</label>
+          <input type="number" id="numPlayers" min="2" max="10" value="4" />
+          <button onclick="createNewRoom()">🚀 CREATE ROOM & START GAME</button>
         </div>
-        <div style="margin-top: 12px; font-size:13px; color:#6b21a5;">⚡ Sau khi tạo phòng, mỗi người chơi có link riêng để tham gia.</div>
-    </div>
-
-    <!-- GAME PANEL (MAIN DASHBOARD) -->
-    <div class="panel" id="gamePanel" style="display:none;">
-        <div class="flex" style="justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px;">
-            <h2>🏠 <span id="roomNameDisplay">---</span> · Room ID: <span id="roomId">---</span></h2>
-            <div class="room-selector">
-                <span>📋 Đang xem phòng:</span>
-                <select id="roomSelector" onchange="switchToRoom()"></select>
-                <button onclick="showCreateRoomModal()" class="create-additional-btn" style="padding: 6px 16px; margin-top:0;">+ Tạo phòng mới</button>
-            </div>
+        <div style="margin-top: 12px; font-size: 13px; color: #6b21a5">
+          ⚡ Sau khi tạo phòng, mỗi người chơi có link riêng để tham gia.
         </div>
+      </div>
 
-        <div class="section-panel">
-            <h3>🔗 Player Join Links</h3>
-            <div id="joinLinksList" class="link-item" style="background: transparent; padding: 0;">
-                <div class="loading-placeholder">Đang tải link tham gia...</div>
-            </div>
-        </div>
-
-        <div class="section-panel">
-            <h3>⏱️ Game Progress</h3>
-            <div class="section-header">
-                <span>👥 <strong><span id="playerCount">0</span> / <span id="maxPlayers">0</span></strong> joined</span>
-                <span>🕒 Phase: <strong><span id="currentPhase">-</span></strong> / <strong><span id="maxPhase">-</span></strong></span>
-                <span>🎯 Status: <strong><span id="gameStatus" class="loading-placeholder" style="display:inline-block; padding:2px 12px;">Đang tải...</span></strong></span>
-            </div>
-            
-            <div class="flex" style="gap: 12px; margin-bottom: 18px;">
-                <label for="phaseSelect" style="color:#2e1a47; font-weight:600;">📜 Phase archive:</label>
-                <select id="phaseSelect" onchange="showPhaseDetails()">
-                    <option>-- Chưa có dữ liệu --</option>
-                </select>
-            </div>
-            <div id="phaseDetails" class="panel" style="background: rgba(245,240,255,0.5);">
-                <div class="data-empty">📌 Chọn một phase để xem chi tiết</div>
-            </div>
+      <!-- GAME PANEL (MAIN DASHBOARD) -->
+      <div class="panel" id="gamePanel" style="display: none">
+        <div
+          class="flex"
+          style="
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+          "
+        >
+          <h2>
+            🏠 <span id="roomNameDisplay">---</span> · Room ID:
+            <span id="roomId">---</span>
+          </h2>
+          <div class="room-selector">
+            <span>📋 Đang xem phòng:</span>
+            <select id="roomSelector" onchange="switchToRoom()"></select>
+            <button
+              onclick="showCreateRoomModal()"
+              class="create-additional-btn"
+              style="padding: 6px 16px; margin-top: 0"
+            >
+              + Tạo phòng mới
+            </button>
+          </div>
         </div>
 
         <div class="section-panel">
-            <h3>📜 Event Log</h3>
-            <div id="logsArea" class="logs">
-                <div class="data-empty">⏳ Chưa có sự kiện nào</div>
-            </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin: 0;">🔗 Player Join Links</h3>
+            <button onclick="copyAllJoinLinks()" class="copy-all-btn" style="padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; background: #db2777; color: white; border: none;">📋 Copy All</button>
+          </div>
+          <div
+            id="joinLinksList"
+            class="link-item"
+            style="background: transparent; padding: 0"
+          >
+            <div class="loading-placeholder">Đang tải link tham gia...</div>
+          </div>
         </div>
 
         <div class="section-panel">
-            <h3>🏆 Leaderboard & Metrics</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 20px;">
-                <!-- Cột 1: Xếp hạng chung -->
-                <div style="flex: 1; min-width: 250px;">
-                    <h4 style="color:#2e1a47; margin-bottom: 10px;">📊 Overall Ranking (All Players)</h4>
-                    <div id="rankingsOverall" class="rankings" style="max-height: 400px; overflow-y: auto;">
-                        <div class="loading-placeholder">Đang tải...</div>
-                    </div>
-                </div>
-                <!-- Cột 2: Xếp hạng theo Scale -->
-                <div style="flex: 2; min-width: 400px;">
-                    <h4 style="color:#2e1a47; margin-bottom: 10px;">📌 Ranking by Project Scale</h4>
-                    <div id="rankingsByScale" style="max-height: 400px; overflow-y: auto;">
-                        <div class="loading-placeholder">Đang tải...</div>
-                    </div>
-                </div>
+          <h3>⏱️ Game Progress</h3>
+          <div class="section-header">
+            <span
+              >👥
+              <strong
+                ><span id="playerCount">0</span> /
+                <span id="maxPlayers">0</span></strong
+              >
+              joined</span
+            >
+            <span
+              >🕒 Phase: <strong><span id="currentPhase">-</span></strong> /
+              <strong><span id="maxPhase">-</span></strong></span
+            >
+            <span
+              >🎯 Status:
+              <strong
+                ><span
+                  id="gameStatus"
+                  class="loading-placeholder"
+                  style="display: inline-block; padding: 2px 12px"
+                  >Đang tải...</span
+                ></strong
+              ></span
+            >
+          </div>
+
+          <div class="flex" style="gap: 12px; margin-bottom: 18px">
+            <label for="phaseSelect" style="color: #2e1a47; font-weight: 600"
+              >📜 Phase archive:</label
+            >
+            <select id="phaseSelect" onchange="showPhaseDetails()">
+              <option>-- Chưa có dữ liệu --</option>
+            </select>
+          </div>
+          <div
+            id="phaseDetails"
+            class="panel"
+            style="background: rgba(245, 240, 255, 0.5)"
+          >
+            <div class="data-empty">📌 Chọn một phase để xem chi tiết</div>
+          </div>
+        </div>
+
+        <div class="section-panel">
+          <h3>📜 Event Log</h3>
+          <div id="logsArea" class="logs">
+            <div class="data-empty">⏳ Chưa có sự kiện nào</div>
+          </div>
+        </div>
+
+        <div class="section-panel">
+          <h3>🏆 Leaderboard & Metrics</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 20px">
+            <!-- Cột 1: Xếp hạng chung -->
+            <div style="flex: 1; min-width: 250px">
+              <h4 style="color: #2e1a47; margin-bottom: 10px">
+                📊 Overall Ranking (All Players)
+              </h4>
+              <div
+                id="rankingsOverall"
+                class="rankings"
+                style="max-height: 400px; overflow-y: auto"
+              >
+                <div class="loading-placeholder">Đang tải...</div>
+              </div>
             </div>
+            <!-- Cột 2: Xếp hạng theo Scale -->
+            <div style="flex: 2; min-width: 400px">
+              <h4 style="color: #2e1a47; margin-bottom: 10px">
+                📌 Ranking by Project Scale
+              </h4>
+              <div
+                id="rankingsByScale"
+                style="max-height: 400px; overflow-y: auto"
+              >
+                <div class="loading-placeholder">Đang tải...</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Game control buttons -->
-        <div class="flex" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap; margin-top: 8px;">
-            <button onclick="runPhase()" id="runPhaseBtn" disabled>▶ RUN PHASE <span id="phaseNumberLabel">?</span></button>
-            <button onclick="endGame()" id="endGameBtn" disabled>⛔ END GAME</button>
-            <button onclick="resetGame()" id="resetGameBtn" disabled>🔄 RESET GAME</button>
+        <div
+          class="flex"
+          style="
+            justify-content: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+          "
+        >
+          <button onclick="runPhase()" id="runPhaseBtn" disabled>
+            ▶ RUN PHASE <span id="phaseNumberLabel">?</span>
+          </button>
+          <button onclick="endGame()" id="endGameBtn" disabled>
+            ⛔ END GAME
+          </button>
+          <button onclick="resetGame()" id="resetGameBtn" disabled>
+            🔄 RESET GAME
+          </button>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- Modal tạo phòng nhanh -->
-<div id="quickRoomModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center;">
-    <div style="background:white; border-radius:32px; padding:24px; max-width:500px; margin:20px;">
-        <h3 style="margin-bottom:16px;">➕ Tạo phòng mới</h3>
-        <input type="text" id="newRoomName" placeholder="Tên phòng" style="width:100%; margin-bottom:12px;" value="Startup Game">
-        <input type="number" id="newRoomPlayers" min="2" max="10" value="4" style="width:100%; margin-bottom:20px;">
-        <div class="flex" style="justify-content: flex-end;">
-            <button onclick="closeRoomModal()" style="background:#94a3b8;">Hủy</button>
-            <button onclick="createAdditionalRoom()" style="background:#10b981;">Tạo phòng</button>
+    <!-- Modal tạo phòng nhanh -->
+    <div
+      id="quickRoomModal"
+      style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <div
+        style="
+          background: white;
+          border-radius: 32px;
+          padding: 24px;
+          max-width: 500px;
+          margin: 20px;
+        "
+      >
+        <h3 style="margin-bottom: 16px">➕ Tạo phòng mới</h3>
+        <input
+          type="text"
+          id="newRoomName"
+          placeholder="Tên phòng"
+          style="width: 100%; margin-bottom: 12px"
+          value="Startup Game"
+        />
+        <input
+          type="number"
+          id="newRoomPlayers"
+          min="2"
+          max="10"
+          value="4"
+          style="width: 100%; margin-bottom: 20px"
+        />
+        <div class="flex" style="justify-content: flex-end">
+          <button onclick="closeRoomModal()" style="background: #94a3b8">
+            Hủy
+          </button>
+          <button onclick="createAdditionalRoom()" style="background: #10b981">
+            Tạo phòng
+          </button>
         </div>
+      </div>
     </div>
-</div>
 
-<script>
-    // ==================== BACKEND CONFIGURATION ====================
-    const API_BASE_URL = window.location.origin + '/api';
-    let currentRoomId = null;
-    let pollingInterval = null;
-    let isConnected = false;
-    
-    // Quản lý danh sách các phòng đã tạo (lưu trong session)
-    let hostRooms = [];
+    <script>
+      // ==================== BACKEND CONFIGURATION ====================
+      const API_BASE_URL = window.location.origin + "/api";
+      let currentRoomId = null;
+      let pollingInterval = null;
+      let isConnected = false;
+      let currentRoomData = null;
 
-    // Khởi tạo danh sách phòng từ sessionStorage
-    function loadRoomsFromStorage() {
-        const saved = sessionStorage.getItem('hostRoomsList');
+      // Quản lý danh sách các phòng đã tạo (lưu trong session)
+      let hostRooms = [];
+
+      // Khởi tạo danh sách phòng từ sessionStorage
+      function loadRoomsFromStorage() {
+        const saved = sessionStorage.getItem("hostRoomsList");
         if (saved) {
-            try {
-                hostRooms = JSON.parse(saved);
-            } catch(e) { hostRooms = []; }
+          try {
+            hostRooms = JSON.parse(saved);
+          } catch (e) {
+            hostRooms = [];
+          }
         }
         updateRoomSelector();
-    }
-    
-    function saveRoomsToStorage() {
-        sessionStorage.setItem('hostRoomsList', JSON.stringify(hostRooms));
-    }
-    
-    function updateRoomSelector() {
-        const selector = document.getElementById('roomSelector');
+      }
+
+      function saveRoomsToStorage() {
+        sessionStorage.setItem("hostRoomsList", JSON.stringify(hostRooms));
+      }
+
+      function updateRoomSelector() {
+        const selector = document.getElementById("roomSelector");
         if (!selector) return;
         selector.innerHTML = '<option value="">-- Chọn phòng --</option>';
-        hostRooms.forEach(room => {
-            const selected = (currentRoomId === room.id) ? 'selected' : '';
-            selector.innerHTML += `<option value="${room.id}" ${selected}>🏠 ${room.name} (${room.id})</option>`;
+        hostRooms.forEach((room) => {
+          const selected = currentRoomId === room.id ? "selected" : "";
+          selector.innerHTML += `<option value="${room.id}" ${selected}>🏠 ${room.name} (${room.id})</option>`;
         });
-        if (hostRooms.length === 0 && document.getElementById('gamePanel') && document.getElementById('gamePanel').style.display === 'block') {
-            document.getElementById('gamePanel').style.display = 'none';
-            document.getElementById('setupPanel').style.display = 'block';
-            if (pollingInterval) clearInterval(pollingInterval);
-            currentRoomId = null;
+        if (
+          hostRooms.length === 0 &&
+          document.getElementById("gamePanel") &&
+          document.getElementById("gamePanel").style.display === "block"
+        ) {
+          document.getElementById("gamePanel").style.display = "none";
+          document.getElementById("setupPanel").style.display = "block";
+          if (pollingInterval) clearInterval(pollingInterval);
+          currentRoomId = null;
         }
-    }
-    
-    function switchToRoom() {
-        const selector = document.getElementById('roomSelector');
+      }
+
+      function switchToRoom() {
+        const selector = document.getElementById("roomSelector");
         const newRoomId = selector.value;
         if (!newRoomId) return;
         if (currentRoomId === newRoomId) return;
-        
+
         if (pollingInterval) {
-            clearInterval(pollingInterval);
-            pollingInterval = null;
+          clearInterval(pollingInterval);
+          pollingInterval = null;
         }
-        
+
         currentRoomId = newRoomId;
-        sessionStorage.setItem('currentRoomId', currentRoomId);
-        
-        const roomInfo = hostRooms.find(r => r.id === currentRoomId);
+        sessionStorage.setItem("currentRoomId", currentRoomId);
+
+        const roomInfo = hostRooms.find((r) => r.id === currentRoomId);
         if (roomInfo) {
-            document.getElementById('roomNameDisplay').innerText = roomInfo.name;
-            document.getElementById('maxPlayers').innerText = roomInfo.maxPlayers;
+          document.getElementById("roomNameDisplay").innerText = roomInfo.name;
+          document.getElementById("maxPlayers").innerText = roomInfo.maxPlayers;
         }
-        document.getElementById('roomId').innerText = currentRoomId;
-        
-        document.getElementById('rankings').innerHTML = '<div class="loading-placeholder">Đang tải dữ liệu người chơi...</div>';
-        document.getElementById('logsArea').innerHTML = '<div class="data-empty">⏳ Đang tải log...</div>';
-        document.getElementById('joinLinksList').innerHTML = '<div class="loading-placeholder">Đang tải link tham gia...</div>';
-        document.getElementById('playerCount').innerText = '0';
-        document.getElementById('currentPhase').innerText = '?';
-        
+        document.getElementById("roomId").innerText = currentRoomId;
+
+        document.getElementById("rankings").innerHTML =
+          '<div class="loading-placeholder">Đang tải dữ liệu người chơi...</div>';
+        document.getElementById("logsArea").innerHTML =
+          '<div class="data-empty">⏳ Đang tải log...</div>';
+        document.getElementById("joinLinksList").innerHTML =
+          '<div class="loading-placeholder">Đang tải link tham gia...</div>';
+        document.getElementById("playerCount").innerText = "0";
+        document.getElementById("currentPhase").innerText = "?";
+
         startPolling();
-    }
-    
-    // Hàm tạo phòng MỚI - gọi đúng API /api/create_room
-    async function createNewRoom(isAdditional = false, roomNameOverride = null, playerCountOverride = null) {
-        const roomName = roomNameOverride || document.getElementById('roomName').value.trim() || 'Startup Game';
-        const numPlayers = playerCountOverride || parseInt(document.getElementById('numPlayers').value, 10);
-        
+      }
+
+      // Hàm tạo phòng MỚI - gọi đúng API /api/create_room
+      async function createNewRoom(
+        isAdditional = false,
+        roomNameOverride = null,
+        playerCountOverride = null,
+      ) {
+        const roomName =
+          roomNameOverride ||
+          document.getElementById("roomName").value.trim() ||
+          "Startup Game";
+        const numPlayers =
+          playerCountOverride ||
+          parseInt(document.getElementById("numPlayers").value, 10);
+
         if (numPlayers < 2 || numPlayers > 10) {
-            alert('Số lượng người chơi phải từ 2 đến 10');
-            return null;
+          alert("Số lượng người chơi phải từ 2 đến 10");
+          return null;
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/create_room`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ num_players: numPlayers })
-            });
-            
-            if (!response.ok) throw new Error(`Tạo phòng thất bại: ${response.status}`);
-            
-            const roomData = await response.json();
-            const newRoomId = roomData.room_id;
-            
-            const newRoomInfo = {
-                id: newRoomId,
-                name: roomName,
-                maxPlayers: numPlayers,
-                createdAt: new Date().toISOString()
-            };
-            
-            hostRooms.push(newRoomInfo);
-            saveRoomsToStorage();
-            
-            if (!isAdditional) {
-                currentRoomId = newRoomId;
-                sessionStorage.setItem('currentRoomId', currentRoomId);
-                document.getElementById('setupPanel').style.display = 'none';
-                document.getElementById('gamePanel').style.display = 'block';
-                document.getElementById('roomId').innerText = currentRoomId;
-                document.getElementById('roomNameDisplay').innerText = roomName;
-                document.getElementById('maxPlayers').innerText = numPlayers;
-                updateRoomSelector();
-                startPolling();
-                alert(`✅ Phòng "${roomName}" đã được tạo thành công!\nRoom ID: ${currentRoomId}`);
-            } else {
-                updateRoomSelector();
-                currentRoomId = newRoomId;
-                sessionStorage.setItem('currentRoomId', currentRoomId);
-                document.getElementById('roomId').innerText = currentRoomId;
-                document.getElementById('roomNameDisplay').innerText = roomName;
-                document.getElementById('maxPlayers').innerText = numPlayers;
-                if (pollingInterval) clearInterval(pollingInterval);
-                startPolling();
-                alert(`✅ Đã tạo thêm phòng "${roomName}". Bạn đang xem phòng mới này.`);
-            }
-            
-            return roomData;
+          const response = await fetch(`${API_BASE_URL}/create_room`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ num_players: numPlayers }),
+          });
+
+          if (!response.ok)
+            throw new Error(`Tạo phòng thất bại: ${response.status}`);
+
+          const roomData = await response.json();
+          const newRoomId = roomData.room_id;
+
+          const newRoomInfo = {
+            id: newRoomId,
+            name: roomName,
+            maxPlayers: numPlayers,
+            createdAt: new Date().toISOString(),
+          };
+
+          hostRooms.push(newRoomInfo);
+          saveRoomsToStorage();
+
+          if (!isAdditional) {
+            currentRoomId = newRoomId;
+            sessionStorage.setItem("currentRoomId", currentRoomId);
+            document.getElementById("setupPanel").style.display = "none";
+            document.getElementById("gamePanel").style.display = "block";
+            document.getElementById("roomId").innerText = currentRoomId;
+            document.getElementById("roomNameDisplay").innerText = roomName;
+            document.getElementById("maxPlayers").innerText = numPlayers;
+            updateRoomSelector();
+            startPolling();
+            alert(
+              `✅ Phòng "${roomName}" đã được tạo thành công!\nRoom ID: ${currentRoomId}`,
+            );
+          } else {
+            updateRoomSelector();
+            currentRoomId = newRoomId;
+            sessionStorage.setItem("currentRoomId", currentRoomId);
+            document.getElementById("roomId").innerText = currentRoomId;
+            document.getElementById("roomNameDisplay").innerText = roomName;
+            document.getElementById("maxPlayers").innerText = numPlayers;
+            if (pollingInterval) clearInterval(pollingInterval);
+            startPolling();
+            alert(
+              `✅ Đã tạo thêm phòng "${roomName}". Bạn đang xem phòng mới này.`,
+            );
+          }
+
+          return roomData;
         } catch (error) {
-            console.error('Create room error:', error);
-            alert(`❌ Không thể tạo phòng: ${error.message}`);
-            updateConnectionStatus(false, error.message);
-            return null;
+          console.error("Create room error:", error);
+          alert(`❌ Không thể tạo phòng: ${error.message}`);
+          updateConnectionStatus(false, error.message);
+          return null;
         }
-    }
-    
-    function showCreateRoomModal() {
-        document.getElementById('quickRoomModal').style.display = 'flex';
-        document.getElementById('newRoomName').value = 'Startup Game ' + (hostRooms.length + 1);
-        document.getElementById('newRoomPlayers').value = 4;
-    }
-    
-    function closeRoomModal() {
-        document.getElementById('quickRoomModal').style.display = 'none';
-    }
-    
-    async function createAdditionalRoom() {
-        const name = document.getElementById('newRoomName').value.trim() || 'Startup Game';
-        const players = parseInt(document.getElementById('newRoomPlayers').value, 10);
+      }
+
+      function showCreateRoomModal() {
+        document.getElementById("quickRoomModal").style.display = "flex";
+        document.getElementById("newRoomName").value =
+          "Startup Game " + (hostRooms.length + 1);
+        document.getElementById("newRoomPlayers").value = 4;
+      }
+
+      function closeRoomModal() {
+        document.getElementById("quickRoomModal").style.display = "none";
+      }
+
+      async function createAdditionalRoom() {
+        const name =
+          document.getElementById("newRoomName").value.trim() || "Startup Game";
+        const players = parseInt(
+          document.getElementById("newRoomPlayers").value,
+          10,
+        );
         closeRoomModal();
         await createNewRoom(true, name, players);
-    }
-    
-    function updateConnectionStatus(connected, message) {
-        const statusDiv = document.getElementById('connectionStatus');
-        if (connected) {
-            statusDiv.innerHTML = '✅ Đã kết nối đến Backend | Dữ liệu real-time';
-            statusDiv.style.background = 'rgba(34, 197, 94, 0.15)';
-            statusDiv.style.color = '#16a34a';
-            isConnected = true;
-        } else {
-            statusDiv.innerHTML = `⚠️ ${message || 'Không thể kết nối đến Backend'}<br><small>Vui lòng kiểm tra API URL: ${API_BASE_URL}</small>`;
-            statusDiv.style.background = 'rgba(220, 38, 38, 0.15)';
-            statusDiv.style.color = '#dc2626';
-            isConnected = false;
-        }
-    }
+      }
 
-    async function fetchRoomData() {
+      function updateConnectionStatus(connected, message) {
+        const statusDiv = document.getElementById("connectionStatus");
+        if (connected) {
+          statusDiv.innerHTML = "✅ Đã kết nối đến Backend | Dữ liệu real-time";
+          statusDiv.style.background = "rgba(34, 197, 94, 0.15)";
+          statusDiv.style.color = "#16a34a";
+          isConnected = true;
+        } else {
+          statusDiv.innerHTML = `⚠️ ${message || "Không thể kết nối đến Backend"}<br><small>Vui lòng kiểm tra API URL: ${API_BASE_URL}</small>`;
+          statusDiv.style.background = "rgba(220, 38, 38, 0.15)";
+          statusDiv.style.color = "#dc2626";
+          isConnected = false;
+        }
+      }
+
+      async function fetchRoomData() {
         if (!currentRoomId) return null;
         try {
-            const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}`);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    return null;
-                }
-                throw new Error(`HTTP ${response.status}`);
+          const response = await fetch(
+            `${API_BASE_URL}/rooms/${currentRoomId}`,
+          );
+          if (!response.ok) {
+            if (response.status === 404) {
+              return null;
             }
-            const data = await response.json();
-            updateConnectionStatus(true, 'Connected');
-            return data;
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const data = await response.json();
+          updateConnectionStatus(true, "Connected");
+          return data;
         } catch (error) {
-            console.error('Fetch room data error:', error);
-            updateConnectionStatus(false, error.message);
-            return null;
+          console.error("Fetch room data error:", error);
+          updateConnectionStatus(false, error.message);
+          return null;
         }
-    }
+      }
 
-    function startPolling() {
+      function startPolling() {
         if (pollingInterval) clearInterval(pollingInterval);
         fetchAndUpdateUI();
         pollingInterval = setInterval(() => {
-            if (currentRoomId) {
-                fetchAndUpdateUI();
-            }
+          if (currentRoomId) {
+            fetchAndUpdateUI();
+          }
         }, 2000);
-    }
+      }
 
-    async function fetchAndUpdateUI() {
+      async function fetchAndUpdateUI() {
         const roomData = await fetchRoomData();
         if (roomData) {
-            renderGameData(roomData);
+          renderGameData(roomData);
         }
-    }
+      }
 
-    function renderGameData(roomData) {
+      function renderGameData(roomData) {
         if (!roomData) return;
+        currentRoomData = roomData;
 
-        document.getElementById('roomNameDisplay').innerText = roomData.name || 'Game Room';
-        document.getElementById('playerCount').innerText = roomData.joinedPlayers || 0;
-        document.getElementById('maxPlayers').innerText = roomData.maxPlayers || '?';
-        document.getElementById('currentPhase').innerText = roomData.currentPhase ?? '?';
-        document.getElementById('maxPhase').innerText = roomData.maxPhase ?? 7;
-                // Cập nhật nhãn phase sắp chạy
+        document.getElementById("roomNameDisplay").innerText =
+          roomData.name || "Game Room";
+        document.getElementById("playerCount").innerText =
+          roomData.joinedPlayers || 0;
+        document.getElementById("maxPlayers").innerText =
+          roomData.maxPlayers || "?";
+        document.getElementById("currentPhase").innerText =
+          roomData.currentPhase ?? "?";
+        document.getElementById("maxPhase").innerText = roomData.maxPhase ?? 7;
+        // Cập nhật nhãn phase sắp chạy
         const nextPhase = (roomData.currentPhase || 0) + 1;
-        const phaseLabelSpan = document.getElementById('phaseNumberLabel');
+        const phaseLabelSpan = document.getElementById("phaseNumberLabel");
         if (phaseLabelSpan) phaseLabelSpan.innerText = nextPhase;
-        let progFill = document.querySelector('#gamePanel .bg-pink-500');
-        if (progFill) progFill.style.width = (roomData.phase_progress || 0) + '%';
-        
-        const gameStatusSpan = document.getElementById('gameStatus');
-        const canStartDeck = roomData.can_start_deck === true;
-        const isGameActive = roomData.status === 'playing' && !roomData.ended;
-        
-        if (roomData.ended) {
-            gameStatusSpan.innerHTML = '🏁 ENDED';
-            gameStatusSpan.className = 'error';
-        } else if (roomData.status === 'playing') {
-            gameStatusSpan.innerHTML = '🔥 IN PROGRESS';
-            gameStatusSpan.className = 'success';
-        } else if (roomData.status === 'choosing_deck') {
-            gameStatusSpan.innerHTML = '📦 CHOOSING DECKS';
-            gameStatusSpan.className = 'success';
-        } else if (roomData.status === 'waiting_for_projects') {
-            gameStatusSpan.innerHTML = '📝 WAITING FOR PROJECTS';
-            gameStatusSpan.className = 'loading-placeholder';
-        } else {
-            gameStatusSpan.innerHTML = '⏳ WAITING';
-            gameStatusSpan.className = 'loading-placeholder';
-        }
-        
-        // Enable nút run phase khi đang choosing_deck (để bắt đầu game) hoặc đang playing (chạy phase)
-        const runBtn = document.getElementById('runPhaseBtn');
-        if ((roomData.status === 'choosing_deck' || roomData.status === 'playing') && !roomData.ended) {
-            runBtn.disabled = false;
-        } else {
-            runBtn.disabled = true;
-        }
-        document.getElementById('endGameBtn').disabled = roomData.ended;
-        document.getElementById('resetGameBtn').disabled = false;
+        let progFill = document.querySelector("#gamePanel .bg-pink-500");
+        if (progFill)
+          progFill.style.width = (roomData.phase_progress || 0) + "%";
 
-                // Leaderboard - Overall and by Scale
+        const gameStatusSpan = document.getElementById("gameStatus");
+        const canStartDeck = roomData.can_start_deck === true;
+        const isGameActive = roomData.status === "playing" && !roomData.ended;
+
+        if (roomData.ended) {
+          gameStatusSpan.innerHTML = "🏁 ENDED";
+          gameStatusSpan.className = "error";
+        } else if (roomData.status === "playing") {
+          gameStatusSpan.innerHTML = "🔥 IN PROGRESS";
+          gameStatusSpan.className = "success";
+        } else if (roomData.status === "choosing_deck") {
+          gameStatusSpan.innerHTML = "📦 CHOOSING DECKS";
+          gameStatusSpan.className = "success";
+        } else if (roomData.status === "waiting_for_projects") {
+          gameStatusSpan.innerHTML = "📝 WAITING FOR PROJECTS";
+          gameStatusSpan.className = "loading-placeholder";
+        } else {
+          gameStatusSpan.innerHTML = "⏳ WAITING";
+          gameStatusSpan.className = "loading-placeholder";
+        }
+
+        // Enable nút run phase khi đang choosing_deck (để bắt đầu game) hoặc đang playing (chạy phase)
+        const runBtn = document.getElementById("runPhaseBtn");
+        if (
+          (roomData.status === "choosing_deck" ||
+            roomData.status === "playing") &&
+          !roomData.ended
+        ) {
+          runBtn.disabled = false;
+        } else {
+          runBtn.disabled = true;
+        }
+        document.getElementById("endGameBtn").disabled = roomData.ended;
+        document.getElementById("resetGameBtn").disabled = false;
+
+        // Leaderboard - Overall and by Scale
         if (roomData.players && roomData.players.length > 0) {
-            console.log('Player scales:', roomData.players.map(p => ({ name: p.name, scale: p.scale })));
-            // 1. Xếp hạng chung (tất cả player)
-            const allPlayers = roomData.players.filter(p => p.status !== 'not_joined');
-            const sortedOverall = [...allPlayers].sort((a, b) => (b.score || 0) - (a.score || 0));
-            let overallHtml = '';
-            sortedOverall.forEach((player, idx) => {
-                const isJoined = player.status === 'active';
-                const isEnded = player.status === 'ended';
-                const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
-                const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-                overallHtml += `
+          console.log(
+            "Player scales:",
+            roomData.players.map((p) => ({ name: p.name, scale: p.scale })),
+          );
+          // 1. Xếp hạng chung (tất cả player)
+          const allPlayers = roomData.players.filter(
+            (p) => p.status !== "not_joined",
+          );
+          const sortedOverall = [...allPlayers].sort(
+            (a, b) => (b.score || 0) - (a.score || 0),
+          );
+          let overallHtml = "";
+          sortedOverall.forEach((player, idx) => {
+            const isJoined = player.status === "active";
+            const isEnded = player.status === "ended";
+            const cardClass = isJoined
+              ? "player-card-joined"
+              : isEnded
+                ? "player-card-ended"
+                : "player-card-not-joined";
+            const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
+            overallHtml += `
                     <div class="rank-card ${cardClass}">
-                        <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id + 1}`}
-                            <span class="player-join-tag ${isJoined ? 'joined' : (isEnded ? 'joined' : 'waiting')}">${player.status === 'active' ? 'Active' : (player.status === 'ended' ? 'Finished' : 'Not Joined')}</span>
+                        <h3 style="color:#2e1a47;">${idx + 1}. ${player.name || `Player ${player.id + 1}`}
+                            <span class="player-join-tag ${isJoined ? "joined" : isEnded ? "joined" : "waiting"}">${player.status === "active" ? "Active" : player.status === "ended" ? "Finished" : "Not Joined"}</span>
                         </h3>
                         <div class="player-funding">💰 Funding: <span>${fundingPercent}%</span></div>
                         <div class="funding-bar"><div class="funding-bar-fill" style="width: ${fundingPercent}%;"></div></div>
@@ -787,50 +1085,68 @@
                             <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                         </div>
                         <div class="text-xs mt-1">
-                            ${roomData.status === 'choosing_deck' 
-                                ? (player.deck_ready ? '📦 Submitted deck' : '📦 Not ready')
-                                : (roomData.status === 'playing' 
-                                    ? (player.ready ? '✅ Ready for next phase' : '⏳ Not ready')
-                                    : '')
+                            ${
+                              roomData.status === "choosing_deck"
+                                ? player.deck_ready
+                                  ? "📦 Submitted deck"
+                                  : "📦 Not ready"
+                                : roomData.status === "playing"
+                                  ? player.ready
+                                    ? "✅ Ready for next phase"
+                                    : "⏳ Not ready"
+                                  : ""
                             }
                         </div>
                     </div>
                 `;
-            });
-            document.getElementById('rankingsOverall').innerHTML = overallHtml || '<div class="data-empty">Chưa có người chơi</div>';
+          });
+          document.getElementById("rankingsOverall").innerHTML =
+            overallHtml || '<div class="data-empty">Chưa có người chơi</div>';
 
-            // 2. Xếp hạng theo scale (S, M, L)
-            const scales = ['S', 'M', 'L'];
-            const scaleNames = { S: 'Small (5 phases)', M: 'Medium (7 phases)', L: 'Large (9 phases)' };
-            
-            // Hàm xác định scale thực tế từ player (ưu tiên scale có sẵn, nếu không dùng max_phase)
-            function getPlayerScale(player) {
-                if (player.scale && player.scale !== 'M') return player.scale;
-                const maxPhase = player.max_phase || 7;
-                if (maxPhase === 5) return 'S';
-                if (maxPhase === 9) return 'L';
-                return 'M';
+          // 2. Xếp hạng theo scale (S, M, L)
+          const scales = ["S", "M", "L"];
+          const scaleNames = {
+            S: "Small (5 phases)",
+            M: "Medium (7 phases)",
+            L: "Large (9 phases)",
+          };
+
+          // Hàm xác định scale thực tế từ player (ưu tiên scale có sẵn, nếu không dùng max_phase)
+          function getPlayerScale(player) {
+            if (player.scale && player.scale !== "M") return player.scale;
+            const maxPhase = player.max_phase || 7;
+            if (maxPhase === 5) return "S";
+            if (maxPhase === 9) return "L";
+            return "M";
+          }
+
+          let byScaleHtml = "";
+          for (const scale of scales) {
+            const playersOfScale = allPlayers.filter(
+              (p) => getPlayerScale(p) === scale,
+            );
+            if (playersOfScale.length === 0) {
+              byScaleHtml += `<div style="margin-top: 15px;"><strong style="color:#2e1a47;">📌 ${scaleNames[scale]}</strong><div class="data-empty">No players</div></div>`;
+              continue;
             }
-
-            let byScaleHtml = '';
-            for (const scale of scales) {
-                const playersOfScale = allPlayers.filter(p => getPlayerScale(p) === scale);
-                if (playersOfScale.length === 0) {
-                    byScaleHtml += `<div style="margin-top: 15px;"><strong style="color:#2e1a47;">📌 ${scaleNames[scale]}</strong><div class="data-empty">No players</div></div>`;
-                    continue;
-                }
-                const sorted = [...playersOfScale].sort((a, b) => (b.score || 0) - (a.score || 0));
-                let scaleHtml = `<div style="margin-top: 15px;"><strong style="color:#2e1a47;">📌 ${scaleNames[scale]}</strong>`;
-                scaleHtml += `<div class="rankings" style="margin-top: 8px;">`;
-                sorted.forEach((player, idx) => {
-                    const isJoined = player.status === 'active';
-                    const isEnded = player.status === 'ended';
-                    const cardClass = isJoined ? 'player-card-joined' : (isEnded ? 'player-card-ended' : 'player-card-not-joined');
-                    const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-                    scaleHtml += `
+            const sorted = [...playersOfScale].sort(
+              (a, b) => (b.score || 0) - (a.score || 0),
+            );
+            let scaleHtml = `<div style="margin-top: 15px;"><strong style="color:#2e1a47;">📌 ${scaleNames[scale]}</strong>`;
+            scaleHtml += `<div class="rankings" style="margin-top: 8px;">`;
+            sorted.forEach((player, idx) => {
+              const isJoined = player.status === "active";
+              const isEnded = player.status === "ended";
+              const cardClass = isJoined
+                ? "player-card-joined"
+                : isEnded
+                  ? "player-card-ended"
+                  : "player-card-not-joined";
+              const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
+              scaleHtml += `
                         <div class="rank-card ${cardClass}" style="margin-bottom: 8px;">
-                            <h3 style="color:#2e1a47;">${idx+1}. ${player.name || `Player ${player.id + 1}`}
-                                <span class="player-join-tag ${isJoined ? 'joined' : (isEnded ? 'joined' : 'waiting')}">${player.status === 'active' ? 'Active' : (player.status === 'ended' ? 'Finished' : 'Not Joined')}</span>
+                            <h3 style="color:#2e1a47;">${idx + 1}. ${player.name || `Player ${player.id + 1}`}
+                                <span class="player-join-tag ${isJoined ? "joined" : isEnded ? "joined" : "waiting"}">${player.status === "active" ? "Active" : player.status === "ended" ? "Finished" : "Not Joined"}</span>
                             </h3>
                             <div class="player-funding">💰 Funding: <span>${fundingPercent}%</span></div>
                             <div class="funding-bar"><div class="funding-bar-fill" style="width: ${fundingPercent}%;"></div></div>
@@ -840,44 +1156,57 @@
                                 <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                             </div>
                             <div class="text-xs mt-1">
-                            ${roomData.status === 'choosing_deck' 
-                                ? (player.deck_ready ? '📦 Submitted deck' : '📦 Not ready')
-                                : (roomData.status === 'playing' 
-                                    ? (player.ready ? '✅ Ready for next phase' : '⏳ Not ready')
-                                    : '')
+                            ${
+                              roomData.status === "choosing_deck"
+                                ? player.deck_ready
+                                  ? "📦 Submitted deck"
+                                  : "📦 Not ready"
+                                : roomData.status === "playing"
+                                  ? player.ready
+                                    ? "✅ Ready for next phase"
+                                    : "⏳ Not ready"
+                                  : ""
                             }
                             </div>
                         </div>
                     `;
-                });
-                scaleHtml += `</div></div>`;
-                byScaleHtml += scaleHtml;
-            }
-            document.getElementById('rankingsByScale').innerHTML = byScaleHtml;
-
+            });
+            scaleHtml += `</div></div>`;
+            byScaleHtml += scaleHtml;
+          }
+          document.getElementById("rankingsByScale").innerHTML = byScaleHtml;
         } else {
-            document.getElementById('rankingsOverall').innerHTML = '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
-            document.getElementById('rankingsByScale').innerHTML = '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
+          document.getElementById("rankingsOverall").innerHTML =
+            '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
+          document.getElementById("rankingsByScale").innerHTML =
+            '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
         }
         // Logs
         if (roomData.logs && roomData.logs.length > 0) {
-            const logsHtml = [...roomData.logs].reverse().map(log => `<div>📌 ${log}</div>`).join('');
-            document.getElementById('logsArea').innerHTML = logsHtml;
+          const logsHtml = [...roomData.logs]
+            .reverse()
+            .map((log) => `<div>📌 ${log}</div>`)
+            .join("");
+          document.getElementById("logsArea").innerHTML = logsHtml;
         } else {
-            document.getElementById('logsArea').innerHTML = '<div class="data-empty">📭 Chưa có sự kiện nào</div>';
+          document.getElementById("logsArea").innerHTML =
+            '<div class="data-empty">📭 Chưa có sự kiện nào</div>';
         }
 
         // Join Links
         if (roomData.joinLinks && roomData.joinLinks.length > 0) {
-            let linksHtml = '<div style="display: flex; flex-direction: column; gap: 12px;">';
-            roomData.joinLinks.forEach(link => {
-                const player = roomData.players?.find(p => p.id === link.playerIndex);
-                const isJoined = player && player.status !== 'not_joined';
-                linksHtml += `
+          let linksHtml =
+            '<div style="display: flex; flex-direction: column; gap: 12px;">';
+          roomData.joinLinks.forEach((link) => {
+            const player = roomData.players?.find(
+              (p) => p.id === link.playerIndex,
+            );
+            const isJoined = player && player.status !== "not_joined";
+            linksHtml += `
                     <div style="background: rgba(255, 255, 255, 0.85); border-radius: 16px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
                         <div>
                             <span style="font-weight: 800; color:#db2777;">${link.playerName}</span>
-                            <span class="join-status-tag ${isJoined ? 'joined' : 'waiting'}">${isJoined ? '✅ Joined' : '⌛ Waiting'}</span>
+                            <span class="join-status-tag ${isJoined ? "joined" : "waiting"}">${isJoined ? "✅ Joined" : "⌛ Waiting"}</span>
                         </div>
                         <div style="display: flex; gap: 8px;">
                             <input type="text" value="${link.realLink}" style="background:#f3e8ff; font-size:12px; width: 260px;" readonly>
@@ -885,256 +1214,424 @@
                         </div>
                     </div>
                 `;
-            });
-            linksHtml += '</div>';
-            document.getElementById('joinLinksList').innerHTML = linksHtml;
+          });
+          linksHtml += "</div>";
+          document.getElementById("joinLinksList").innerHTML = linksHtml;
         } else {
-            document.getElementById('joinLinksList').innerHTML = '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>';
+          document.getElementById("joinLinksList").innerHTML =
+            '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>';
         }
 
         // Phase details
         if (roomData.phaseDetails && roomData.phaseDetails.length > 0) {
-            const select = document.getElementById('phaseSelect');
-            select.innerHTML = roomData.phaseDetails.map(d => `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || ''})</option>`).join('');
+          const select = document.getElementById("phaseSelect");
+          select.innerHTML = roomData.phaseDetails
+            .map(
+              (d) =>
+                `<option value="${d.phase}">🏁 Phase ${d.phase} (${d.date || ""})</option>`,
+            )
+            .join("");
         }
-    }
+      }
 
-    async function showPhaseDetails() {
+      async function showPhaseDetails() {
         if (!currentRoomId) return;
         const roomData = await fetchRoomData();
         if (!roomData || !roomData.phaseDetails) return;
-        const select = document.getElementById('phaseSelect');
+        const select = document.getElementById("phaseSelect");
         const selectedPhase = parseInt(select.value);
-        const detail = roomData.phaseDetails.find(d => d.phase === selectedPhase);
-        const container = document.getElementById('phaseDetails');
+        const detail = roomData.phaseDetails.find(
+          (d) => d.phase === selectedPhase,
+        );
+        const container = document.getElementById("phaseDetails");
         if (!detail) {
-            container.innerHTML = '<div class="data-empty">Không có dữ liệu cho phase này</div>';
-            return;
+          container.innerHTML =
+            '<div class="data-empty">Không có dữ liệu cho phase này</div>';
+          return;
         }
         let html = `<div style="margin-bottom:10px;"><strong style="color:#2e1a47;">📅 ${detail.event} (${detail.date})</strong></div>`;
-        html += `<div class="rankings" style="margin-top:10px;">`;
-        detail.players.forEach(p => {
-            html += `<div class="rank-card"><h3>${p.name}</h3><div>💰 Funding: ${(p.funding*100).toFixed(1)}%</div><div>🔥 Hype: ${p.hype}</div><div>🏅 Score: ${p.score}</div></div>`;
+
+        // Player Cash Flows
+        html += `<h4 style="color:#2e1a47; margin: 12px 0 8px;">💰 Player Cash Flow</h4>`;
+        html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 16px;">`;
+        detail.players.forEach((p) => {
+          const cfSign = p.cash_flow >= 0 ? '+' : '';
+          const cfColor = p.cash_flow >= 0 ? '#16a34a' : '#dc2626';
+          const statusBadge = p.status === 'active' ? '🟢' : p.status === 'bankrupt' ? '🔴' : '⚪';
+          html += `
+            <div style="background: rgba(255,255,255,0.85); border-radius: 12px; padding: 12px;">
+              <div style="font-weight:700; color:#2e1a47; margin-bottom:6px;">${statusBadge} ${p.name}</div>
+              <div style="font-size:13px;">💰 Funding: <strong>${(p.funding * 100).toFixed(1)}%</strong></div>
+              <div style="font-size:13px;">💵 Cash: <strong>${(p.available_cash || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}</strong></div>
+              <div style="font-size:14px; font-weight:700; color:${cfColor}; margin-top:4px;">
+                Cash Flow: ${cfSign}${(p.cash_flow || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}
+              </div>
+            </div>`;
         });
         html += `</div>`;
-        container.innerHTML = html;
-    }
 
-    async function runPhase() {
+        // Bot Actions
+        const botActions = detail.bot_actions || [];
+        if (botActions.length > 0) {
+          html += `<h4 style="color:#2e1a47; margin: 12px 0 8px;">🤖 Bot Transactions</h4>`;
+          html += `<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:13px;">`;
+          html += `<thead><tr style="background:#f3e8ff; color:#2e1a47;">
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #d8b4fe;">Bot Type</th>
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #d8b4fe;">Action</th>
+            <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #d8b4fe;">Player</th>
+            <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #d8b4fe;">Amount</th>
+          </tr></thead><tbody>`;
+          botActions.forEach((action) => {
+            const actionColor = action.action === 'invest' ? '#16a34a' : '#dc2626';
+            const actionIcon = action.action === 'invest' ? '📈' : '📉';
+            const actionLabel = action.action === 'invest' ? 'Invest' : 'Withdraw';
+            html += `<tr style="border-bottom:1px solid #ede9fe;">
+              <td style="padding:6px 10px; font-weight:600;">${action.bot_type}</td>
+              <td style="padding:6px 10px; color:${actionColor}; font-weight:600;">${actionIcon} ${actionLabel}</td>
+              <td style="padding:6px 10px;">Player ${action.player_index + 1}</td>
+              <td style="padding:6px 10px; text-align:right; font-weight:600; color:${actionColor};">${(action.amount || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+            </tr>`;
+          });
+          html += `</tbody></table></div>`;
+        } else {
+          html += `<div class="data-empty">🤖 Không có giao dịch bot trong phase này</div>`;
+        }
+
+        container.innerHTML = html;
+      }
+
+      async function runPhase() {
         if (!currentRoomId) return;
         try {
-            const response = await fetch(`${API_BASE_URL}/run_phase`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ room_id: currentRoomId })
-            });
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error || 'Cannot run phase');
-            }
-            const result = await response.json();
-            if (result.message) {
-                alert(result.message);
-            }
-            await fetchAndUpdateUI();
+          const response = await fetch(`${API_BASE_URL}/run_phase`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ room_id: currentRoomId }),
+          });
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || "Cannot run phase");
+          }
+          const result = await response.json();
+          if (result.message) {
+            alert(result.message);
+          }
+          await fetchAndUpdateUI();
         } catch (error) {
+          alert(`❌ Lỗi: ${error.message}`);
+        }
+      }
+
+      async function endGame() {
+        if (!currentRoomId) return;
+        if (confirm("Bạn có chắc muốn kết thúc game ngay bây giờ?")) {
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/rooms/${currentRoomId}/end`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              },
+            );
+            if (!response.ok) throw new Error("Cannot end game");
+            await fetchAndUpdateUI();
+          } catch (error) {
             alert(`❌ Lỗi: ${error.message}`);
+          }
         }
-    }
+      }
 
-
-
-    async function endGame() {
+      async function resetGame() {
         if (!currentRoomId) return;
-        if (confirm('Bạn có chắc muốn kết thúc game ngay bây giờ?')) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/end`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Cannot end game');
-                await fetchAndUpdateUI();
-            } catch (error) {
-                alert(`❌ Lỗi: ${error.message}`);
-            }
+        if (confirm("RESET toàn bộ game? Dữ liệu hiện tại sẽ bị mất.")) {
+          try {
+            const response = await fetch(
+              `${API_BASE_URL}/rooms/${currentRoomId}/reset`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              },
+            );
+            if (!response.ok) throw new Error("Cannot reset game");
+            await fetchAndUpdateUI();
+          } catch (error) {
+            alert(`❌ Lỗi: ${error.message}`);
+          }
         }
-    }
+      }
 
-    async function resetGame() {
-        if (!currentRoomId) return;
-        if (confirm('RESET toàn bộ game? Dữ liệu hiện tại sẽ bị mất.')) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/reset`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                if (!response.ok) throw new Error('Cannot reset game');
-                await fetchAndUpdateUI();
-            } catch (error) {
-                alert(`❌ Lỗi: ${error.message}`);
-            }
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => alert("✅ Đã copy link!"));
+      }
+
+      function copyAllJoinLinks() {
+        if (!currentRoomData || !currentRoomData.joinLinks || currentRoomData.joinLinks.length === 0) {
+          alert("Chưa có link tham gia để copy!");
+          return;
         }
-    }
+        const formattedText = currentRoomData.joinLinks
+          .map(link => `${link.playerName} - ${link.realLink}`)
+          .join('\n');
+        
+        navigator.clipboard.writeText(formattedText)
+          .then(() => alert("✅ Đã copy toàn bộ link tham gia!"))
+          .catch(err => {
+            console.error("Copy failed: ", err);
+            alert("❌ Không thể copy link!");
+          });
+      }
 
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => alert('✅ Đã copy link!'));
-    }
+      // Global functions
+      window.createNewRoom = createNewRoom;
+      window.createAdditionalRoom = createAdditionalRoom;
+      window.showCreateRoomModal = showCreateRoomModal;
+      window.closeRoomModal = closeRoomModal;
+      window.switchToRoom = switchToRoom;
+      window.runPhase = runPhase;
+      window.endGame = endGame;
+      window.resetGame = resetGame;
+      window.showPhaseDetails = showPhaseDetails;
+      window.copyToClipboard = copyToClipboard;
+      window.copyAllJoinLinks = copyAllJoinLinks;
 
-
-
-    // Global functions
-    window.createNewRoom = createNewRoom;
-    window.createAdditionalRoom = createAdditionalRoom;
-    window.showCreateRoomModal = showCreateRoomModal;
-    window.closeRoomModal = closeRoomModal;
-    window.switchToRoom = switchToRoom;
-    window.runPhase = runPhase;
-    window.endGame = endGame;
-    window.resetGame = resetGame;
-    window.showPhaseDetails = showPhaseDetails;
-    window.copyToClipboard = copyToClipboard;
-
-    // Khởi tạo
-    loadRoomsFromStorage();
-    const savedRoomId = sessionStorage.getItem('currentRoomId');
-    if (savedRoomId && hostRooms.some(r => r.id === savedRoomId)) {
+      // Khởi tạo
+      loadRoomsFromStorage();
+      const savedRoomId = sessionStorage.getItem("currentRoomId");
+      if (savedRoomId && hostRooms.some((r) => r.id === savedRoomId)) {
         currentRoomId = savedRoomId;
-        document.getElementById('setupPanel').style.display = 'none';
-        document.getElementById('gamePanel').style.display = 'block';
-        const roomInfo = hostRooms.find(r => r.id === currentRoomId);
+        document.getElementById("setupPanel").style.display = "none";
+        document.getElementById("gamePanel").style.display = "block";
+        const roomInfo = hostRooms.find((r) => r.id === currentRoomId);
         if (roomInfo) {
-            document.getElementById('roomNameDisplay').innerText = roomInfo.name;
-            document.getElementById('maxPlayers').innerText = roomInfo.maxPlayers;
+          document.getElementById("roomNameDisplay").innerText = roomInfo.name;
+          document.getElementById("maxPlayers").innerText = roomInfo.maxPlayers;
         }
-        document.getElementById('roomId').innerText = currentRoomId;
+        document.getElementById("roomId").innerText = currentRoomId;
         startPolling();
         updateRoomSelector();
-    }
+      }
 
-    fetch(`${API_BASE_URL}/health`).catch(err => {
-        updateConnectionStatus(false, 'Backend không khả dụng.');
-    });
+      fetch(`${API_BASE_URL}/health`).catch((err) => {
+        updateConnectionStatus(false, "Backend không khả dụng.");
+      });
 
-    // ==================== RULES SIDEBAR CONTROLLER (Host) ====================
-    function initRulesSidebar() {
-        const rulesButton = document.getElementById('rulesButton');
-        const rulesSidebar = document.getElementById('rulesSidebar');
-        const rulesOverlay = document.getElementById('rulesOverlay');
-        const closeRulesBtn = document.getElementById('closeRulesBtn');
-        
+      // ==================== RULES SIDEBAR CONTROLLER (Host) ====================
+      function initRulesSidebar() {
+        const rulesButton = document.getElementById("rulesButton");
+        const rulesSidebar = document.getElementById("rulesSidebar");
+        const rulesOverlay = document.getElementById("rulesOverlay");
+        const closeRulesBtn = document.getElementById("closeRulesBtn");
+
         if (!rulesButton || !rulesSidebar) return;
-        
-        function openRules() {
-            rulesSidebar.classList.add('open');
-            rulesOverlay.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function closeRules() {
-            rulesSidebar.classList.remove('open');
-            rulesOverlay.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-        
-        rulesButton.addEventListener('click', openRules);
-        if (closeRulesBtn) closeRulesBtn.addEventListener('click', closeRules);
-        if (rulesOverlay) rulesOverlay.addEventListener('click', closeRules);
-        
-        // ESC key to close
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && rulesSidebar.classList.contains('open')) {
-                closeRules();
-            }
-        });
-    }
-    
-    // Khởi tạo khi trang load xong
-    document.addEventListener('DOMContentLoaded', initRulesSidebar);
 
-    
-</script>
-        <!-- Modal Leaderboard chi tiết -->
-    <div id="leaderboardModal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h2 class="text-2xl font-bold text-purple-800">📊 CHI TIẾT XẾP HẠNG THEO SCALE</h2>
-                <button onclick="closeLeaderboardModal()" class="close-modal">Đóng</button>
-            </div>
-            <div id="leaderboardModalBody"></div>
+        function openRules() {
+          rulesSidebar.classList.add("open");
+          rulesOverlay.classList.add("show");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closeRules() {
+          rulesSidebar.classList.remove("open");
+          rulesOverlay.classList.remove("show");
+          document.body.style.overflow = "";
+        }
+
+        rulesButton.addEventListener("click", openRules);
+        if (closeRulesBtn) closeRulesBtn.addEventListener("click", closeRules);
+        if (rulesOverlay) rulesOverlay.addEventListener("click", closeRules);
+
+        // ESC key to close
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && rulesSidebar.classList.contains("open")) {
+            closeRules();
+          }
+        });
+      }
+
+      // Khởi tạo khi trang load xong
+      document.addEventListener("DOMContentLoaded", initRulesSidebar);
+    </script>
+    <!-- Modal Leaderboard chi tiết -->
+    <div id="leaderboardModal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+          "
+        >
+          <h2 class="text-2xl font-bold text-purple-800">
+            📊 CHI TIẾT XẾP HẠNG THEO SCALE
+          </h2>
+          <button onclick="closeLeaderboardModal()" class="close-modal">
+            Đóng
+          </button>
         </div>
+        <div id="leaderboardModalBody"></div>
+      </div>
     </div>
 
     <!-- Game Rules Sidebar (Host) -->
     <button class="rules-button" id="rulesButton">📖</button>
     <div class="rules-sidebar-overlay" id="rulesOverlay"></div>
     <div class="rules-sidebar" id="rulesSidebar">
-        <div class="rules-sidebar-header">
-            <h2>📖 Fun(d) Raising - Game Guide</h2>
-            <button class="close-rules" id="closeRulesBtn">&times;</button>
-        </div>
-        <div class="rules-sidebar-content">
-            <h3>1. Overview</h3>
-            <p>Fun(d) Raising is a multiplayer startup simulation game where 2–10 players compete to build the most attractive project. Each player creates a startup, chooses a custom deck of cards, and navigates random events. Investors (our system) decide where to put their money. The host controls the game flow. After several rounds (phases), a final score determines the winner.</p>
-    
-            <h3>2. Setup</h3>
-            <h4>2.1 Host creates a room</h4>
-            <p>The host enters the number of players (2–10) and clicks <span class="highlight">Create Room</span>. The system generates unique join links – one per player. The host sends each link to the corresponding player.</p>
-            
-            <h4>2.2 Players enter project details</h4>
-            <p>Each player opens their link and fills in the required information about their startup (price, costs, production forecast, capital structure, etc.). All fields have reasonable limits to keep the game balanced.</p>
-            
-            <h4>2.3 Players build their deck</h4>
-            <p>After submitting the project, each player selects:</p>
-            <ul>
-                <li><strong>19 Active Cards (mandatory)</strong> – three types:
-                    <ul>
-                        <li><span class="highlight">Aggressive</span>: boosts Hype, often lowers Transparency.</li>
-                        <li><span class="highlight">Defensive</span>: increases Transparency, reduces legal risk.</li>
-                        <li><span class="highlight">Capital</span>: affects funding, trust, or financial structure.</li>
-                    </ul>
-                </li>
-                <li><strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger automatically when a specific condition is met.</li>
-            </ul>
-            <p><em>Note: Cards are selected by clicking on them (no "highlight" step). The host decides when the deck selection phase ends and the game starts.</em></p>
-    
-            <h3>3. Game Flow – Phases</h3>
-            <p>The number of phases depends on the chosen scale:</p>
-            <ul>
-                <li>Small → 5 phases</li>
-                <li>Medium → 7 phases</li>
-                <li>Large → 9 phases</li>
-            </ul>
-            <p>The host controls the progression: after each phase, the host decides when to move to the next one.</p>
-            
-            <h4>During a phase:</h4>
-            <p><strong>a. Random event (Scenario)</strong><br>Each project receives a random event, including market, internal, external, or regulatory events.</p>
-            
-            <p><strong>b. Player actions</strong><br>Each player sees 5 Active cards drawn randomly from their deck. They may play Active cards (costs energy – 3 energy per phase) by clicking on the card and then clicking the Play Card button. They may Mulligan once per phase (discard hand, draw 3 new cards) – costs 1 energy, lowers Transparency by 2 and trust of all bots by 1. Reaction cards that are triggered will appear as clickable buttons; they can be used at any time during the phase (each only once). The host decides when the phase ends and proceeds to the next one.</p>
-            
-            <p><strong>c. Host runs the phase</strong><br>When the host clicks Run Phase, the system:</p>
-            <ul>
-                <li>Applies all played cards and event effects.</li>
-                <li>Updates project stats (funding progress, runway, etc.).</li>
-                <li>Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random) evaluate all active projects.</li>
-                <li>Bots may withdraw money from less attractive projects.</li>
-                <li>Bots may invest new money into attractive projects (softmax distribution).</li>
-                <li>Bots have short‑term memory decay, they remember past attractiveness, so a project that performed poorly before may struggle to regain trust.</li>
-                <li>The phase ends. If a project runs out of cash, it goes bankrupt and is eliminated.</li>
-            </ul>
-    
-            <h3>4. End of Game &amp; Winner</h3>
-            <p>The game ends when all projects have finished their maximum number of phases (or are bankrupt). The host sees a final ranking based on <span class="highlight">Final Score (0–100)</span>. The score takes into account funding progress, speed, expected ROI, transparency, and a penalty for unrealistic valuation. The project with the highest score wins.</p>
-    
-            <h3>5. Quick Tips</h3>
-            <ul>
-                <li>Balance Aggressive (Hype) and Defensive (Transparency) cards – too much hype hurts credibility.</li>
-                <li>Save energy for impactful cards; don't waste it on weak effects.</li>
-                <li>Choose Reaction cards that fit your strategy – they can save you in critical moments (e.g., bot withdrawals, bad events).</li>
-                <li>Value Hunter bots focus on intrinsic value (margin, burn rate, growth, revenue scale, capital efficiency, leverage) – build a solid financial foundation to attract them.</li>
-            </ul>
-        </div>
-    </div>
-    
-</body>
-</html>
+      <div class="rules-sidebar-header">
+        <h2>📖 Fun(d) Raising - Game Guide</h2>
+        <button class="close-rules" id="closeRulesBtn">&times;</button>
+      </div>
+      <div class="rules-sidebar-content">
+        <h3>1. Overview</h3>
+        <p>
+          Fun(d) Raising is a multiplayer startup simulation game where 2–10
+          players compete to build the most attractive project. Each player
+          creates a startup, chooses a custom deck of cards, and navigates
+          random events. Investors (our system) decide where to put their money.
+          The host controls the game flow. After several rounds (phases), a
+          final score determines the winner.
+        </p>
 
+        <h3>2. Setup</h3>
+        <h4>2.1 Host creates a room</h4>
+        <p>
+          The host enters the number of players (2–10) and clicks
+          <span class="highlight">Create Room</span>. The system generates
+          unique join links – one per player. The host sends each link to the
+          corresponding player.
+        </p>
+
+        <h4>2.2 Players enter project details</h4>
+        <p>
+          Each player opens their link and fills in the required information
+          about their startup (price, costs, production forecast, capital
+          structure, etc.). All fields have reasonable limits to keep the game
+          balanced.
+        </p>
+
+        <h4>2.3 Players build their deck</h4>
+        <p>After submitting the project, each player selects:</p>
+        <ul>
+          <li>
+            <strong>19 Active Cards (mandatory)</strong> – three types:
+            <ul>
+              <li>
+                <span class="highlight">Aggressive</span>: boosts Hype, often
+                lowers Transparency.
+              </li>
+              <li>
+                <span class="highlight">Defensive</span>: increases
+                Transparency, reduces legal risk.
+              </li>
+              <li>
+                <span class="highlight">Capital</span>: affects funding, trust,
+                or financial structure.
+              </li>
+            </ul>
+          </li>
+          <li>
+            <strong>Up to 3 Reaction Cards</strong>: one‑time cards that trigger
+            automatically when a specific condition is met.
+          </li>
+        </ul>
+        <p>
+          <em
+            >Note: Cards are selected by clicking on them (no "highlight" step).
+            The host decides when the deck selection phase ends and the game
+            starts.</em
+          >
+        </p>
+
+        <h3>3. Game Flow – Phases</h3>
+        <p>The number of phases depends on the chosen scale:</p>
+        <ul>
+          <li>Small → 5 phases</li>
+          <li>Medium → 7 phases</li>
+          <li>Large → 9 phases</li>
+        </ul>
+        <p>
+          The host controls the progression: after each phase, the host decides
+          when to move to the next one.
+        </p>
+
+        <h4>During a phase:</h4>
+        <p>
+          <strong>a. Random event (Scenario)</strong><br />Each project receives
+          a random event, including market, internal, external, or regulatory
+          events.
+        </p>
+
+        <p>
+          <strong>b. Player actions</strong><br />Each player sees 5 Active
+          cards drawn randomly from their deck. They may play Active cards
+          (costs energy – 3 energy per phase) by clicking on the card and then
+          clicking the Play Card button. They may Mulligan once per phase
+          (discard hand, draw 3 new cards) – costs 1 energy, lowers Transparency
+          by 2 and trust of all bots by 1. Reaction cards that are triggered
+          will appear as clickable buttons; they can be used at any time during
+          the phase (each only once). The host decides when the phase ends and
+          proceeds to the next one.
+        </p>
+
+        <p>
+          <strong>c. Host runs the phase</strong><br />When the host clicks Run
+          Phase, the system:
+        </p>
+        <ul>
+          <li>Applies all played cards and event effects.</li>
+          <li>Updates project stats (funding progress, runway, etc.).</li>
+          <li>
+            Bots (200 bots of 4 types: FOMO, Value Hunter, Whale, Random)
+            evaluate all active projects.
+          </li>
+          <li>Bots may withdraw money from less attractive projects.</li>
+          <li>
+            Bots may invest new money into attractive projects (softmax
+            distribution).
+          </li>
+          <li>
+            Bots have short‑term memory decay, they remember past
+            attractiveness, so a project that performed poorly before may
+            struggle to regain trust.
+          </li>
+          <li>
+            The phase ends. If a project runs out of cash, it goes bankrupt and
+            is eliminated.
+          </li>
+        </ul>
+
+        <h3>4. End of Game &amp; Winner</h3>
+        <p>
+          The game ends when all projects have finished their maximum number of
+          phases (or are bankrupt). The host sees a final ranking based on
+          <span class="highlight">Final Score (0–100)</span>. The score takes
+          into account funding progress, speed, expected ROI, transparency, and
+          a penalty for unrealistic valuation. The project with the highest
+          score wins.
+        </p>
+
+        <h3>5. Quick Tips</h3>
+        <ul>
+          <li>
+            Balance Aggressive (Hype) and Defensive (Transparency) cards – too
+            much hype hurts credibility.
+          </li>
+          <li>
+            Save energy for impactful cards; don't waste it on weak effects.
+          </li>
+          <li>
+            Choose Reaction cards that fit your strategy – they can save you in
+            critical moments (e.g., bot withdrawals, bad events).
+          </li>
+          <li>
+            Value Hunter bots focus on intrinsic value (margin, burn rate,
+            growth, revenue scale, capital efficiency, leverage) – build a solid
+            financial foundation to attract them.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>
