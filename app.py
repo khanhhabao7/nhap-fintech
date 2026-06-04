@@ -741,14 +741,15 @@ def host_state():
     
     for i, proj in enumerate(room['players']):
         if proj:
-            is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5)
+            is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or \
+                       proj.get('current_phase', 0) >= proj.get('max_phase', 5)
             if is_ended:
                 metrics = calculate_metrics(proj)
                 score = final_score(proj, proj.get('max_phase', 5), metrics)
             else:
-                score = 0
-            else:
-                score = 0
+                score = 0   # chỉ một else duy nhất
+        else:
+            score = 0
             
             rankings.append({
                 'name': f"Player {i+1}",
