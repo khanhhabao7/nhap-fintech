@@ -794,8 +794,8 @@ def submit_project():
         'hype': project_data.get('hype', 50),
         'transparency': project_data.get('transparency', 50),
         'visibility': project_data.get('visibility', 50),
-        'active_deck': None,
-        'reaction_hand': None,
+        'active_deck': [],
+        'reaction_hand': [],
         'current_hand': [],
         'energy_left': 3,
         'funding_complete_phase': None,
@@ -864,7 +864,7 @@ def submit_deck():
         if not room:
             return jsonify({'error': 'Room not found'}), 404
 
-        if room['status'] != 'choosing_deck':
+        if room['status'] not in ['waiting_for_projects', 'choosing_deck']:
             return jsonify({'error': 'Không phải lúc chọn deck (status: ' + room['status'] + ')'}), 400
 
         # Kiểm tra player tồn tại
@@ -925,7 +925,7 @@ def auto_select_deck():
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
 
-    if room['status'] != 'choosing_deck':
+    if room['status'] not in ['waiting_for_projects', 'choosing_deck']:
         return jsonify({'error': 'Không thể chọn deck lúc này'}), 400
 
     proj = room['players'][player_index]
@@ -1021,7 +1021,13 @@ def player_state():
     
     room = rooms[room_id]
     if player_index < 0 or player_index >= len(room['players']) or room['players'][player_index] is None:
-        return jsonify({'error': 'Player not found'}), 404
+        return jsonify({
+            'joined': False,
+            'status': room.get('status', 'waiting'),
+            'choosing_deck': room['status'] == 'choosing_deck',
+            'game_started': room['status'] == 'playing',
+            'game_ended': room.get('game_ended', False)
+        }), 200
     
     proj = room['players'][player_index]
     metrics = calculate_metrics(proj)
@@ -1057,7 +1063,7 @@ def player_state():
             'funding_progress': proj.get('funding_progress', 0)
         },
         'ready': room.get('player_ready', [False])[player_index] if player_index < len(room.get('player_ready', [])) else False,
-        'choosing_deck': room['status'] == 'choosing_deck',
+        'choosing_deck': room['status'] == 'choosing_deck' or (room['status'] == 'waiting_for_projects' and proj is not None),
         'game_started': room['status'] == 'playing',
         'hype': proj.get('hype', 50),
         'transparency': proj.get('transparency', 50),
@@ -1689,6 +1695,17 @@ def api_reset_game(room_id):
     
     return jsonify({'success': True})
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    import traceback
+    error_trace = traceback.format_exc()
+    print("=== UNHANDLED EXCEPTION ===")
+    print(error_trace)
+    return jsonify({'error': f'Internal Server Error: {str(e)}'}), 500
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+
+
