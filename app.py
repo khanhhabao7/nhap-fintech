@@ -139,7 +139,8 @@ def calculate_metrics(proj):
         growth_score = max(0, 10 * (1 + growth / 0.5))
     growth_score = clamp(growth_score, 0, 20)
 
-    revenue_year = proj["units_m6"] * 12 * price_real
+    avg_monthly_units = (proj["units_m1"] + proj["units_m6"]) / 2
+    revenue_year = avg_monthly_units * 12 * price_real
     revenue_score = min(10, max(0, math.log10(max(1, revenue_year / 100000)) / 2 * 10))
 
     total_capital = proj["owner_equity"] + proj["loan"] + proj.get("total_invested", 0)
@@ -166,7 +167,7 @@ def calculate_metrics(proj):
     intrinsic = gm_score + burn_score + growth_score + revenue_score + efficiency_score + leverage_score
 
     total_invested = proj.get("total_invested", 0)
-    ps_ratio = 5.0
+    ps_ratio = 3.0
     hype = proj.get("hype", 50)
     if hype > 70: ps_ratio += 2
     elif hype < 30: ps_ratio -= 1
