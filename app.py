@@ -371,12 +371,19 @@ def process_phase(room, phase, players, logs):
                     logs.append(f"Bot {bot['type']} rút toàn bộ {invested:.0f} từ dự án {idx+1} (kết thúc)")
                 continue
             diff = A.get((bot['id'], best_idx), -1e9) - A.get((bot['id'], idx), -1e9)
-            if diff > 15:
-                withdraw_ratio = 1.0
+            if diff > 25:
+                withdraw_ratio = 0.5
+            elif diff > 15:
+                withdraw_ratio = 0.25
             elif diff > 5:
-                withdraw_ratio = 0.3
+                withdraw_ratio = 0.0   # không rút
             else:
                 withdraw_ratio = 0.0
+            
+            # Nếu dự án gần đạt mục tiêu (>80%), giảm động lực rút
+            if players[idx].get('funding_progress', 0) > 0.8:
+                withdraw_ratio *= 0.3
+            
             max_ratio = min(0.6, 0.2 + (phase - 1) * 0.05)
             desired = invested * withdraw_ratio
             max_withdraw = invested * max_ratio
@@ -406,16 +413,25 @@ def process_phase(room, phase, players, logs):
         attrs = [A.get((bot['id'], i), -1e9) for i in candidates]
         min_a = min(attrs)
         shifted = [max(0, a - min_a + 0.01) for a in attrs]
-        sum_exp = sum(math.exp(a / 20) for a in shifted)
-        probs = [math.exp(a / 20) / sum_exp for a in shifted]
+        
+        # Thêm diversity penalty: dự án càng gần target thì càng bị phạt
+        for j, idx in enumerate(candidates):
+            already_invested = alloc_entry['perProject'][idx]
+            saturation = already_invested / players[idx]['target_funding']   # 0..1
+            diversity_penalty = saturation * 30
+            shifted[j] = max(0, shifted[j] - diversity_penalty)
+        
+        sum_exp = sum(math.exp(a / 35) for a in shifted)   # đổi từ /20 thành /35
+        probs = [math.exp(a / 35) / sum_exp for a in shifted]
+        
         remaining = idle
         for _ in range(5):
-            if remaining <= 0:
-                break
+            if remaining <= 0: break
             for j, idx in enumerate(candidates):
                 invest = remaining * probs[j]
                 invested_by_bot = alloc_entry['perProject'][idx]
-                max_per_bot = players[idx]['target_funding'] * (0.2 if phase == 1 else 0.25)
+                # giảm max_per_bot: 0.15 (phase 1) / 0.2 (các phase sau)
+                max_per_bot = players[idx]['target_funding'] * (0.15 if phase == 1 else 0.2)
                 cap = min(invest, max_per_bot - invested_by_bot)
                 if cap > 0:
                     players[idx]['total_invested'] += cap
