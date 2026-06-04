@@ -375,7 +375,7 @@ def process_phase(room, phase, players, logs):
                 withdraw_ratio = 0.5
             elif diff > 15:
                 withdraw_ratio = 0.25
-elif diff > 5:
+            elif diff > 5:
                 withdraw_ratio = 0.
             else:
                 withdraw_ratio = 0.0
