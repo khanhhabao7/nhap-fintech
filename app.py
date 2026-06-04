@@ -305,7 +305,7 @@ def attractiveness(project, bot, metrics):
     return raw_A * (trust / 100) + noise
 
 def final_score(proj, phases_used, metrics):
-    if proj["funding_progress"] < 0.5:
+    if proj["funding_progress"] < 0:
         return 0
 
     funding_score = proj["funding_progress"] * 40
@@ -753,7 +753,7 @@ def host_state():
     for i, proj in enumerate(room['players']):
         if proj:
             is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5)
-            if is_ended and proj.get('funding_progress', 0) >= 0.5:
+            if is_ended:
                 metrics = calculate_metrics(proj)
                 score = final_score(proj, proj.get('max_phase', 5), metrics)
             elif is_ended:
