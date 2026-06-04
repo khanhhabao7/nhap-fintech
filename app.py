@@ -594,7 +594,66 @@ def process_phase(room, phase, players, logs):
         alloc_entry['idle'] = remaining
 
 # ==================== FLASK APP & ROOMS ====================
-rooms = {}
+import sqlite3
+import json
+from flask import g
+
+class SqliteRoomManager:
+    def __init__(self, db_path='game_state.db'):
+        self.db_path = db_path
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute('CREATE TABLE IF NOT EXISTS rooms (id TEXT PRIMARY KEY, data TEXT)')
+    
+    def _get_cache(self):
+        if not hasattr(g, 'rooms_cache'):
+            g.rooms_cache = {}
+        return g.rooms_cache
+
+    def __getitem__(self, key):
+        cache = self._get_cache()
+        if key in cache:
+            return cache[key]
+        with sqlite3.connect(self.db_path, timeout=10) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT data FROM rooms WHERE id = ?', (key,))
+            row = cursor.fetchone()
+            if row:
+                room = json.loads(row[0])
+                cache[key] = room
+                return room
+            raise KeyError(key)
+
+    def __setitem__(self, key, value):
+        cache = self._get_cache()
+        cache[key] = value
+
+    def __contains__(self, key):
+        try:
+            self[key]
+            return True
+        except KeyError:
+            return False
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def values(self):
+        with sqlite3.connect(self.db_path, timeout=10) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT data FROM rooms')
+            return [json.loads(row[0]) for row in cursor.fetchall()]
+
+rooms = SqliteRoomManager()
+
+@app.teardown_request
+def save_rooms(exception=None):
+    if hasattr(g, 'rooms_cache'):
+        with sqlite3.connect(rooms.db_path, timeout=10) as conn:
+            for key, room in g.rooms_cache.items():
+                conn.execute('INSERT OR REPLACE INTO rooms (id, data) VALUES (?, ?)', (key, json.dumps(room)))
 
 def try_start_game(room):
     """Khởi tạo game khi tất cả người chơi đã chọn deck"""
