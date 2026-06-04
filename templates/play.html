@@ -258,6 +258,33 @@
             box-shadow: 0 0 0 2px rgba(236,72,153,0.3);
         }
 
+        /* ===== CARD STYLE MỚI (giống v2) ===== */
+        .hand-card, .deck-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 1rem;
+            padding: 12px;
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+            word-wrap: break-word;
+            white-space: normal;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .hand-card:hover, .deck-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.1);
+        }
+        .selected-card {
+            opacity: 0.75;
+            background: #fce7f3 !important;
+            border-left-color: #ec4899 !important;
+            filter: none;
+            border: none;
+            box-shadow: 0 0 0 2px rgba(236,72,153,0.3);
+        }
+        #activeList, #reactionList, #hand {
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        }
+
      .funding-bar {
         width: 100%; height: 10px; background: #e2e8f0; border-radius: 999px;
         overflow: hidden; margin-bottom: 12px;
@@ -804,11 +831,12 @@
                 let bgColor = card.type === 'red' ? '#ffe4e6' : (card.type === 'green' ? '#e0f2fe' : '#f3e8ff');
                 const isSelected = selectedActive.has(idx);
                 const selectedClass = isSelected ? 'selected-card' : '';
+                let borderColor = card.type === 'red' ? '#f43f5e' : (card.type === 'green' ? '#0ea5e9' : '#a855f7');
                 activeContainer.innerHTML += `
-                    <div class="rounded-lg p-2 cursor-pointer transition-all deck-card active-card ${selectedClass}" data-idx="${idx}" data-type="active" style="background-color:${bgColor};">
+                    <div class="rounded-lg p-3 cursor-pointer transition-all deck-card active-card ${selectedClass}" data-idx="${idx}" data-type="active" style="background-color:${bgColor}; border-left-color: ${borderColor};">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">Cost: ${card.cost}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
+                        <div class="text-xs text-purple-600">⚡ Cost: ${card.cost}</div>
+                        <div class="text-xs text-gray-700 mt-1">📖 ${card.desc}</div>
                     </div>
                 `;
             });
@@ -818,9 +846,9 @@
                 const isSelected = selectedReaction.has(idx);
                 const selectedClass = isSelected ? 'selected-card' : '';
                 reactionContainer.innerHTML += `
-                    <div class="bg-emerald-100 rounded-lg p-2 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" data-idx="${idx}" data-type="reaction">
+                    <div class="bg-emerald-100 rounded-lg p-3 cursor-pointer hover:bg-emerald-200 transition-all deck-card reaction-card ${selectedClass}" data-idx="${idx}" data-type="reaction" style="border-left-color: #10b981;">
                         <div class="font-bold text-sm text-purple-800">${card.name}</div>
-                        <div class="text-xs text-purple-600">${card.desc.substring(0,40)}</div>
+                        <div class="text-xs text-gray-700 mt-1">📖 ${card.desc}</div>
                     </div>
                 `;
             });
@@ -969,10 +997,10 @@
             if (data.hand && data.hand.length > 0) {
                 handDiv.innerHTML = data.hand.map((card, idx) => {
                     let borderColor = card.type === 'red' ? '#f43f5e' : (card.type === 'green' ? '#0ea5e9' : '#a855f7');
-                    return `<div class="hand-card" style="border-left:4px solid ${borderColor};" data-cardidx="${idx}">
-                        <div class="font-bold text-sm">${card.name}</div>
-                        <div class="text-xs">Cost: ${card.cost}</div>
-                        <div class="text-xs">${card.desc?.substring(0,30)}</div>
+                    return `<div class="hand-card p-3 mb-2" style="border-left-color: ${borderColor};" data-cardidx="${idx}">
+                        <div class="font-bold text-purple-800">${card.name}</div>
+                        <div class="text-xs text-gray-500">⚡ Cost: ${card.cost}</div>
+                        <div class="text-sm text-gray-700 mt-1 break-words">${card.desc}</div>
                     </div>`;
                 }).join('');
                 document.querySelectorAll('.hand-card').forEach(el => {
