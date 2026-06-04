@@ -981,6 +981,7 @@ def player_state():
     return jsonify({
         'status': room.get('status', 'waiting'),
         'phase': room.get('phase', 0),
+        'max_phase': proj.get('max_phase', 7),
         'last_scenario': proj.get('last_scenario', 'Chưa có sự kiện'),
         'metrics': {
             'intrinsic': metrics.get('intrinsic', 0),
