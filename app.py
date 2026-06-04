@@ -19,90 +19,236 @@ app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
 
 # ===================== DỮ LIỆU CỐ ĐỊNH =====================
+import random
+TAG_ALIASES = {
+    "demand": "demand_pressure",
+    "price": "price_pressure",
+    "cost": "cost_pressure",
+    "runway": "runway_pressure",
+    "funding": "funding_pressure",
+    "transparency": "disclosure_pressure",
+}
+
+def normalize_tag(tag):
+    return TAG_ALIASES.get(tag, tag)
+
+def normalize_tags(tags):
+    return sorted({normalize_tag(tag) for tag in tags})
 SCENARIOS = [
-    {"id":1,"name":"Market Liquidity Improves","cat":"Market","delta":{"price":0.03,"cogs":0,"hype":10,"sentiment":8,"transparency":0,"reg_risk":0}},
-    {"id":2,"name":"Investor Risk Appetite Rises","cat":"Market","delta":{"price":0.08,"cogs":-0.02,"hype":22,"sentiment":15,"transparency":0,"reg_risk":0}},
-    {"id":3,"name":"Capital Moves to Safer Assets","cat":"Market","delta":{"price":-0.05,"cogs":0.02,"hype":-12,"sentiment":-8,"transparency":0,"reg_risk":0}},
-    {"id":4,"name":"Interest Rates Increase","cat":"Market","delta":{"price":-0.08,"cogs":0.04,"hype":-18,"sentiment":-15,"transparency":-3,"reg_risk":3}},
-    {"id":5,"name":"Startup Funding Market Slows Down","cat":"Market","delta":{"price":-0.15,"cogs":0.05,"hype":-30,"sentiment":-25,"transparency":-8,"reg_risk":8}},
-    {"id":6,"name":"Capital Market Liquidity Crisis","cat":"Market","delta":{"price":-0.25,"cogs":0.1,"hype":-40,"sentiment":-35,"transparency":-15,"reg_risk":15}},
-    {"id":7,"name":"Operating Costs Exceed the Budget","cat":"Internal","delta":{"cogs":0.05,"hype":-5,"transparency":-5,"trust_all":-5,"runway":-1}},
-    {"id":8,"name":"Product Quality Issues Appear","cat":"Internal","delta":{"cogs":0.1,"hype":-10,"transparency":-10,"trust_all":-10,"runway":-2}},
-    {"id":9,"name":"Data leak","cat":"Internal","delta":{"cogs":0,"hype":-15,"transparency":-20,"trust_all":-15,"runway":0}},
-    {"id":10,"name":"Key Team Member Leaves","cat":"Internal","delta":{"cogs":0.03,"hype":-10,"transparency":-5,"trust_all":-5,"runway":0}},
-    {"id":11,"name":"Important Business Milestone Achieved","cat":"Internal","delta":{"cogs":-0.05,"hype":15,"transparency":10,"trust_all":10,"runway":0}},
-    {"id":12,"name":"Internal Control Improves","cat":"Internal","delta":{"cogs":0,"hype":5,"transparency":15,"trust_all":10,"runway":0}},
-    {"id":13,"name":"Competitor Cuts Prices","cat":"External","delta":{"price":-0.05,"marketing_eff":-0.1,"hype":-5,"transparency":0}},
-    {"id":14,"name":"Competitor Launches a Better Product","cat":"External","delta":{"price":-0.1,"marketing_eff":-0.2,"hype":-15,"transparency":-5}},
-    {"id":15,"name":"Strategic Partnership Announced","cat":"External","delta":{"price":0.05,"marketing_eff":0.15,"hype":15,"transparency":5}},
-    {"id":16,"name":"Intellectual Property Dispute","cat":"External","delta":{"price":-0.08,"marketing_eff":-0.15,"hype":-20,"transparency":-10}},
-    {"id":17,"name":"Industry Recognition Received","cat":"External","delta":{"price":0.1,"marketing_eff":0.1,"hype":10,"transparency":5}},
-    {"id":18,"name":"Rumor of Interest from a Major Investor","cat":"External","delta":{"price":0.15,"marketing_eff":0.05,"hype":25,"transparency":-5}},
-    {"id":19,"name":"Regulator Requests Additional Documents","cat":"Regulatory","delta":{"reg_risk":25,"transparency":-10,"trust_all":-10,"legal_cost_percent":5}},
-    {"id":20,"name":"The company is approved for regulatory Sandbox testing","cat":"Regulatory","delta":{"reg_risk":-30,"transparency":15,"trust_all":15,"legal_cost_percent":-3}},
-    {"id":21,"name":"New Policy Supports Financial Innovation","cat":"Regulatory","delta":{"reg_risk":-15,"transparency":5,"trust_all":5,"legal_cost_percent":0}},
-    {"id":22,"name":"New Regulation Tightens Fundraising Rules","cat":"Regulatory","delta":{"reg_risk":25,"transparency":-10,"trust_all":-10,"legal_cost_percent":5}},
-    {"id":23,"name":"Tax and Reporting Review","cat":"Regulatory","delta":{"reg_risk":10,"transparency":-5,"trust_all":-5,"legal_cost_percent":2}},
-    {"id":24,"name":"Independent Compliance Certification","cat":"Regulatory","delta":{"reg_risk":-10,"transparency":10,"trust_all":10,"legal_cost_percent":-2}},
+    {"id": 1, "name": "Market Liquidity Improves and Capital Becomes Easier to Raise", "cat": "Market", "polarity": "good", "tags": ["market_opportunity", "capital_availability"], "delta": {"price": 0.04, "cogs": 0, "hype": 10, "sentiment": 10, "transparency": 0, "reg_risk": 0}},
+    {"id": 2, "name": "Investor Risk Appetite Rises for High-Growth Startup Projects ", "cat": "Market", "polarity": "good", "tags": ["market_opportunity", "investor_appetite", "capital_availability"], "delta": {"price": 0.07, "cogs": -0.01, "hype": 18, "sentiment": 15, "funding_boost_percent": 5, "transparency": 0, "reg_risk": 0}},
+    {"id": 3, "name": "Interest Rates Increase and Startup Financing Costs Become More Expensive ", "cat": "Market", "polarity": "bad", "tags": ["market_down", "cost", "funding_pressure", "runway"], "delta": {"price": -0.06, "cogs": 0.03, "hype": -12, "sentiment": -12, "transparency": -3, "reg_risk": 3, "runway": -1}},
+    {"id": 4, "name": "Capital Shifts from Risky Startup Investments to Safer Assets", "cat": "Market", "polarity": "bad", "tags": ["market_down", "investor_confidence", "funding_pressure"], "delta": {"price": -0.08, "cogs": 0, "hype": -18, "sentiment": -18, "trust_all": -8, "funding_boost_percent": -5, "transparency": 0}},
+    {"id": 5, "name": "Customer Spending Slows and Market Demand for New Products Weakens ", "cat": "Market", "polarity": "bad", "tags": ["demand", "price", "marketing_eff"], "delta": {"price": -0.05, "marketing_eff": -0.12, "hype": -10, "sentiment": -10, "utility": -3, "runway": -1}},
+    {"id": 6, "name": "Funding Winter Starts and Investors Delay New Startup Deals", "cat": "Market", "polarity": "bad", "tags": ["funding_pressure", "runway", "market_down", "investor_confidence"], "delta": {"price": -0.12, "cogs": 0.04, "hype": -25, "sentiment": -25, "funding_boost_percent": -12, "trust_all": -10, "runway": -2}},
+    {"id": 7, "name": "Operating Costs Exceed Budget and the Startup Runway Shrinks", "cat": "Internal", "polarity": "bad", "tags": ["cost", "runway"], "delta": {"cogs": 0.05, "hype": -5, "transparency": -5, "trust_all": -5, "runway": -1}},
+    {"id": 8, "name": "Product Complaints Increase and Customer Trust Drops", "cat": "Internal", "polarity": "bad", "tags": ["product", "trust", "reputation"], "delta": {"cogs": 0.08, "utility": -12, "hype": -10, "transparency": -8, "trust_all": -12, "runway": -1}},
+    {"id": 9, "name": "Customer Data Privacy Incident Raises Security and Regulatory Risk", "cat": "Internal", "polarity": "bad", "tags": ["security", "trust", "regulatory"], "delta": {"security": -25, "hype": -15, "transparency": -20, "trust_all": -18, "reg_risk": 15, "legal_cost_percent": 5}},
+    {"id": 10, "name": "Key Team Member Leaves and Execution Risk Increases", "cat": "Internal", "polarity": "bad", "tags": ["team", "execution", "trust"], "delta": {"cogs": 0.03, "utility": -5, "hype": -8, "transparency": -5, "trust_all": -8, "runway": 0}},
+    {"id": 11, "name": "Strong Product-Market Fit Signal Attracts Customer and Investor Attention", "cat": "Internal", "polarity": "good", "tags": ["product_opportunity", "market_opportunity", "demand", "funding_readiness"], "delta": {"utility": 15, "hype": 15, "trust_all": 8, "transparency": 5, "funding_boost_percent": 5, "runway": 0}},
+    {"id": 12, "name": "Unit Economics Improve and the Business Model Looks More Sustainable", "cat": "Internal", "polarity": "good", "tags": ["cost_opportunity", "funding_readiness", "investor_confidence", "trust"], "delta": {"cogs": -0.04, "utility": 5, "hype": 8, "transparency": 8, "trust_all": 8, "runway": 1}},
+    {"id": 13, "name": "Competitor Cuts Prices and Puts Pressure on Customer Demand", "cat": "External", "polarity": "bad", "tags": ["competition", "price", "demand"], "delta": {"price": -0.05, "marketing_eff": -0.10, "hype": -6, "utility": -3, "transparency": 0}},
+    {"id": 14, "name": "Competitor Launches a Better Product and Weakens Your Market Position", "cat": "External", "polarity": "bad", "tags": ["competition", "product", "reputation"], "delta": {"price": -0.08, "marketing_eff": -0.18, "utility": -10, "hype": -15, "transparency": -5, "trust_all": -5}},
+    {"id": 15, "name": "Strategic Partnership Opportunity Appears and Opens a New Growth Channel", "cat": "External", "polarity": "good", "tags": ["partnership", "market_opportunity", "funding_readiness", "investor_confidence"], "delta": {"price": 0.04, "marketing_eff": 0.12, "hype": 12, "utility": 8, "transparency": 5, "trust_all": 5}},
+    {"id": 16, "name": "Supplier Delivery Disruption Raises Cost and Weakens Product Availability", "cat": "External", "polarity": "bad", "tags": ["supply", "cost", "runway"], "delta": {"cogs": 0.07, "utility": -6, "hype": -8, "transparency": -5, "trust_all": -5, "runway": -1}},
+    {"id": 17, "name": "Negative Media Rumor Spreads and Investor Confidence Falls", "cat": "External", "polarity": "bad", "tags": ["reputation", "trust", "disclosure_pressure", "investor_confidence"], "delta": {"hype": -12, "transparency": -12, "trust_all": -15, "whale_trust": -10, "funding_boost_percent": -5}},
+    {"id": 18, "name": "Platform Algorithm Reduces Campaign Reach and Marketing Efficiency Drops", "cat": "External", "polarity": "bad", "tags": ["marketing_eff", "visibility", "demand"], "delta": {"marketing_eff": -0.20, "visibility": -15, "hype": -10, "sentiment": -5, "trust_all": 0}},
+    {"id": 19, "name": "Regulator Requests Additional Documents and Raises Compliance Pressure", "cat": "Regulatory", "polarity": "bad", "tags": ["regulatory", "disclosure_pressure", "legal"], "delta": {"reg_risk": 20, "transparency": -10, "trust_all": -8, "legal_cost_percent": 4}},
+    {"id": 20, "name": "Regulatory Sandbox Approval Improves Trust and Funding Readiness", "cat": "Regulatory", "polarity": "good", "tags": ["regulatory_opportunity", "funding_readiness", "investor_confidence", "trust"], "delta": {"reg_risk": -25, "transparency": 15, "trust_all": 15, "hype": 10, "funding_boost_percent": 8, "legal_cost_percent": -2}},
+    {"id": 21, "name": "New Policy Supports Financial Innovation and Improves Investor Appetite", "cat": "Regulatory", "polarity": "good", "tags": ["regulatory_opportunity", "market_opportunity", "capital_availability", "investor_appetite"], "delta": {"reg_risk": -12, "transparency": 5, "trust_all": 5, "hype": 8, "funding_boost_percent": 5}},
+    {"id": 22, "name": "New Fundraising Disclosure Rule Increases Compliance Burden", "cat": "Regulatory", "polarity": "bad", "tags": ["regulatory", "transparency", "funding_pressure", "compliance_pressure"], "delta": {"reg_risk": 22, "transparency": -12, "trust_all": -10, "funding_boost_percent": -6, "legal_cost_percent": 5}},
+    {"id": 23, "name": "Tax and Reporting Review Increases Legal Cost and Shortens Runway", "cat": "Regulatory", "polarity": "bad", "tags": ["regulatory", "cost", "legal"], "delta": {"reg_risk": 10, "transparency": -5, "trust_all": -5, "legal_cost_percent": 3, "runway": -1}},
+    {"id": 24, "name": "Independent Compliance Certification Opportunity Strengthens Investor Trust", "cat": "Regulatory", "polarity": "good", "tags": ["compliance_opportunity", "regulatory_opportunity", "trust", "investor_confidence"], "delta": {"reg_risk": -10, "transparency": 12, "trust_all": 12, "whale_trust": 8, "legal_cost_percent": -1}}
 ]
 
+SCENARIO_PRIMARY_GROUP = {
+    1: "red",
+    2: "purple",
+    3: "purple",
+    4: "purple",
+    5: "red",
+    6: "purple",
+
+    7: "green",
+    8: "green",
+    9: "green",
+    10: "green",
+    11: "red",
+    12: "purple",
+
+    13: "red",
+    14: "red",
+    15: "purple",
+    16: "green",
+    17: "green",
+    18: "red",
+
+    19: "green",
+    20: "purple",
+    21: "purple",
+    22: "green",
+    23: "green",
+    24: "green",
+}
+
+for scenario in SCENARIOS:
+    scenario["primary_group"] = SCENARIO_PRIMARY_GROUP[scenario["id"]]
+    scenario["tags"] = normalize_tags(scenario["tags"])
+    
 ACTIVE_CARDS_FULL = [
-    {"id":"A1","name":"Marketing Blitz","cost":2,"type":"red","desc":"Run a large campaign to quickly attract attention.","effect":{"hype":25,"transparency":-5,"cost_percent":3}},
-    {"id":"A2","name":"Social Media Campaign","cost":3,"type":"red","desc":"Use social media to create strong public interest.","effect":{"hype":40,"transparency":-10,"cost_percent":5}},
-    {"id":"A3","name":"Flash Sale","cost":2,"type":"red","desc":"Offer a short-term discount to increase demand.","effect":{"price_percent":-15,"hype":15}},
-    {"id":"A4","name":"Influencer Deal","cost":2,"type":"red","desc":"Use an influencer to increase hype and visibility.","effect":{"hype":20,"visibility":15,"cost_percent":2}},
-    {"id":"A5","name":"Free Trial Campaign","cost":3,"type":"red","desc":"Let customers try the product before paying.","effect":{"hype":30,"utility":5,"cost_percent":4}},
-    {"id":"A6","name":"Investor Buzz Campaign","cost":2,"type":"red","desc":"Create fundraising momentum among investors.","effect":{"hype":20,"funding_boost_percent":5}},
-    {"id":"A7","name":"Celebrity Endorsement","cost":2,"type":"red","desc":"Use a famous person to boost public attention.","effect":{"hype":25,"transparency":-3,"cost_percent":4}},
-    {"id":"A8","name":"Customer Loyalty Program","cost":3,"type":"red","desc":"Reward repeat customers to keep them engaged.","effect":{"hype":15,"utility":10,"transparency":5}},
-    {"id":"A9","name":"Limited Offer","cost":1,"type":"red","desc":"Create urgency with a short-time offer.","effect":{"hype":10,"visibility":5}},
-    {"id":"A10","name":"Aggressive Promotion","cost":2,"type":"red","desc":"Push bold promotion to gain fast attention.","effect":{"hype":30,"transparency":-15,"cost_percent":2}},
-    {"id":"A11","name":"Pre-sale Discount","cost":2,"type":"red","desc":"Use early discounts to bring in quick cash.","effect":{"price_percent":-10,"funding_boost_percent":10}},
-    {"id":"A12","name":"Media Coverage Push","cost":2,"type":"red","desc":"Get media attention for the project.","effect":{"hype":20,"visibility":10,"cost_percent":1}},
-    {"id":"A13","name":"Community Engagement Campaign","cost":1,"type":"red","desc":"Keep the community active and interested.","effect":{"hype":15,"transparency":-2}},
-    {"id":"A14","name":"Aggressive Pricing Strategy","cost":2,"type":"red","desc":"Lower prices to attract more customers.","effect":{"price_percent":-20,"hype":10}},
-    {"id":"D1","name":"Cost Cutting","cost":1,"type":"green","desc":"Reduce unnecessary operating costs.","effect":{"cogs_percent":-3,"transparency":5}},
-    {"id":"D2","name":"Community Update","cost":1,"type":"green","desc":"Update investors and customers on progress.","effect":{"hype":5,"transparency":3}},
-    {"id":"D3","name":"Third Party Audit","cost":2,"type":"green","desc":"Use an independent review to build credibility.","effect":{"transparency":15,"reg_risk":-10,"cost_percent":5}},
-    {"id":"D4","name":"Founder Commitment Pledge","cost":1,"type":"green","desc":"Show that founders are committed long term.","effect":{"transparency":10,"trust_all":5}},
-    {"id":"D5","name":"Emergency Fund","cost":2,"type":"green","desc":"Set aside reserve cash for unexpected problems.","effect":{"runway":2,"cost_percent":5}},
-    {"id":"D6","name":"Open Financial Report","cost":2,"type":"green","desc":"Share clearer financial information.","effect":{"transparency":20,"cost_percent":2}},
-    {"id":"D7","name":"Security Review Program","cost":1,"type":"green","desc":"Check system and data security risks.","effect":{"security":10,"transparency":5}},
-    {"id":"D8","name":"Legal Readiness Check","cost":2,"type":"green","desc":"Review legal and compliance documents.","effect":{"reg_risk":-15,"cost_percent":3}},
-    {"id":"D9","name":"Slow & Steady","cost":1,"type":"green","desc":"Choose controlled and realistic growth.","effect":{"transparency":5,"hype":2}},
-    {"id":"D10","name":"Crisis Management","cost":2,"type":"green","desc":"Reduce damage from a negative event.","effect":{"halve_negative_delta":1,"cost_percent":3}},
-    {"id":"D11","name":"Supply Chain Fix","cost":2,"type":"green","desc":"Fix supplier or delivery cost problems.","effect":{"cogs_percent":-5,"transparency":5}},
-    {"id":"D12","name":"Investor Call","cost":1,"type":"green","desc":"Answer investor concerns directly.","effect":{"trust_all":10,"cost_percent":1}},
-    {"id":"D13","name":"Transparency Report","cost":2,"type":"green","desc":"Explain performance, risks, and issues clearly.","effect":{"transparency":15,"hype":-5}},
-    {"id":"D14","name":"Dual Approval Control","cost":1,"type":"green","desc":"Require two approvals for sensitive actions.","effect":{"security":15,"transparency":5}},
-    {"id":"C1","name":"Strategic Investor Discount","cost":3,"type":"purple","desc":"Offer better terms to close a major investment.","effect":{"funding_boost_percent":15,"trust_all":-8,"whale_trust":5,"cost_percent":2}},
-    {"id":"C2","name":"Investor Protection Reserve","cost":2,"type":"purple","desc":"Set aside funds to reassure investors.","effect":{"funding_boost_percent":-10,"trust_all":15,"utility":10,"cost_percent":10}},
-    {"id":"C3","name":"Secondary Offering","cost":3,"type":"purple","desc":"Raise more capital from new investors.","effect":{"funding_boost_percent":20,"trust_all":-15}},
-    {"id":"C4","name":"Stakeholder Governance Vote","cost":2,"type":"purple","desc":"Let stakeholders join an important decision.","effect":{"transparency":5,"trust_all":5}},
-    {"id":"C5","name":"Customer Retention Program","cost":2,"type":"purple","desc":"Encourage customers to keep using the product.","effect":{"utility":15,"velocity":-0.2}},
-    {"id":"C6","name":"Treasury Diversify","cost":2,"type":"purple","desc":"Reduce financial dependence on one source.","effect":{"reg_risk":-10,"trust_all":10}},
-    {"id":"C7","name":"Small Share Split","cost":2,"type":"purple","desc":"Allow smaller investors to participate.","effect":{"funding_boost_percent":5,"hype":10}},
-    {"id":"C8","name":"Governance Proposal","cost":1,"type":"purple","desc":"Clarify how major decisions are made.","effect":{"transparency":5,"trust_all":5}},
-    {"id":"C9","name":"Founder Lock-In Agreement","cost":2,"type":"purple","desc":"Keep founders committed for longer.","effect":{"trust_all":20,"transparency":10,"cost_percent":2}},
-    {"id":"C10","name":"Customer Incentive Program","cost":3,"type":"purple","desc":"Encourage customers to use the service more.","effect":{"utility":20,"velocity":-0.3,"cost_percent":5}},
-    {"id":"C11","name":"Strategic Partnership","cost":2,"type":"purple","desc":"Work with a credible partner to reduce risk.","effect":{"trust_all":15,"reg_risk":-5,"cost_percent":3}},
-    {"id":"C12","name":"Product Value Upgrade","cost":2,"type":"purple","desc":"Improve the product's practical value.","effect":{"utility":15,"hype":10,"cost_percent":2}},
-    {"id":"C13","name":"Loyalty Reward Program","cost":2,"type":"purple","desc":"Reward existing customers or supporters.","effect":{"trust_all":10,"hype":15,"cost_percent":4}},
-    {"id":"C14","name":"Equity Swap","cost":3,"type":"purple","desc":"Trade ownership value for quick funding.","effect":{"funding_boost_percent":30,"trust_all":-20}},
+    {"id": "A1", "name": "Low-Budget Target Ads", "cost": 1, "type": "red", "desc": "Run a small paid ad test to increase demand and visibility.", "counters": ["demand", "marketing_eff", "visibility"], "effect": {"hype": 6, "visibility": 5, "marketing_eff": 0.03, "cost_percent": 1}},
+ 	{"id": "A2", "name": "Quick Social Media Posts", "cost": 1, "type": "red", "desc": "Post a short social content for short-term attention. Cheap, fast, but shallow.", "counters": ["market_opportunity", "visibility", "reputation"], "effect": {"hype": 7, "visibility": 7, "cost_percent": 1}},
+ 	{"id": "A3", "name": "Customer Referral Loop", "cost": 1, "type": "red", "desc": "Turn existing users into a small organic growth loop.", "counters": ["demand_pressure", "trust", "product_opportunity"], "effect": {"hype": 6, "trust_all": 3, "utility": 2, "velocity": -0.03}},
+ 	{"id": "A4", "name": "One-Week Promo Offer", "cost": 1, "type": "red", "desc": "Use a short promotion to create urgency without changing the full pricing strategy.", "counters": ["demand", "price", "competition"], "effect": {"price_percent": -5, "hype": 10, "visibility": 4}},
+    {"id": "A5", "name": "Press Outreach Cycle", "cost": 2, "type": "red", "desc": "Pitch the startup story to gain public  attention.", "counters": ["visibility", "reputation", "market_opportunity"], "effect": {"hype": 12, "visibility": 14, "trust_all": 3, "cost_percent": 2}},
+ 	{"id": "A6", "name": "Creator Partnership Campaign", "cost": 2, "type": "red", "desc": "Work with a creator or influencer to expand reach and awareness.", "counters": ["competition", "demand", "visibility"], "effect": {"hype": 14, "visibility": 15, "marketing_eff": 0.05, "cost_percent": 2}},
+ 	{"id": "A7", "name": "Conversion Funnel Refresh", "cost": 2, "type": "red", "desc": "Improve landing pages, messaging, and conversion flow to recover weak demand.", "counters": ["marketing_eff", "demand", "price"], "effect": {"marketing_eff": 0.10, "hype": 8, "utility": 3, "cost_percent": 2}},
+ 	{"id": "A8", "name": "Feature Launch Webinar", "cost": 2, "type": "red", "desc": "Demonstrate new product features publicly to build customer interest.", "counters": ["product", "competition", "product_opportunity"], "effect": {"hype": 15, "visibility": 8, "utility": 7, "cost_percent": 3}},
+ 	{"id": "A9", "name": "Multi-Channel Acquisition Sprint", "cost": 2, "type": "red", "desc": "Expand promotion across several channels when one channel performs poorly.", "counters": ["marketing_eff", "visibility", "demand"], "effect": {"marketing_eff": 0.12, "visibility": 12, "hype": 8, "cost_percent": 3}},
+ 	{"id": "A10", "name": "Customer Proof Campaign", "cost": 2, "type": "red", "desc": "Use customer success stories to convert credibility into demand.", "counters": ["trust", "reputation", "demand"], "effect": {"trust_all": 5, "utility": 3, "marketing_eff": 0.06, "hype": 6, "transparency": 1, "cost_percent": 2}},
+    {"id": "A11", "name": "Full-Scale Brand Repositioning", "cost": 3, "type": "red", "desc": "Launch a large brand campaign to change market perception and defend against competitors.", "counters": ["competition", "demand", "market_opportunity", "reputation"], "effect": {"hype": 22, "visibility": 22, "marketing_eff": 0.10, "trust_all": 5, "cost_percent": 6}},
+ 	{"id": "A12", "name": "National Launch Rollout", "cost": 3, "type": "red", "desc": "Run a broad launch rollout to create national awareness and accelerate acquisition.", "counters": ["demand", "visibility", "product_opportunity", "market_opportunity"], "effect": {"hype": 24, "visibility": 24, "marketing_eff": 0.13, "utility": 6, "cost_percent": 7, "runway": -1}},
+ 	{"id": "A13", "name": "Aggressive Pricing Strategy", "cost": 3, "type": "red", "desc": "Cut pricing aggressively to defend market share, with margin and trust trade-offs.", "counters": ["price", "competition", "demand"], "effect": {"price_percent": -18, "hype": 16, "marketing_eff": 0.08, "trust_all": -6, "runway": -1}},
+ 	{"id": "A14", "name": "Hypergrowth Expansion Program", "cost": 3, "type": "red", "desc": "Spend aggressively to turn market opportunity into rapid growth and stronger traction.", "counters": ["market_opportunity", "capital_availability", "investor_appetite", "product_opportunity"], "effect": {"hype": 24, "utility": 10, "funding_boost_percent": 8, "cost_percent": 6, "runway": -1}},
+ 	{"id": "D1", "name": "Cutting cost", "cost": 1, "type": "green", "desc": "Cutting unnecessary expenses without disrupting daily operations.", "counters": ["cost", "runway"], "effect": {"cogs_percent": -3}},
+ 	{"id": "D2", "name": "Community Update", "cost": 1, "type": "green", "desc": "Publish a clear update to explain progress and reduce uncertainty.", "counters": ["trust", "reputation", "disclosure_pressure"], "effect": {"hype": 1, "transparency": 6, "trust_all": 4}},
+ 	{"id": "D3", "name": "Complaint Response Desk", "cost": 1, "type": "green", "desc": "Quickly respond to complaints and reduce product frustration.", "counters": ["product", "reputation", "trust"], "effect": {"utility": 6, "trust_all": 5, "transparency": 2}},
+ 	{"id": "D4", "name": "Basic Security Checklist", "cost": 1, "type": "green", "desc": "Run a basic checklist to reduce obvious cyber and data risks.", "counters": ["security", "regulatory"], "effect": {"security": 8, "transparency": 2}},
+ 	{"id": "D5", "name": "Founder AMA Session", "cost": 1, "type": "green", "desc": "Let founders answer questions directly to build confidence.", "counters": ["team", "trust", "reputation"], "effect": {"trust_all": 6, "transparency": 5, "hype": 1}},
+    {"id": "D6", "name": "Supplier Renegotiation", "cost": 2, "type": "green", "desc": "Negotiate with suppliers to reduce COGS and ease supply pressure.", "counters": ["cost", "supply", "runway"], "effect": {"cogs_percent": -8, "runway": 1, "cost_percent": 1}},
+ 	{"id": "D7", "name": "Quality Recovery Program", "cost": 2, "type": "green", "desc": "Improve quality control to reduce defects, complaints, and product frustration.", "counters": ["product", "trust", "reputation"], "effect": {"utility": 10, "trust_all": 8, "transparency": 4, "cost_percent": 2}},
+ 	{"id": "D8", "name": "Data Protection Review", "cost": 2, "type": "green", "desc": "Review data handling and patch security weaknesses before they become worse.", "counters": ["security", "regulatory", "trust"], "effect": {"security": 16, "transparency": 8, "trust_all": 5, "cost_percent": 3}},
+ 	{"id": "D9", "name": "Compliance Document Readiness", "cost": 2, "type": "green", "desc": "Prepare legal, tax, and operating documents before regulators or investors ask.", "counters": ["regulatory", "legal", "disclosure_pressure"], "effect": {"reg_risk": -12, "transparency": 8, "trust_all": 4, "legal_cost_percent": 2}},
+ 	{"id": "D10", "name": "Reviewed Monthly Metrics Pack", "cost": 2, "type": "green", "desc": "Share reviewed monthly metrics to support investor due diligence.", "counters": ["investor_confidence", "trust", "disclosure_pressure"], "effect": {"transparency": 16, "trust_all": 8, "hype": -2, "cost_percent": 2}},
+ 	{"id": "D11", "name": "Crisis Coordination Playbook", "cost": 2, "type": "green", "desc": "Coordinate a structured response to limit damage from a negative event.", "counters": ["market_down", "reputation", "supply", "cost"], "effect": {"halve_negative_delta": 1, "transparency": 5, "trust_all": 3, "cost_percent": 3}},
+    {"id": "D12", "name": "Third-Party Audit", "cost": 3, "type": "green", "desc": "Hire an independent party to verify credibility and rebuild serious investor trust.", "counters": ["regulatory", "compliance_opportunity", "disclosure_pressure", "investor_confidence"], "effect": {"transparency": 22, "trust_all": 15, "whale_trust": 10, "reg_risk": -10, "cost_percent": 6}},
+ 	{"id": "D13", "name": "Emergency Cash Reserve", "cost": 3, "type": "green", "desc": "Reserve cash to survive a funding slowdown or runway crisis.", "counters": ["runway", "funding_pressure", "market_down"], "effect": {"runway": 3, "trust_all": 4, "funding_boost_percent": -3, "hype": -3, "cost_percent": 8}},
+ 	{"id": "D14", "name": "Cybersecurity Incident Response", "cost": 3, "type": "green", "desc": "Launch a full response after a privacy or cybersecurity incident.", "counters": ["security", "trust", "regulatory"], "effect": {"security": 23, "transparency": 12, "trust_all": 10, "reg_risk": -8, "cost_percent": 5}},
+    {"id": "C1", "name": "Use-of-Funds Note", "cost": 1, "type": "purple", "desc": "Explain how the startup will use raised capital across product, marketing, operations, and reserves.", "counters": ["funding_pressure", "disclosure_pressure", "investor_confidence"], "effect": {"transparency": 5, "trust_all": 4, "funding_boost_percent": 3}},
+    {"id": "C2", "name": "Funding Gap Calculator", "cost": 1, "type": "purple", "desc": "Calculate how much extra capital the startup needs by comparing current cash and target funding requirement.", "counters": ["funding_pressure", "runway_pressure", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 4, "transparency": 4, "valuation_sanity": 3, "trust_all": 3}},
+    {"id": "C3", "name": "Investor Risk Q&A Call", "cost": 1, "type": "purple", "desc": "Answer investor questions about revenue, costs, valuation, dilution, and business risks.", "counters": ["investor_confidence", "trust", "whale_trust"], "effect": {"whale_trust": 7, "trust_all": 5, "transparency": 3}},
+    {"id": "C4", "name": "Funding Milestone Plan", "cost": 1, "type": "purple", "desc": "Link the fundraising target to measurable milestones such as revenue, users, margin, or launch timeline.", "counters": ["funding_pressure", "capital_availability", "investor_appetite", "regulatory_opportunity"], "effect": {"funding_boost_percent": 5, "transparency": 3, "trust_all": 3}},
+    {"id": "C5", "name": "Comparable Valuation Pack", "cost": 2, "type": "purple", "desc": "Prepare a valuation pack using comparable companies, revenue multiples, margin, and growth assumptions.", "counters": ["investor_confidence", "funding_readiness", "disclosure_pressure"], "effect": {"valuation_sanity": 10, "transparency": 7, "funding_boost_percent": 6, "cost_percent": 2}},
+    {"id": "C6", "name": "Working Capital Plan", "cost": 2, "type": "purple", "desc": "Plan short-term cash needs for inventory, receivables, operating expenses, and emergency liquidity.", "counters": ["runway", "cost", "funding_pressure"], "effect": {"runway": 1, "trust_all": 5, "funding_boost_percent": 5, "cost_percent": 2}},
+    {"id": "C7", "name": "Convertible Loan Proposal", "cost": 2, "type": "purple", "desc": "Raise capital through a loan that can later convert into equity, balancing cash needs and dilution.", "counters": ["funding_pressure", "runway", "capital_availability"], "effect": {"funding_boost_percent": 12, "runway": 1, "dilution": 3, "trust_all": -2, "cost_percent": 3}},
+    {"id": "C8", "name": "Founder Equity Commitment", "cost": 2, "type": "purple", "group": "purple", "group_name": "Capital & Governance", "desc": "Show that founders remain committed by linking founder equity to continued contribution and project progress.", "counters": ["team", "trust", "investor_confidence"], "effect": {"trust_all": 13, "transparency": 6, "cost_percent": 2}},
+    {"id": "C9", "name": "Runway Reforecast Plan", "cost": 2, "type": "purple", "desc": "Recalculate monthly burn, remaining runway, funding gap, and cost-saving options to show investors how the startup can survive under cash pressure.", "counters": ["runway", "cost", "funding_pressure", "investor_confidence"], "effect": {"transparency": 7, "valuation_sanity": 6, "funding_boost_percent": 7, "trust_all": 5, "runway": 1, "cost_percent": 2}},
+    {"id": "C10", "name": "Strategic Channel Partnership", "cost": 2, "type": "purple", "desc": "Build a partnership that improves distribution, revenue visibility, and investor confidence.", "counters": ["partnership", "competition", "market_opportunity", "capital_availability"], "effect": {"trust_all": 10, "utility": 6, "marketing_eff": 0.06, "funding_boost_percent": 4, "cost_percent": 3}},
+    {"id": "C11", "name": "Urgent Rescue Financing Round", "cost": 3, "type": "purple", "desc": "Negotiate an urgent financing round during a funding crisis.", "counters": ["funding_pressure", "market_down", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 23, "whale_trust": 12, "runway": 1, "trust_all": -7, "dilution": 9, "cost_percent": 3}},
+    {"id": "C12", "name": "Emergency Bridge Financing Round", "cost": 3, "type": "purple", "desc": "Raise short-term bridge financing to survive a funding gap, but accept high dilution and repayment pressure.", "counters": ["funding_pressure", "runway", "market_down", "capital_availability"], "effect": {"funding_boost_percent": 24, "runway": 2, "trust_all": -10, "dilution": 10, "cost_percent": 4}},
+    {"id": "C13", "name": "Investor Downside Protection Reserve", "cost": 3, "type": "purple", "desc": "Set aside cash or guarantees to reduce investor downside risk during a crisis, but limit operating flexibility.", "counters": ["trust", "funding_pressure", "market_down", "investor_confidence"], "effect": {"trust_all": 18, "whale_trust": 10, "runway": -1, "cost_percent": 8}},
+    {"id": "C14", "name": "M&A Negotiation Package", "cost": 3, "type": "purple", "group": "purple", "group_name": "Capital & Governance", "desc": "Prepare a strategic acquisition, merger, or major investment negotiation to solve funding and competitive pressure.", "counters": ["competition", "partnership", "funding_pressure", "capital_availability"], "effect": {"funding_boost_percent": 20, "trust_all": 15, "utility": 10, "dilution": 9, "cost_percent": 5}},
 ]
+
+for card in ACTIVE_CARDS_FULL:
+    if card["id"].startswith("A"):
+        card["group"] = "red"
+        card["group_name"] = "Market Momentum"
+    elif card["id"].startswith("D"):
+        card["group"] = "green"
+        card["group_name"] = "Resilience & Trust"
+    elif card["id"].startswith("C"):
+        card["group"] = "purple"
+        card["group_name"] = "Capital & Governance"
+
+for card in ACTIVE_CARDS_FULL:
+    card["counters"] = normalize_tags(card["counters"])
+
+def card_matches_scenario(card, scenario):
+    scenario_tags = set(normalize_tags(scenario.get("tags", [])))
+    card_counters = set(normalize_tags(card.get("counters", [])))
+    return len(scenario_tags & card_counters) > 0
+
+
+def draw_hand_with_cost_ladder(player_deck, scenario, hand_size=5):
+    primary_group = scenario.get("primary_group")
+    hand = []
+
+    for cost in [1, 2, 3]:
+        candidates = [
+            card for card in player_deck
+            if card.get("group") == primary_group
+            and card.get("cost") == cost
+            and card_matches_scenario(card, scenario)
+            and card not in hand
+        ]
+
+        if not candidates:
+            candidates = [
+                card for card in player_deck
+                if card.get("cost") == cost
+                and card_matches_scenario(card, scenario)
+                and card not in hand
+            ]
+
+        if candidates:
+            hand.append(random.choice(candidates))
+
+    remaining_pool = [card for card in player_deck if card not in hand]
+    random.shuffle(remaining_pool)
+
+    while len(hand) < hand_size and remaining_pool:
+        hand.append(remaining_pool.pop())
+
+    random.shuffle(hand)
+    return hand
+
+MAX_REACTION_CARDS_PER_GAME = 3
 
 REACTION_CARDS = [
-    {"id":"R1","name":"Lock-up Extension","trigger":"on_bot_withdraw","condition":{"event":"bot_withdraw"},"desc":"Slow withdrawals when investors start leaving.","cost_percent":2,"effect":{"sell_pressure_reduce":0.5}},
-    {"id":"R2","name":"Emergency PR","trigger":"on_scenario_market_bad","condition":{"event":"market_bad"},"desc":"Respond quickly to bad market news.","cost_percent":3,"effect":{"halve_negative_delta":1}},
-    {"id":"R3","name":"Major Investor Briefing","trigger":"on_whale_trust_low","condition":{"metric":"whale_trust","operator":"<","value":30},"desc":"Rebuild confidence with major investors.","cost_percent":5,"effect":{"whale_trust":10}},
-    {"id":"R4","name":"Damage Control","trigger":"on_transparency_low","condition":{"metric":"transparency","operator":"<","value":30},"desc":"Explain problems and restore transparency.","cost_percent":2,"effect":{"transparency":10,"hype":-5}},
-    {"id":"R5","name":"Liquidity Support Plan","trigger":"on_circuit_breaker","condition":{"metric":"circuit_breaker_active","operator":"==","value":True},"desc":"Reduce the impact of a liquidity freeze.","cost_percent":8,"effect":{"circuit_breaker_reduce":1}},
-    {"id":"R6","name":"Legal Emergency","trigger":"on_reg_risk_high","condition":{"metric":"reg_risk","operator":">","value":70},"desc":"Handle urgent legal or compliance risk.","cost_percent":4,"effect":{"reg_risk":-20}},
-    {"id":"R7","name":"Security Patch","trigger":"on_security_low","condition":{"metric":"security","operator":"<","value":30},"desc":"Fix urgent security weaknesses.","cost_percent":3,"effect":{"security":15}},
-    {"id":"R8","name":"Expectation Management","trigger":"on_hype_high","condition":{"metric":"hype","operator":">","value":80},"desc":"Control unrealistic public expectations.","cost_percent":1,"effect":{"hype":-15,"transparency":5}},
-    {"id":"R9","name":"Investor Assurance","trigger":"on_trust_low","condition":{"metric":"min_bot_trust","operator":"<","value":20},"desc":"Reassure worried investors.","cost_percent":2,"effect":{"trust_all":5}},
-    {"id":"R10","name":"Runway Boost","trigger":"on_runway_low","condition":{"metric":"runway","operator":"<","value":3},"desc":"Extend survival time during cash pressure.","cost_percent":10,"effect":{"runway":3}},
+    {"id": "R1", "name": "Investor Calm Update", "trigger": "on_scenario_market_bad", "condition": {"scenario_tag": "market_down"}, "desc": "Send a quick update to reassure investors when the market suddenly turns negative.", "cost_percent": 2, "effect": {"halve_negative_delta": 1, "trust_all": 5, "transparency": 5}},
+
+    {"id": "R2", "name": "Public Rumor Response", "trigger": "on_reputation_shock", "condition": {"scenario_tag": "reputation"}, "desc": "Respond clearly to rumors, complaints, or negative media before trust drops further.", "cost_percent": 3, "effect": {"transparency": 10, "trust_all": 8, "hype": -3}},
+
+    {"id": "R3", "name": "Data Breach Emergency Fix", "trigger": "on_security_low", "condition": {"metric": "security", "operator": "<", "value": 40}, "desc": "Take urgent action to contain a data privacy or cybersecurity problem.", "cost_percent": 5, "effect": {"security": 20, "transparency": 8, "trust_all": 6, "reg_risk": -8}},
+
+    {"id": "R4", "name": "Urgent Legal Support", "trigger": "on_reg_risk_high", "condition": {"metric": "reg_risk", "operator": ">", "value": 70}, "desc": "Bring in legal support when compliance or regulatory risk becomes too high.", "cost_percent": 4, "effect": {"reg_risk": -20, "transparency": 4, "legal_cost_percent": 3}},
+
+    {"id": "R5", "name": "Cash Runway Protection", "trigger": "on_runway_low", "condition": {"metric": "runway", "operator": "<", "value": 3}, "desc": "Protect remaining cash when the startup is close to running out of money.", "cost_percent": 8, "effect": {"runway": 3, "trust_all": 5, "funding_boost_percent": -3, "hype": -4}},
+
+    {"id": "R6", "name": "Major Investor Confidence Call", "trigger": "on_whale_trust_low", "condition": {"metric": "whale_trust", "operator": "<", "value": 35}, "desc": "Hold a direct call with major investors to restore confidence before they withdraw.", "cost_percent": 4, "effect": {"whale_trust": 15, "trust_all": 5, "transparency": 5, "sell_pressure_reduce": 0.2}},
+
+    {"id": "R7", "name": "Product Quality Recall", "trigger": "on_utility_low", "condition": {"metric": "utility", "operator": "<", "value": 35}, "desc": "Recall or fix poor-quality products before customer trust is damaged further.", "cost_percent": 5, "effect": {"utility": 15, "trust_all": 8, "transparency": 5, "hype": -3}},
+
+    {"id": "R8", "name": "Emergency Cost Freeze", "trigger": "on_cogs_rise", "condition": {"metric": "cogs", "operator": ">", "value": 0.06}, "desc": "Freeze non-essential spending when production or operating costs rise sharply.", "cost_percent": 1, "effect": {"cogs_percent": -6, "runway": 1, "hype": -3}},
+
+    {"id": "R9", "name": "Expectation Reset Update", "trigger": "on_hype_high", "condition": {"metric": "hype", "operator": ">", "value": 85}, "desc": "Reduce unrealistic public expectations before excessive hype turns into disappointment.", "cost_percent": 1, "effect": {"hype": -12, "transparency": 8, "trust_all": 5}},
+
+    {"id": "R10", "name": "Investor Withdrawal Defense", "trigger": "on_bot_withdraw", "condition": {"event": "bot_withdraw"}, "desc": "Reassure investors when withdrawal pressure starts and reduce the risk of panic selling.", "cost_percent": 3, "effect": {"sell_pressure_reduce": 0.5, "trust_all": 8, "whale_trust": 5}},
 ]
+
+from collections import Counter
+
+def validate_master_data():
+    errors = []
+
+    if len(SCENARIOS) != 24:
+        errors.append(f"SCENARIOS must have 24 items, found {len(SCENARIOS)}")
+
+    if len(ACTIVE_CARDS_FULL) != 42:
+        errors.append(f"ACTIVE_CARDS_FULL must have 42 cards, found {len(ACTIVE_CARDS_FULL)}")
+
+    if len(REACTION_CARDS) != 10:
+        errors.append(f"REACTION_CARDS must have 10 cards, found {len(REACTION_CARDS)}")
+
+    active_ids = [card["id"] for card in ACTIVE_CARDS_FULL]
+    if len(active_ids) != len(set(active_ids)):
+        errors.append("Duplicate active card IDs found")
+
+    for card in ACTIVE_CARDS_FULL:
+        for key in ["id", "name", "cost", "type", "group", "group_name", "desc", "counters", "effect"]:
+            if key not in card:
+                errors.append(f"{card.get('id')} missing key: {key}")
+
+    group_count = Counter(card.get("group") for card in ACTIVE_CARDS_FULL)
+    if dict(group_count) != {"red": 14, "green": 14, "purple": 14}:
+        errors.append(f"Wrong group count: {dict(group_count)}")
+
+    return {
+        "valid": len(errors) == 0,
+        "errors": errors,
+        "group_count": dict(group_count),
+    }
 
 # ==================== CÁC HÀM HỖ TRỢ ====================
 def clamp(x, lo, hi):
