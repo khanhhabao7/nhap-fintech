@@ -478,7 +478,9 @@ def final_score(proj, phases_used, metrics):
     final = raw * scale_factor * funding_bonus
     return min(100, max(0, final))
 
-def process_phase(room, phase, players, logs):
+def process_phase(room, phase, players, logs, bot_actions=None):
+    if bot_actions is None:
+        bot_actions = []
     active_bots = get_bots_for_phase(phase)
     logs.append(f"Phase {phase}: Có {len(active_bots)} bot hoạt động")
     bot_alloc = room['bot_alloc']
@@ -517,6 +519,7 @@ def process_phase(room, phase, players, logs):
                     players[idx]['available_cash'] -= invested
                     alloc_entry['idle'] += invested
                     alloc_entry['perProject'][idx] = 0
+                    bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': invested})
                     logs.append(f"Bot {bot['type']} rút toàn bộ {invested:.0f} từ dự án {idx+1} (kết thúc)")
                 continue
             diff = A.get((bot['id'], best_idx), -1e9) - A.get((bot['id'], idx), -1e9)
@@ -544,6 +547,7 @@ def process_phase(room, phase, players, logs):
                     players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
                     alloc_entry['perProject'][idx] -= actual
                     alloc_entry['idle'] += actual
+                    bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': actual})
                     logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
                 else:
                     players[idx]['status'] = 'bankrupt'
@@ -588,6 +592,7 @@ def process_phase(room, phase, players, logs):
                     players[idx]['funding_progress'] = min(1.0, players[idx]['total_invested'] / players[idx]['target_funding'])
                     alloc_entry['perProject'][idx] += cap
                     remaining -= cap
+                    bot_actions.append({'bot_type': bot['type'], 'action': 'invest', 'player_index': idx, 'amount': cap})
                     logs.append(f"Bot {bot['type']} đầu tư {cap:.0f} vào dự án {idx+1}")
                     if players[idx]['funding_progress'] >= 1.0 and players[idx].get('funding_complete_phase') is None:
                         players[idx]['funding_complete_phase'] = phase
@@ -1375,8 +1380,15 @@ def run_phase():
             proj['status'] = 'ended'
             logs.append(f" → Dự án {idx+1} đã kết thúc.")
 
+    # Snapshot starting cash for each player before bot processing
+    starting_cash = {}
+    for idx, proj in enumerate(players):
+        if proj:
+            starting_cash[idx] = proj.get('available_cash', 0)
+
     # Xử lý bot đầu tư/rút vốn
-    process_phase(room, phase, players, logs)
+    bot_actions = []
+    process_phase(room, phase, players, logs, bot_actions)
 
     # Dọn dẹp sau phase
     room['pending_cards'] = {}
@@ -1400,25 +1412,24 @@ def run_phase():
         room['game_ended'] = True
         room['status'] = 'ended'
 
-    # Lưu phase details
+    # Lưu phase details with bot actions and cash flow
     phase_detail = {
         'phase': phase,
         'date': str(uuid.uuid4())[:8],
         'event': f"End of Phase {phase}",
+        'bot_actions': bot_actions,
         'players': []
     }
     for idx, proj in enumerate(players):
         if proj:
-            tmp_score = 0
-            if proj.get('current_phase', 0) > 0:
-                met = calculate_metrics(proj)
-                tmp_score = final_score(proj, proj.get('current_phase', 1), met)
+            ending_cash = proj.get('available_cash', 0)
+            start = starting_cash.get(idx, 0)
             phase_detail['players'].append({
                 'name': f'Player {idx+1}',
                 'status': proj.get('status', 'active'),
                 'funding': proj.get('funding_progress', 0),
-                'hype': proj.get('hype', 50),
-                'score': tmp_score
+                'available_cash': ending_cash,
+                'cash_flow': ending_cash - start
             })
     room.setdefault('phase_details', []).append(phase_detail)
 
@@ -1592,8 +1603,8 @@ def api_next_phase(room_id):
                     'name': f'Player {i+1}',
                     'status': p.get('status', 'active'),
                     'funding': p.get('funding_progress', 0),
-                    'hype': p.get('hype', 50),
-                    'score': 0
+                    'available_cash': p.get('available_cash', 0),
+                    'cash_flow': 0
                 })
         
         if 'phase_details' not in room:
@@ -1681,6 +1692,3 @@ def api_reset_game(room_id):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-
-
