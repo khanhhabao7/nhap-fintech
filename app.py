@@ -623,12 +623,14 @@ def try_start_game(room):
         room['player_ready'] = [False] * room['num_players']
         room['logs'].append("🎮 Tất cả người chơi đã chọn deck. Game chính thức bắt đầu!")
 
-        # Phát bài ban đầu cho người chơi active
+        # Phát bài ban đầu cho người chơi active và chọn sự kiện khởi đầu
         for idx, p in enumerate(room['players']):
             if p and p.get('active_deck') and len(p['active_deck']) > 0:
                 p['current_hand'] = random.sample(p['active_deck'], min(5, len(p['active_deck'])))
                 p['energy_left'] = 3
-                room['logs'].append(f"  → Player {idx+1} đã được chia {len(p['current_hand'])} lá bài.")
+                scenario = random.choice(SCENARIOS)
+                p['last_scenario'] = scenario['name']
+                room['logs'].append(f"  → Player {idx+1} đã được chia {len(p['current_hand'])} lá bài. Sự kiện: {scenario['name']}")
             elif p:
                 room['logs'].append(f"⚠️ Player {idx+1} không có deck hợp lệ, bỏ qua.")
         return True
@@ -1225,8 +1227,12 @@ def run_phase():
         if not proj or proj.get('status') != 'active' or proj.get('current_phase', 0) >= proj.get('max_phase', 999):
             continue
 
-        scenario = random.choice(SCENARIOS)
-        proj['last_scenario'] = scenario['name']
+        # Lấy sự kiện đã được gán cho phase này
+        scenario_name = proj.get('last_scenario')
+        scenario = next((s for s in SCENARIOS if s['name'] == scenario_name), None)
+        if not scenario:
+            scenario = random.choice(SCENARIOS)
+            proj['last_scenario'] = scenario['name']
         logs.append(f"Dự án {idx+1}: {scenario['name']}")
 
         d = scenario['delta']
@@ -1315,13 +1321,15 @@ def run_phase():
     room['player_ready'] = [False] * room['num_players']
     room['logs'] = logs[-50:]
 
-    # Tăng phase và chia bài mới
+    # Tăng phase và chia bài mới, đồng thời chọn sự kiện cho phase tiếp theo
     room['phase'] += 1
     for idx, proj in enumerate(players):
         if proj and proj.get('status') == 'active' and proj.get('current_phase', 0) < proj.get('max_phase', 999):
             proj['current_hand'] = random.sample(proj['active_deck'], min(5, len(proj['active_deck'])))
             proj['energy_left'] = 3
             room['mulligan_used'][idx] = False
+            next_scenario = random.choice(SCENARIOS)
+            proj['last_scenario'] = next_scenario['name']
 
     # Kiểm tra game kết thúc
     all_ended = all(p is None or p.get('current_phase', 0) >= p.get('max_phase', 999) for p in players)
