@@ -626,6 +626,8 @@
         
         let pollingInterval = null;
         let selectedCardIndex = null;
+        let isPollingPlayerState = false;
+        let lastPlayerStateSignature = "";
         let deckSubmitted = false;   // Đã nộp deck thành công
         
         // State cho deck builder
@@ -660,7 +662,6 @@
                 const data = await res.json();
                 activeCardsMaster = data.active;
                 reactionCardsMaster = data.reaction;
-                console.log('Loaded cards OK');
                 return true;
             } catch (err) {
                 console.error('Error loading cards:', err);
@@ -923,6 +924,7 @@
         // ==================== GAME POLLING ====================
         function startGamePolling() {
             if (pollingInterval) clearInterval(pollingInterval);
+            lastPlayerStateSignature = "";
             
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.className = 'connection-status bg-blue-100 text-blue-800 p-3 rounded-xl mb-4';
@@ -930,15 +932,21 @@
             statusDiv.classList.remove('hidden');
             
             pollingInterval = setInterval(async () => {
+                if (isPollingPlayerState) return;
+                isPollingPlayerState = true;
                 try {
                     const data = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
+                    const signature = JSON.stringify(data);
                     
                     if (data.game_started && !data.game_ended) {
                         if (document.getElementById('gamePanel').classList.contains('hidden')) {
                             statusDiv.classList.add('hidden');
                             document.getElementById('gamePanel').classList.remove('hidden');
                         }
-                        updateGameUIFromData(data);
+                        if (signature !== lastPlayerStateSignature) {
+                            lastPlayerStateSignature = signature;
+                            updateGameUIFromData(data);
+                        }
                     } else if (data.game_ended || data.ended) {
                         document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
                         document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
@@ -955,8 +963,10 @@
                 } catch (err) {
                     console.error('Polling error:', err);
                     statusDiv.innerHTML = '⚠️ Error connecting to server. Retrying...';
+                } finally {
+                    isPollingPlayerState = false;
                 }
-            }, 2000);
+            }, 3000);
         }
         
         function updateGameUIFromData(data) {
