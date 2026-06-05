@@ -10,6 +10,7 @@
 
 
 from flask import Flask, render_template, request, jsonify
+from werkzeug.exceptions import HTTPException
 import random
 import math
 import uuid
@@ -478,6 +479,84 @@ def final_score(proj, phases_used, metrics):
     final = raw * scale_factor * funding_bonus
     return min(100, max(0, final))
 
+def get_bot_memory(room, bot_id, player_count):
+    """Return stable bot memory even after JSON turns numeric keys into strings."""
+    room.setdefault('bot_memory', {})
+    str_key = str(bot_id)
+    int_key = bot_id
+
+    memory = room['bot_memory'].get(str_key)
+    if memory is None and int_key in room['bot_memory']:
+        memory = room['bot_memory'].pop(int_key)
+        room['bot_memory'][str_key] = memory
+    if memory is None:
+        memory = {'attractiveness_history': [[] for _ in range(player_count)]}
+        room['bot_memory'][str_key] = memory
+
+    history = memory.setdefault('attractiveness_history', [])
+    while len(history) < player_count:
+        history.append([])
+    if len(history) > player_count:
+        del history[player_count:]
+    return memory
+
+def ensure_room_lists(room):
+    num_players = int(room.get('num_players') or len(room.get('players', [])) or 4)
+    room['num_players'] = num_players
+
+    list_defaults = {
+        'players': lambda: None,
+        'player_ready': lambda: False,
+        'deck_ready': lambda: False,
+        'mulligan_used': lambda: False,
+        'phase_energy': lambda: 3,
+        'player_triggers': lambda: {},
+    }
+
+    for key, default_factory in list_defaults.items():
+        value = room.get(key)
+        if not isinstance(value, list):
+            value = []
+        while len(value) < num_players:
+            value.append(default_factory())
+        if len(value) > num_players:
+            del value[num_players:]
+        room[key] = value
+
+    room.setdefault('pending_cards', {})
+    room.setdefault('logs', [])
+    room.setdefault('phase_details', [])
+    if 'submitted_players' not in room:
+        room['submitted_players'] = sum(1 for player in room['players'] if player is not None)
+
+def ensure_bot_alloc(room):
+    num_players = int(room.get('num_players') or len(room.get('players', [])) or 4)
+    bot_alloc = room.get('bot_alloc')
+    if not isinstance(bot_alloc, list):
+        room['bot_alloc'] = [
+            {'bot_id': bot['id'], 'perProject': [0] * num_players, 'idle': bot['wealth']}
+            for bot in BOTS
+        ]
+        return
+
+    by_id = {entry.get('bot_id'): entry for entry in bot_alloc if isinstance(entry, dict)}
+    normalized = []
+    for bot in BOTS:
+        entry = by_id.get(bot['id'])
+        if not entry:
+            entry = {'bot_id': bot['id'], 'perProject': [0] * num_players, 'idle': bot['wealth']}
+        per_project = entry.get('perProject')
+        if not isinstance(per_project, list):
+            per_project = []
+        while len(per_project) < num_players:
+            per_project.append(0)
+        if len(per_project) > num_players:
+            del per_project[num_players:]
+        entry['perProject'] = per_project
+        entry['idle'] = entry.get('idle', bot['wealth'])
+        normalized.append(entry)
+    room['bot_alloc'] = normalized
+
 def process_phase(room, phase, players, logs, bot_actions=None):
     if bot_actions is None:
         bot_actions = []
@@ -492,7 +571,8 @@ def process_phase(room, phase, players, logs, bot_actions=None):
                 A[(bot['id'], idx)] = -1e9
             else:
                 metrics = calculate_metrics(proj)   
-                hist = room['bot_memory'][bot['id']]['attractiveness_history'][idx]
+                bot_memory = get_bot_memory(room, bot['id'], len(players))
+                hist = bot_memory['attractiveness_history'][idx]
                 current_attr = attractiveness(proj, bot, metrics)
                 if hist:
                     weighted_avg = sum((i+1)*val for i, val in enumerate(hist)) / sum(range(1, len(hist)+1))
@@ -661,6 +741,7 @@ def save_rooms(exception=None):
                 conn.execute('INSERT OR REPLACE INTO rooms (id, data) VALUES (?, ?)', (key, json.dumps(room)))
 
 def try_start_game(room):
+    ensure_room_lists(room)
     """Khởi tạo game khi tất cả người chơi đã chọn deck"""
     if room['status'] != 'choosing_deck':
         return False
@@ -713,6 +794,7 @@ def play_page(room_id, player_index):
     if room_id not in rooms:
         return "Phòng không tồn tại", 404
     room = rooms[room_id]
+    ensure_room_lists(room)
     if player_index < 0 or player_index >= room['num_players']:
         return "Chỉ số người chơi không hợp lệ", 400
     return render_template('play.html', room_id=room_id, player_index=player_index, max_players=room['num_players'])
@@ -742,7 +824,7 @@ def create_room():
         'mulligan_used': [False] * num_players,
         'game_ended': False,
         'player_triggers': [{} for _ in range(num_players)],
-        'bot_memory': {bot['id']: {'attractiveness_history': [[] for _ in range(num_players)]} for bot in BOTS},
+        'bot_memory': {str(bot['id']): {'attractiveness_history': [[] for _ in range(num_players)]} for bot in BOTS},
         'submitted_players': 0,
         'name': None,
         'phase_details': []
@@ -767,6 +849,7 @@ def submit_project():
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
+    ensure_room_lists(room)
 
     if player_index >= len(room['players']):
         return jsonify({'error': 'Player index không hợp lệ'}), 400
@@ -830,6 +913,7 @@ def start_deck_phase():
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
+    ensure_room_lists(room)
     
     if room['status'] != 'waiting_for_projects':
         return jsonify({'error': 'Không thể bắt đầu ở trạng thái hiện tại'}), 400
@@ -863,6 +947,7 @@ def submit_deck():
         room = rooms.get(room_id)
         if not room:
             return jsonify({'error': 'Room not found'}), 404
+        ensure_room_lists(room)
 
         if room['status'] not in ['waiting_for_projects', 'choosing_deck']:
             return jsonify({'error': 'Không phải lúc chọn deck (status: ' + room['status'] + ')'}), 400
@@ -924,6 +1009,7 @@ def auto_select_deck():
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
+    ensure_room_lists(room)
 
     if room['status'] not in ['waiting_for_projects', 'choosing_deck']:
         return jsonify({'error': 'Không thể chọn deck lúc này'}), 400
@@ -963,6 +1049,7 @@ def host_state():
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
+    ensure_room_lists(room)
     rankings = []
     
     for i, proj in enumerate(room['players']):
@@ -1020,6 +1107,7 @@ def player_state():
         return jsonify({'error': 'Invalid player_index'}), 400
     
     room = rooms[room_id]
+    ensure_room_lists(room)
     if player_index < 0 or player_index >= len(room['players']) or room['players'][player_index] is None:
         return jsonify({
             'joined': False,
@@ -1092,6 +1180,7 @@ def play_card():
         return jsonify({'error': 'Room not found'}), 404
 
     room = rooms[room_id]
+    ensure_room_lists(room)
     if room['status'] != 'playing':
         return jsonify({'error': 'Game chưa ở trạng thái chơi'}), 400
 
@@ -1110,7 +1199,7 @@ def play_card():
         return jsonify({'error': 'Không đủ Energy'}), 400
 
     import copy
-    room['pending_cards'][player_index] = copy.deepcopy(card)
+    room.setdefault('pending_cards', {})[str(player_index)] = copy.deepcopy(card)
     proj['energy_left'] -= card['cost']
     hand.pop(card_index)
 
@@ -1245,6 +1334,7 @@ def run_phase():
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
+    ensure_room_lists(room)
 
     # ===== 1. TRƯỜNG HỢP: GAME ĐANG Ở GIAI ĐOẠN CHỌN DECK =====
     if room['status'] == 'choosing_deck':
@@ -1275,6 +1365,8 @@ def run_phase():
     # ===== 2. CHỈ CHO PHÉP CHẠY KHI GAME Ở TRẠNG THÁI PLAYING =====
     if room['status'] != 'playing':
         return jsonify({'error': 'Game not active'}), 400
+
+    ensure_bot_alloc(room)
 
     phase = room['phase']
     players = room['players']
@@ -1333,8 +1425,10 @@ def run_phase():
             proj['legal_cost_spent'] += (d['reg_risk'] / 100) * proj['target_funding']
 
         # Áp dụng thẻ đã chơi (pending_cards)
-        if idx in room['pending_cards']:
-            card = room['pending_cards'][idx]
+        pending_key = str(idx)
+        pending_cards = room.get('pending_cards', {})
+        if pending_key in pending_cards or idx in pending_cards:
+            card = pending_cards.get(pending_key, pending_cards.get(idx))
             if card:
                 eff = card.get('effect', {})
                 if 'hype' in eff:
@@ -1489,7 +1583,7 @@ def api_create_room():
         'mulligan_used': [False] * max_players,
         'game_ended': False,
         'player_triggers': [{} for _ in range(max_players)],
-        'bot_memory': {bot['id']: {'attractiveness_history': [[] for _ in range(max_players)]} for bot in BOTS},
+        'bot_memory': {str(bot['id']): {'attractiveness_history': [[] for _ in range(max_players)]} for bot in BOTS},
         'submitted_players': 0,
         'name': room_name,
         'phase_details': []
@@ -1516,6 +1610,7 @@ def api_get_room(room_id):
         return jsonify({'error': 'Room not found'}), 404
     
     room = rooms[room_id]
+    ensure_room_lists(room)
 
     
     
@@ -1539,6 +1634,7 @@ def api_get_room(room_id):
                 'hype': proj.get('hype', 50),
                 'transparency': proj.get('transparency', 50),
                 'score': score,
+                'scale': proj.get('scale', 'M'),
                 'current_phase': proj.get('current_phase', 0),
                 'max_phase': proj.get('max_phase', 5),
                 'deck_ready': room.get('deck_ready', [False])[i] if i < len(room.get('deck_ready', [])) else False,
@@ -1553,6 +1649,7 @@ def api_get_room(room_id):
                 'hype': 50,
                 'transparency': 50,
                 'score': 0,
+                'scale': 'M',
                 'current_phase': 0,
                 'max_phase': 5,
                 'deck_ready': False,
@@ -1690,13 +1787,18 @@ def api_reset_game(room_id):
     room['logs'] = ["🔄 Game đã được reset. Chờ người chơi submit dự án..."]
     room['phase_details'] = []
     
-    for bot_id in room['bot_memory']:
-        room['bot_memory'][bot_id]['attractiveness_history'] = [[] for _ in range(room.get('num_players', 4))]
+    room['bot_memory'] = {
+        str(bot['id']): {'attractiveness_history': [[] for _ in range(room.get('num_players', 4))]}
+        for bot in BOTS
+    }
     
     return jsonify({'success': True})
 
 @app.errorhandler(Exception)
 def handle_exception(e):
+    if isinstance(e, HTTPException):
+        return jsonify({'error': e.description}), e.code
+
     import traceback
     error_trace = traceback.format_exc()
     print("=== UNHANDLED EXCEPTION ===")
@@ -1706,6 +1808,3 @@ def handle_exception(e):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-
-
