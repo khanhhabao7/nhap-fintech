@@ -765,6 +765,8 @@
       let pollingInterval = null;
       let isConnected = false;
       let currentRoomData = null;
+      let isFetchingRoom = false;
+      let lastRenderedRoomSignature = "";
 
       // Quản lý danh sách các phòng đã tạo (lưu trong session)
       let hostRooms = [];
@@ -978,18 +980,29 @@
 
       function startPolling() {
         if (pollingInterval) clearInterval(pollingInterval);
+        lastRenderedRoomSignature = "";
         fetchAndUpdateUI();
         pollingInterval = setInterval(() => {
           if (currentRoomId) {
             fetchAndUpdateUI();
           }
-        }, 2000);
+        }, 3000);
       }
 
       async function fetchAndUpdateUI() {
-        const roomData = await fetchRoomData();
-        if (roomData) {
-          renderGameData(roomData);
+        if (isFetchingRoom) return;
+        isFetchingRoom = true;
+        try {
+          const roomData = await fetchRoomData();
+          if (roomData) {
+            const signature = JSON.stringify(roomData);
+            if (signature !== lastRenderedRoomSignature) {
+              lastRenderedRoomSignature = signature;
+              renderGameData(roomData);
+            }
+          }
+        } finally {
+          isFetchingRoom = false;
         }
       }
 
@@ -1007,7 +1020,7 @@
           roomData.currentPhase ?? "?";
         document.getElementById("maxPhase").innerText = roomData.maxPhase ?? 7;
         // Cập nhật nhãn phase sắp chạy
-        const nextPhase = (roomData.currentPhase || 0) + 1;
+        const nextPhase = roomData.currentPhase || 1;
         const phaseLabelSpan = document.getElementById("phaseNumberLabel");
         if (phaseLabelSpan) phaseLabelSpan.innerText = nextPhase;
         let progFill = document.querySelector("#gamePanel .bg-pink-500");
@@ -1051,10 +1064,6 @@
 
         // Leaderboard - Overall and by Scale
         if (roomData.players && roomData.players.length > 0) {
-          console.log(
-            "Player scales:",
-            roomData.players.map((p) => ({ name: p.name, scale: p.scale })),
-          );
           // 1. Xếp hạng chung (tất cả player)
           const allPlayers = roomData.players.filter(
             (p) => p.status !== "not_joined",
