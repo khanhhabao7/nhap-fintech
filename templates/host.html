@@ -109,6 +109,10 @@
         background: rgba(245, 158, 11, 0.12);
         border-left-color: #f59e0b;
       }
+    .player-card-bankrupt {
+        background: #fee2e2;
+        border-left-color: #dc2626;
+    }
       .player-join-tag {
         display: inline-block;
         margin-left: 10px;
@@ -588,7 +592,7 @@
         <div class="section-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <h3 style="margin: 0;">🔗 Player Join Links</h3>
-            <button onclick="copyAllJoinLinks()" class="copy-all-btn" style="padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; background: #db2777; color: white; border: none;">📋 Copy All</button>
+            <button onclick="copyAllJoinLinks()" class="copy-all-btn" style="padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; background: #ff69b4; color: white; border: none;">📋 Copy All</button>
           </div>
           <div
             id="joinLinksList"
@@ -1075,16 +1079,24 @@
           sortedOverall.forEach((player, idx) => {
             const isJoined = player.status === "active";
             const isEnded = player.status === "ended";
-            const cardClass = isJoined
-              ? "player-card-joined"
-              : isEnded
-                ? "player-card-ended"
-                : "player-card-not-joined";
+            const isBankrupt = player.status === "bankrupt";
+            let cardClass = "player-card-not-joined";
+            let statusText = "Not Joined";
+            if (isJoined) {
+                cardClass = "player-card-joined";
+                statusText = "Active";
+            } else if (isEnded) {
+                cardClass = "player-card-ended";
+                statusText = "Finished";
+            } else if (isBankrupt) {
+                cardClass = "player-card-bankrupt";
+                statusText = "💀 Bankrupt";
+            }
             const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
             overallHtml += `
                     <div class="rank-card ${cardClass}">
-                        <h3 style="color:#2e1a47;">${idx + 1}. ${player.name || `Player ${player.id + 1}`}
-                            <span class="player-join-tag ${isJoined ? "joined" : isEnded ? "joined" : "waiting"}">${player.status === "active" ? "Active" : player.status === "ended" ? "Finished" : "Not Joined"}</span>
+                        <h3>${idx + 1}. ${player.name}
+                            <span class="player-join-tag ${isJoined ? "joined" : isEnded ? "joined" : isBankrupt ? "joined" : "waiting"}">${statusText}</span>
                         </h3>
                         <div class="player-funding">💰 Funding: <span>${fundingPercent}%</span></div>
                         <div class="funding-bar"><div class="funding-bar-fill" style="width: ${fundingPercent}%;"></div></div>
@@ -1144,18 +1156,26 @@
             let scaleHtml = `<div style="margin-top: 15px;"><strong style="color:#2e1a47;">📌 ${scaleNames[scale]}</strong>`;
             scaleHtml += `<div class="rankings" style="margin-top: 8px;">`;
             sorted.forEach((player, idx) => {
-              const isJoined = player.status === "active";
-              const isEnded = player.status === "ended";
-              const cardClass = isJoined
-                ? "player-card-joined"
-                : isEnded
-                  ? "player-card-ended"
-                  : "player-card-not-joined";
-              const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-              scaleHtml += `
+                const isJoined = player.status === "active";
+                const isEnded = player.status === "ended";
+                const isBankrupt = player.status === "bankrupt";
+                let cardClass = "player-card-not-joined";
+                let statusText = "Not Joined";
+                if (isJoined) {
+                    cardClass = "player-card-joined";
+                    statusText = "Active";
+                } else if (isEnded) {
+                    cardClass = "player-card-ended";
+                    statusText = "Finished";
+                } else if (isBankrupt) {
+                    cardClass = "player-card-bankrupt";
+                    statusText = "💀 Bankrupt";
+                }
+                const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
+                scaleHtml += `
                         <div class="rank-card ${cardClass}" style="margin-bottom: 8px;">
                             <h3 style="color:#2e1a47;">${idx + 1}. ${player.name || `Player ${player.id + 1}`}
-                                <span class="player-join-tag ${isJoined ? "joined" : isEnded ? "joined" : "waiting"}">${player.status === "active" ? "Active" : player.status === "ended" ? "Finished" : "Not Joined"}</span>
+                                <span class="player-join-tag ${isJoined ? "joined" : isEnded ? "joined" : isBankrupt ? "joined" : "waiting"}">${statusText}</span>
                             </h3>
                             <div class="player-funding">💰 Funding: <span>${fundingPercent}%</span></div>
                             <div class="funding-bar"><div class="funding-bar-fill" style="width: ${fundingPercent}%;"></div></div>
@@ -1294,11 +1314,15 @@
             const actionColor = action.action === 'invest' ? '#16a34a' : '#dc2626';
             const actionIcon = action.action === 'invest' ? '📈' : '📉';
             const actionLabel = action.action === 'invest' ? 'Invest' : 'Withdraw';
-            html += `<tr style="border-bottom:1px solid #ede9fe;">
-              <td style="padding:6px 10px; font-weight:600;">${action.bot_type}</td>
-              <td style="padding:6px 10px; color:${actionColor}; font-weight:600;">${actionIcon} ${actionLabel}</td>
-              <td style="padding:6px 10px;">Player ${action.player_index + 1}</td>
-              <td style="padding:6px 10px; text-align:right; font-weight:600; color:${actionColor};">${(action.amount || 0).toLocaleString('en-US', {maximumFractionDigits: 0})}</td>
+            let displayAmount = (action.amount || 0).toLocaleString('en-US', {maximumFractionDigits: 0});
+            if (action.action === 'withdraw') {
+                displayAmount = `(${displayAmount})`;
+            }
+            html += `<tr>
+                <td style="padding:6px 10px; font-weight:600;">${action.bot_type}</td>
+                <td style="padding:6px 10px; color:${actionColor}; font-weight:600;">${actionIcon} ${actionLabel}</td>
+                <td style="padding:6px 10px;">Player ${action.player_index + 1}</td>
+                <td style="padding:6px 10px; text-align:right; font-weight:600; color:${actionColor};">${displayAmount}</td>
             </tr>`;
           });
           html += `</tbody></table></div>`;
