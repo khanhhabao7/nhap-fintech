@@ -1151,10 +1151,12 @@ def player_state():
     
     is_ended = proj.get('status') in ['ended', 'funded', 'bankrupt'] or proj.get('current_phase', 0) >= proj.get('max_phase', 5)
     final_score_value = 0
-    if is_ended and proj.get('funding_progress', 0) >= 0.5:
-        final_score_value = final_score(proj, proj.get('max_phase', 5), metrics)
-    elif proj.get('status') == 'bankrupt':
+    
+    if proj.get('status') == 'bankrupt':
         final_score_value = -100
+    elif is_ended:
+        # Tính điểm cho MỌI dự án đã kết thúc (kể cả funding < 50%)
+        final_score_value = final_score(proj, proj.get('max_phase', 5), metrics)
     
     triggers = room.get('player_triggers', [{}])[player_index] if player_index < len(room.get('player_triggers', [])) else {}
     
