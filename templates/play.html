@@ -948,7 +948,13 @@
                             updateGameUIFromData(data);
                         }
                     } else if (data.game_ended || data.ended) {
-                        document.getElementById('finalScore').innerText = data.final_score?.toFixed(1) || '0';
+                        let finalScoreDisplay = '';
+                        if (data.final_score === -100) {
+                            finalScoreDisplay = '💀 BANKRUPT';
+                        } else {
+                            finalScoreDisplay = (data.final_score || 0).toFixed(1);
+                        }
+                        document.getElementById('finalScore').innerText = finalScoreDisplay;
                         document.getElementById('finalFunding').innerText = ((data.metrics?.funding_progress || 0) * 100).toFixed(1);
                         document.getElementById('endgamePanel').classList.remove('hidden');
                         renderFinalRanking();
@@ -1110,7 +1116,13 @@
                             <td class="px-4 py-2">${((p.funding||0)*100).toFixed(1)}%</td>
                             <td class="px-4 py-2">${p.hype||0}</td>
                             <td class="px-4 py-2">${p.transparency||0}</td>
-                            <td class="px-4 py-2 font-bold">${(p.score||0).toFixed(2)}</td>
+                            let scoreDisplay = '';
+                            if (p.score === -100) {
+                                scoreDisplay = '💀 BANKRUPT';
+                            } else {
+                                scoreDisplay = (p.score || 0).toFixed(2);
+                            }
+                            html += `<td class="px-4 py-2 font-bold">${scoreDisplay}</td>`;
                         </tr>
                     `;
                 });
