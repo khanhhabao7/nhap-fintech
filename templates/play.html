@@ -1103,11 +1103,20 @@
                         </thead>
                         <tbody>
                 `;
-                
+
                 sorted.forEach((p, idx) => {
                     const isMe = p.id === playerIndexFromUrl;
                     const rowClass = isMe ? 'bg-pink-100 font-bold' : '';
                     const scaleDisplay = p.scale === 'S' ? 'Small' : (p.scale === 'L' ? 'Large' : 'Medium');
+                    
+                    // Tính scoreDisplay trước
+                    let scoreDisplay = '';
+                    if (p.score === -100) {
+                        scoreDisplay = '💀 BANKRUPT';
+                    } else {
+                        scoreDisplay = (p.score || 0).toFixed(2);
+                    }
+                    
                     html += `
                         <tr class="${rowClass} border-b border-purple-100">
                             <td class="px-4 py-2">${idx+1}${idx === 0 ? ' 👑' : ''}</td>
@@ -1116,13 +1125,7 @@
                             <td class="px-4 py-2">${((p.funding||0)*100).toFixed(1)}%</td>
                             <td class="px-4 py-2">${p.hype||0}</td>
                             <td class="px-4 py-2">${p.transparency||0}</td>
-                            let scoreDisplay = '';
-                            if (p.score === -100) {
-                                scoreDisplay = '💀 BANKRUPT';
-                            } else {
-                                scoreDisplay = (p.score || 0).toFixed(2);
-                            }
-                            html += `<td class="px-4 py-2 font-bold">${scoreDisplay}</td>`;
+                            <td class="px-4 py-2 font-bold">${scoreDisplay}</td>
                         </tr>
                     `;
                 });
