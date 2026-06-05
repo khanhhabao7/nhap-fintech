@@ -592,7 +592,7 @@
         <div class="section-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <h3 style="margin: 0;">🔗 Player Join Links</h3>
-            <button onclick="copyAllJoinLinks()" class="copy-all-btn" style="padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; background: #ff69b4; color: white; border: none;">📋 Copy All</button>
+            <button onclick="copyAllJoinLinks()" class="copy-all-btn" style="padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 8px; background: #b173f6 color: white; border: none;">📋 Copy All</button>
           </div>
           <div
             id="joinLinksList"
@@ -1300,7 +1300,7 @@
         html += `</div>`;
 
         // Bot Actions
-        const botActions = detail.bot_actions || [];
+        const botActions = (detail.bot_actions || []).filter(a => a.amount !== 0);
         if (botActions.length > 0) {
           html += `<h4 style="color:#2e1a47; margin: 12px 0 8px;">🤖 Bot Transactions</h4>`;
           html += `<div style="overflow-x:auto;"><table style="width:100%; border-collapse:collapse; font-size:13px;">`;
@@ -1309,7 +1309,7 @@
             <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #d8b4fe;">Action</th>
             <th style="padding:8px 10px; text-align:left; border-bottom:2px solid #d8b4fe;">Player</th>
             <th style="padding:8px 10px; text-align:right; border-bottom:2px solid #d8b4fe;">Amount</th>
-          </tr></thead><tbody>`;
+           </tr></thead><tbody>`;
           botActions.forEach((action) => {
             const actionColor = action.action === 'invest' ? '#16a34a' : '#dc2626';
             const actionIcon = action.action === 'invest' ? '📈' : '📉';
@@ -1318,11 +1318,11 @@
             if (action.action === 'withdraw') {
                 displayAmount = `(${displayAmount})`;
             }
-            html += `<tr>
-                <td style="padding:6px 10px; font-weight:600;">${action.bot_type}</td>
-                <td style="padding:6px 10px; color:${actionColor}; font-weight:600;">${actionIcon} ${actionLabel}</td>
-                <td style="padding:6px 10px;">Player ${action.player_index + 1}</td>
-                <td style="padding:6px 10px; text-align:right; font-weight:600; color:${actionColor};">${displayAmount}</td>
+            html += `<tr style="border-bottom:1px solid #ede9fe;">
+              <td style="padding:6px 10px; font-weight:600;">${action.bot_type}</td>
+              <td style="padding:6px 10px; color:${actionColor}; font-weight:600;">${actionIcon} ${actionLabel}</td>
+              <td style="padding:6px 10px;">Player ${action.player_index + 1}</td>
+              <td style="padding:6px 10px; text-align:right; font-weight:600; color:${actionColor};">${displayAmount}</td>
             </tr>`;
           });
           html += `</tbody></table></div>`;
