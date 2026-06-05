@@ -557,6 +557,26 @@ def ensure_bot_alloc(room):
         normalized.append(entry)
     room['bot_alloc'] = normalized
 
+def aggregate_bot_actions(bot_actions):
+    grouped = {}
+    for action in bot_actions or []:
+        key = (
+            action.get('bot_type', 'Unknown'),
+            action.get('action', 'unknown'),
+            action.get('player_index', -1),
+        )
+        grouped[key] = grouped.get(key, 0) + action.get('amount', 0)
+
+    return [
+        {
+            'bot_type': bot_type,
+            'action': action,
+            'player_index': player_index,
+            'amount': amount,
+        }
+        for (bot_type, action, player_index), amount in sorted(grouped.items())
+    ]
+
 def process_phase(room, phase, players, logs, bot_actions=None):
     if bot_actions is None:
         bot_actions = []
@@ -1474,12 +1494,6 @@ def run_phase():
             room['player_triggers'][idx]['available_reactions'] = triggers
             logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
 
-        # Cập nhật phase và kết thúc nếu đủ
-        proj['current_phase'] += 1
-        if proj['current_phase'] >= proj['max_phase']:
-            proj['status'] = 'ended'
-            logs.append(f" → Dự án {idx+1} đã kết thúc.")
-
     # Snapshot starting cash for each player before bot processing
     starting_cash = {}
     for idx, proj in enumerate(players):
@@ -1489,6 +1503,14 @@ def run_phase():
     # Xử lý bot đầu tư/rút vốn
     bot_actions = []
     process_phase(room, phase, players, logs, bot_actions)
+
+    # Chỉ kết thúc dự án sau khi phase hiện tại đã chạy đủ scenario/card/bot.
+    for idx, proj in enumerate(players):
+        if proj and proj.get('status') == 'active' and idx in active_indices:
+            proj['current_phase'] = proj.get('current_phase', 0) + 1
+            if proj['current_phase'] >= proj.get('max_phase', 999):
+                proj['status'] = 'ended'
+                logs.append(f" → Dự án {idx+1} đã kết thúc sau phase {phase}.")
 
     # Dọn dẹp sau phase
     room['pending_cards'] = {}
@@ -1506,7 +1528,12 @@ def run_phase():
             proj['last_scenario'] = next_scenario['name']
 
     # Kiểm tra game kết thúc
-    all_ended = all(p is None or p.get('current_phase', 0) >= p.get('max_phase', 999) for p in players)
+    all_ended = all(
+        p is None
+        or p.get('status') in ['ended', 'funded', 'bankrupt']
+        or p.get('current_phase', 0) >= p.get('max_phase', 999)
+        for p in players
+    )
     game_ended = (room['phase'] > room['max_phase']) or all_ended
     if game_ended:
         room['game_ended'] = True
@@ -1517,7 +1544,7 @@ def run_phase():
         'phase': phase,
         'date': str(uuid.uuid4())[:8],
         'event': f"End of Phase {phase}",
-        'bot_actions': bot_actions,
+        'bot_actions': aggregate_bot_actions(bot_actions),
         'players': []
     }
     for idx, proj in enumerate(players):
@@ -1667,18 +1694,27 @@ def api_get_room(room_id):
     
     joined_players = len([p for p in room.get('players', []) if p is not None])
     
-    phase_progress = (room.get('phase', 0) / room.get('max_phase', 1)) * 100 if room.get('max_phase', 0) > 0 else 0
+    raw_phase = room.get('phase', 0)
+    max_phase = room.get('max_phase', 0)
+    display_phase = min(raw_phase, max_phase) if max_phase > 0 else raw_phase
+    phase_progress = min(100, (display_phase / max_phase) * 100) if max_phase > 0 else 0
+    phase_details = []
+    for detail in room.get('phase_details', []):
+        if isinstance(detail, dict):
+            compact_detail = detail.copy()
+            compact_detail['bot_actions'] = aggregate_bot_actions(detail.get('bot_actions', []))
+            phase_details.append(compact_detail)
 
     return jsonify({
         'name': room.get('name', 'Game Room'),
         'maxPlayers': room.get('num_players', 4),
         'joinedPlayers': joined_players,
-        'currentPhase': room.get('phase', 0),
+        'currentPhase': display_phase,
         'maxPhase': room.get('max_phase', 7),
         'ended': room.get('game_ended', False),
         'players': players_list,
         'logs': room.get('logs', []),
-        'phaseDetails': room.get('phase_details', []),
+        'phaseDetails': phase_details,
         'joinLinks': join_links,
         'can_start_deck': room['status'] == 'waiting_for_projects' and room.get('submitted_players', 0) >= 2,
         'status': room['status'],
