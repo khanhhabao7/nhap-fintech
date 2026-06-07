@@ -156,8 +156,6 @@ for card in ACTIVE_CARDS_FULL:
 for card in ACTIVE_CARDS_FULL:
     card["counters"] = normalize_tags(card["counters"])
 
-from collections import Counter
-
 HAND_SIZE = 6
 FORCE_ONE_COST3_WHEN_ALLOWED = True
 
@@ -502,46 +500,6 @@ def apply_reaction_card(state, reaction_card_id):
     state["reaction_uses"] = state.get("reaction_uses", 0) + 1
 
     return state
-
-def validate_master_data():
-    errors = []
-
-    if len(SCENARIOS) != 24:
-        errors.append("SCENARIOS must have 24 items")
-
-    if len(ACTIVE_CARDS_FULL) != 42:
-        errors.append("ACTIVE_CARDS_FULL must have 42 cards")
-
-    active_ids = [card["id"] for card in ACTIVE_CARDS_FULL]
-    if len(active_ids) != len(set(active_ids)):
-        errors.append("Duplicate active card IDs found")
-
-    scenario_ids = [scenario["id"] for scenario in SCENARIOS]
-    if len(scenario_ids) != len(set(scenario_ids)):
-        errors.append("Duplicate scenario IDs found")
-
-    group_count = Counter(card["group"] for card in ACTIVE_CARDS_FULL)
-    if dict(group_count) != {"red": 14, "green": 14, "purple": 14}:
-        errors.append(f"Wrong group count: {dict(group_count)}")
-
-    for scenario in SCENARIOS:
-        hand = get_cards_for_scenario(
-            scenario_id=scenario["id"],
-            player_deck=ACTIVE_CARDS_FULL,
-            seed=scenario["id"]
-        )
-
-        if len(hand) != HAND_SIZE:
-            errors.append(f"Scenario {scenario['id']} does not have 6 cards")
-
-        slots = [card_slot(card) for card in hand]
-        if len(slots) != len(set(slots)):
-            errors.append(f"Scenario {scenario['id']} has duplicate group-cost slots")
-
-    return {
-        "valid": len(errors) == 0,
-        "errors": errors
-    }
 
 # ==================== CÁC HÀM HỖ TRỢ ====================
 def clamp(x, lo, hi):
