@@ -390,7 +390,7 @@ def validate_master_data():
         errors.append(f"ACTIVE_CARDS_FULL must have 42 cards, found {len(ACTIVE_CARDS_FULL)}")
 
     if len(REACTION_CARDS) != 6:
-        errors.append(f"REACTION_CARDS must have 10 cards, found {len(REACTION_CARDS)}")
+        errors.append(f"REACTION_CARDS must have 6 cards, found {len(REACTION_CARDS)}")
 
     active_ids = [card["id"] for card in ACTIVE_CARDS_FULL]
     if len(active_ids) != len(set(active_ids)):
@@ -1147,7 +1147,7 @@ def submit_deck():
         if not isinstance(active_indices, list) or len(active_indices) != 22:
             return jsonify({'error': 'Phải chọn đúng 22 active cards'}), 400
 
-		        if len(reaction_indices) > MAX_REACTION_CARDS_PER_GAME:
+        if len(reaction_indices) > MAX_REACTION_CARDS_PER_GAME:
             return jsonify({'error': f'Chỉ được chọn tối đa {MAX_REACTION_CARDS_PER_GAME} reaction cards'}), 400
 
         # Kiểm tra các index có hợp lệ không
@@ -1723,6 +1723,7 @@ def run_phase():
             'legal_cost_spent': proj.get('legal_cost_spent', 0),
             'total_invested': proj.get('total_invested', 0),
             'funding_progress': proj.get('funding_progress', 0),
+			'monthly_burn': metrics.get('monthly_burn', 0),
         }
 
         # Lấy các reaction cards có thể dùng
