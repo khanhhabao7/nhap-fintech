@@ -1431,32 +1431,16 @@ def mulligan():
     
     return jsonify({'ok': True, 'message': 'Mulligan thành công! Đã đổi 5 lá bài mới.'})
 
-@app.route('/api/player_ready_phase', methods=['POST'])
-def player_ready_phase():
-    data = request.json
-    room_id = data['room_id']
-    player_index = data['player_index']
-    
-    if room_id not in rooms:
-        return jsonify({'error': 'Room not found'}), 404
-    room = rooms[room_id]
-    
-    if room['status'] != 'playing':
-        return jsonify({'error': 'Game chưa bắt đầu'}), 400
-    
-    proj = room['players'][player_index]
-    if not proj or proj.get('status') != 'active':
-        return jsonify({'error': 'Dự án không còn hoạt động'}), 400
-    
-    room['player_ready'][player_index] = True
-    return jsonify({'ok': True})
-
 @app.route('/api/use_reaction', methods=['POST'])
 def use_reaction():
     data = request.json
-    room_id = data['room_id']
-    player_index = data['player_index']
-    reaction_id = data['reaction_id']   # thay vì reaction_index, dùng id
+    room_id = data.get('room_id')
+    player_index = data.get('player_index')
+    reaction_id = data.get('reaction_id')
+    reaction_index = data.get('reaction_index')  # fallback
+
+    if not room_id or player_index is None:
+        return jsonify({'error': 'Missing room_id or player_index'}), 400
 
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
@@ -1469,12 +1453,23 @@ def use_reaction():
     if not proj or proj.get('status') != 'active':
         return jsonify({'error': 'Player not found or inactive'}), 400
 
-    # Lấy danh sách reaction có thể dùng từ player_triggers
+    # Nếu có reaction_index thì tìm id từ hand
+    if reaction_index is not None and reaction_id is None:
+        reaction_hand = proj.get('reaction_hand', [])
+        if 0 <= reaction_index < len(reaction_hand):
+            reaction_id = reaction_hand[reaction_index]['id']
+        else:
+            return jsonify({'error': 'Invalid reaction index'}), 400
+
+    if not reaction_id:
+        return jsonify({'error': 'Missing reaction_id'}), 400
+
+    # Kiểm tra reaction có khả dụng không
     available_reactions = room['player_triggers'][player_index].get('available_reactions', [])
     available_ids = [r['id'] for r in available_reactions]
-
     if reaction_id not in available_ids:
         return jsonify({'error': 'Reaction này hiện không thể kích hoạt'}), 400
+
 
     # Tìm card trong reaction_hand của player
     reaction_hand = proj.get('reaction_hand', [])
