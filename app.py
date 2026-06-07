@@ -359,6 +359,150 @@ def get_cards_for_scenario(scenario_id, player_deck=None, seed=None):
         seed=seed
     )
 
+MAX_REACTION_USES_PER_GAME = 2
+
+REACTION_CARDS = [
+    {
+        "id": "R1",
+        "name": "Investor Standstill Agreement",
+        "desc": "Negotiate with key investors to temporarily pause withdrawal and give the startup time to stabilize.",
+        "triggers": ["bot_withdraw", "near_bankruptcy"],
+        "effect": {
+            "runway": 1,
+            "whale_trust": 8,
+            "funding_boost_percent": 4,
+            "trust_all": -4,
+            "dilution": 6,
+            "cost_percent": 3
+        }
+    },
+    {
+        "id": "R2",
+        "name": "Founder Emergency Cash Injection",
+        "desc": "Founders inject short-term emergency cash to cover critical expenses such as payroll, cloud bills, and essential operations.",
+        "triggers": ["runway_crisis", "near_bankruptcy"],
+        "effect": {
+            "runway": 1,
+            "trust_all": 5,
+            "funding_boost_percent": 3,
+            "dilution": 4,
+            "cost_percent": 2
+        }
+    },
+    {
+        "id": "R3",
+        "name": "Vendor Payment Restructuring",
+        "desc": "Negotiate delayed payments with suppliers, cloud providers, or service vendors to reduce immediate cash pressure.",
+        "triggers": ["runway_crisis", "cost_crisis"],
+        "effect": {
+            "runway": 1,
+            "cogs": -0.03,
+            "trust_all": -3,
+            "utility": -3,
+            "cost_percent": 2
+        }
+    },
+    {
+        "id": "R4",
+        "name": "Incident Containment and Customer Notice",
+        "desc": "Contain a security or data incident, notify affected customers, and provide a short-term support plan.",
+        "triggers": ["security_crisis", "trust_crisis"],
+        "effect": {
+            "security": 15,
+            "transparency": 10,
+            "trust_all": 6,
+            "hype": -2,
+            "utility": -3,
+            "cost_percent": 5
+        }
+    },
+    {
+        "id": "R5",
+        "name": "Regulatory Remediation Filing",
+        "desc": "Submit an urgent remediation plan, missing documents, and legal explanation to reduce regulatory pressure.",
+        "triggers": ["regulatory_crisis"],
+        "effect": {
+            "reg_risk": -12,
+            "transparency": 8,
+            "trust_all": 4,
+            "legal_cost_percent": 6,
+	"cost_percent": 2 
+        }
+    },
+    {
+        "id": "R6",
+        "name": "Emergency Customer Prepayment Deal",
+        "desc": "Offer selected customers a prepaid discount package to bring cash in earlier and avoid immediate bankruptcy.",
+        "triggers": ["near_bankruptcy", "runway_crisis"],
+        "effect": {
+            "runway": 1,
+            "funding_boost_percent": 4,
+            "trust_all": 2,
+            "price": -0.06,
+            "hype": -2
+        }
+    }
+]
+
+def get_emergency_events(state):
+    events = []
+
+    if state.get("runway", 999) <= 0:
+    events.append("near_bankruptcy")
+
+if state.get("runway", 999) <= 1:
+    events.append("runway_crisis")
+
+
+    if state.get("trust_all", 100) <= 20:
+        events.append("trust_crisis")
+
+    if state.get("whale_trust", 100) <= 20:
+        events.append("bot_withdraw")
+
+    if state.get("funding_boost_percent", 0) <= -12:
+        events.append("bot_withdraw")
+
+    if state.get("security", 100) <= 25:
+        events.append("security_crisis")
+
+    if state.get("reg_risk", 0) >= 70:
+        events.append("regulatory_crisis")
+
+    return sorted(set(events)) 
+
+def get_available_reaction_cards(state):
+    if state.get("reaction_uses", 0) >= MAX_REACTION_USES_PER_GAME:
+        return []
+
+    emergency_events = get_emergency_events(state)
+
+    available_cards = []
+    for card in REACTION_CARDS:
+        if any(trigger in emergency_events for trigger in card["triggers"]):
+            available_cards.append(card)
+
+    return available_cards
+
+def apply_reaction_card(state, reaction_card_id):
+    available_cards = get_available_reaction_cards(state)
+
+    selected_card = None
+    for card in available_cards:
+        if card["id"] == reaction_card_id:
+            selected_card = card
+            break
+
+    if selected_card is None:
+        raise ValueError(f"Reaction card {reaction_card_id} is not available now.")
+
+    for key, value in selected_card["effect"].items():
+        state[key] = state.get(key, 0) + value
+
+    state["reaction_uses"] = state.get("reaction_uses", 0) + 1
+
+    return state
+
 def validate_master_data():
     errors = []
 
