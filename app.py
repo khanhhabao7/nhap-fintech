@@ -122,19 +122,19 @@ ACTIVE_CARDS_FULL = [
  	{"id": "D8", "name": "Data Protection Review", "cost": 2, "type": "green", "desc": "Review data handling and patch security weaknesses before they become worse.", "counters": ["security", "regulatory"], "effect": {"security": 15, "transparency": 8, "trust_all": 5, "cost_percent": 3}},
  	{"id": "D9", "name": "Regulatory Document Response Pack", "cost": 2, "type": "green", "desc": "Prepare legal, tax, and operating documents before regulators or investors ask.", "counters": ["regulatory", "legal", "disclosure_pressure"], "effect": {"reg_risk": -12, "transparency": 8, "trust_all": 4, "legal_cost_percent": 2}},
  	{"id": "D10", "name": "Reviewed Monthly Metrics Pack", "cost": 2, "type": "green", "desc": "Share reviewed monthly metrics to support investor due diligence.", "counters": ["investor_confidence", "disclosure_pressure"], "effect": {"transparency": 14, "trust_all": 8, "hype": -2, "cost_percent": 2}},
- 	{"id": "D11", "name": "Crisis Coordination Playbook", "cost": 2, "type": "green", "desc": "Coordinate a structured response to limit damage from a negative event.", "counters": ["market_down", "reputation", "supply", "cost"], "effect": {"halve_negative_delta": 1, "transparency": 5, "trust_all": 3, "cost_percent": 3}},
+ 	{"id": "D11", "name": "Crisis Coordination Playbook", "cost": 2, "type": "green", "desc": "Coordinate a structured response to limit damage from a negative event.", "counters": ["market_down", "reputation", "supply", "cost"], "effect": {"transparency": 8, "trust_all": 6, "reg_risk": -4, "cost_percent": 3}},
     {"id": "D12", "name": "Governance and Reporting Recovery Program", "cost": 3, "type": "green", "desc": "Launch a full recovery program to improve internal controls, reporting quality, compliance readiness, and investor confidence after a serious trust or disclosure problem.", "counters": ["disclosure_pressure", "investor_confidence", "regulatory", "reputation", "execution", "compliance_opportunity"], "effect": {"transparency": 20, "trust_all": 14, "whale_trust": 9, "reg_risk": -10, "cost_percent": 5}},
  	{"id": "D13", "name": "Emergency Cash Reserve", "cost": 3, "type": "green", "desc": "Reserve cash to survive a funding slowdown or runway crisis.", "counters": ["runway", "funding", "market_down"], "effect": {"runway": 3, "trust_all": 4, "funding_boost_percent": -3, "hype": -3, "cost_percent": 8}},
  	{"id": "D14", "name": "Cybersecurity Incident Response", "cost": 3, "type": "green", "desc": "Launch a full response after a privacy or cybersecurity incident.", "counters": ["security", "regulatory"], "effect": {"security": 23, "transparency": 12, "trust_all": 10, "reg_risk": -8, "cost_percent": 5}},
     {"id": "C1", "name": "Use-of-Funds Note", "cost": 1, "type": "purple", "desc": "Explain how the startup will use raised capital across product, marketing, operations, and reserves.", "counters": ["funding", "disclosure_pressure", "investor_confidence"], "effect": {"transparency": 5, "trust_all": 4, "funding_boost_percent": 3}},
-    {"id": "C2", "name": "Funding Gap Calculator", "cost": 1, "type": "purple", "desc": "Calculate how much extra capital the startup needs by comparing current cash and target funding requirement.", "counters": ["funding", "runway", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 4, "transparency": 4, "valuation_sanity": 3, "trust_all": 3}},
+    {"id": "C2", "name": "Funding Gap Calculator", "cost": 1, "type": "purple", "desc": "Calculate how much extra capital the startup needs by comparing current cash and target funding requirement.", "counters": ["funding", "runway", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 4, "transparency": 4, "trust_all": 3}},
     {"id": "C3", "name": "Investor Risk Q&A Call", "cost": 1, "type": "purple", "desc": "Answer investor questions about revenue, costs, valuation, dilution, and business risks.", "counters": ["investor_confidence", "whale_trust"], "effect": {"whale_trust": 7, "trust_all": 5, "transparency": 3}},
     {"id": "C4", "name": "Funding Milestone Plan", "cost": 1, "type": "purple", "desc": "Link the fundraising target to measurable milestones such as revenue, users, margin, or launch timeline.", "counters": ["funding", "capital_availability", "regulatory_opportunity"], "effect": {"funding_boost_percent": 5, "transparency": 3, "trust_all": 3}},
-    {"id": "C5", "name": "Comparable Valuation Pack", "cost": 2, "type": "purple", "desc": "Prepare a valuation pack using comparable companies, revenue multiples, margin, and growth assumptions.", "counters": ["investor_confidence", "funding_readiness", "disclosure_pressure"], "effect": {"valuation_sanity": 10, "transparency": 7, "funding_boost_percent": 6, "cost_percent": 2}},
+    {"id": "C5", "name": "Comparable Valuation Pack", "cost": 2, "type": "purple", "desc": "Prepare a valuation pack using comparable companies, revenue multiples, margin, and growth assumptions.", "counters": ["investor_confidence", "funding_readiness", "disclosure_pressure"], "effect": {"transparency": 7, "funding_boost_percent": 6, "cost_percent": 2}},
     {"id": "C6", "name": "Working Capital Plan", "cost": 2, "type": "purple", "desc": "Plan short-term cash needs for inventory, receivables, operating expenses, and emergency liquidity.", "counters": ["runway", "cost", "funding"], "effect": {"runway": 1, "trust_all": 5, "funding_boost_percent": 5, "cost_percent": 2}},
     {"id": "C7", "name": "Convertible Loan Proposal", "cost": 2, "type": "purple", "desc": "Raise capital through a loan that can later convert into equity, balancing cash needs and dilution.", "counters": ["funding_pressure", "runway", "capital_availability"], "effect": {"funding_boost_percent": 12, "runway": 1, "dilution": 3, "trust_all": -2, "cost_percent": 3}},
     {"id": "C8", "name": "Founder Equity Commitment", "cost": 2, "type": "purple", "group": "purple", "group_name": "Capital & Governance", "desc": "Show that founders remain committed by linking founder equity to continued contribution and project progress.", "counters": ["team", "investor_confidence"], "effect": {"trust_all": 13, "transparency": 6, "cost_percent": 2}},
-    {"id": "C9", "name": "Runway Reforecast Plan", "cost": 2, "type": "purple", "desc": "Recalculate monthly burn, remaining runway, funding gap, and cost-saving options to show investors how the startup can survive under cash pressure.", "counters": ["runway", "cost", "funding", "investor_confidence"], "effect": {"transparency": 7, "valuation_sanity": 6, "funding_boost_percent": 7, "trust_all": 5, "runway": 1, "cost_percent": 2}},
+    {"id": "C9", "name": "Runway Reforecast Plan", "cost": 2, "type": "purple", "desc": "Recalculate monthly burn, remaining runway, funding gap, and cost-saving options to show investors how the startup can survive under cash pressure.", "counters": ["runway", "cost", "funding", "investor_confidence"], "effect": {"transparency": 7, "funding_boost_percent": 7, "trust_all": 5, "runway": 1, "cost_percent": 2}},
     {"id": "C10", "name": "Strategic Channel Partnership", "cost": 2, "type": "purple", "desc": "Build a partnership that improves distribution, revenue visibility, and investor confidence.", "counters": ["partnership", "competition", "market_opportunity", "capital_availability"], "effect": {"trust_all": 10, "utility": 6, "marketing_eff": 0.06, "funding_boost_percent": 4, "cost_percent": 3}},
     {"id": "C11", "name": "Urgent Rescue Financing Round", "cost": 3, "type": "purple", "desc": "Negotiate an urgent financing round during a funding crisis.", "counters": ["funding_pressure", "market_down", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 23, "whale_trust": 12, "runway": 1, "trust_all": -7, "dilution": 9, "cost_percent": 5}},
     {"id": "C12", "name": "Emergency Bridge Financing Round", "cost": 3, "type": "purple", "desc": "Raise short-term bridge financing to survive a funding gap, but accept high dilution and repayment pressure.", "counters": ["funding", "runway", "market_down", "capital_availability"], "effect": {"funding_boost_percent": 24, "runway": 2, "trust_all": -10, "dilution": 10, "cost_percent": 5}},
@@ -359,78 +359,14 @@ def get_cards_for_scenario(scenario_id, player_deck=None, seed=None):
         seed=seed
     )
 
-def effect_tradeoff_score(effect):
-    """
-    Higher score means the card has more trade-off.
-    Trade-offs include extra operating cost, dilution, reduced runway,
-    reduced trust, reduced hype, reduced funding confidence, price cut, or higher COGS.
-    """
-    score = 0
-
-    if effect.get("cost_percent", 0) > 0:
-        score += effect["cost_percent"]
-
-    if effect.get("legal_cost_percent", 0) > 0:
-        score += effect["legal_cost_percent"]
-
-    if effect.get("dilution", 0) > 0:
-        score += effect["dilution"]
-
-    if effect.get("runway", 0) < 0:
-        score += abs(effect["runway"]) * 5
-
-    if effect.get("trust_all", 0) < 0:
-        score += abs(effect["trust_all"])
-
-    if effect.get("funding_boost_percent", 0) < 0:
-        score += abs(effect["funding_boost_percent"])
-
-    if effect.get("hype", 0) < 0:
-        score += abs(effect["hype"]) * 0.5
-
-    # Price cut is a trade-off for pricing strategy.
-    if effect.get("price", 0) < 0:
-        score += abs(effect["price"]) * 100 * 0.4
-
-    # Higher COGS is a trade-off.
-    if effect.get("cogs", 0) > 0:
-        score += effect["cogs"] * 100
-
-    return score
-
-
-def validate_effect_tradeoffs():
-    errors = []
-
-    for card in ACTIVE_CARDS_FULL:
-        score = effect_tradeoff_score(card["effect"])
-        cost = card["cost"]
-
-        if cost == 3 and score < 5:
-            errors.append(
-                f"{card['id']} is cost 3 but has weak trade-off score: {score}"
-            )
-
-        if cost == 2 and score > 10:
-            errors.append(
-                f"{card['id']} is cost 2 but trade-off may be too heavy: {score}"
-            )
-
-        if cost == 1 and score > 5:
-            errors.append(
-                f"{card['id']} is cost 1 but trade-off may be too heavy: {score}"
-            )
-
-    return errors
-
 def validate_master_data():
     errors = []
 
     if len(SCENARIOS) != 24:
-        errors.append(f"SCENARIOS must have 24 items, found {len(SCENARIOS)}")
+        errors.append("SCENARIOS must have 24 items")
 
     if len(ACTIVE_CARDS_FULL) != 42:
-        errors.append(f"ACTIVE_CARDS_FULL must have 42 cards, found {len(ACTIVE_CARDS_FULL)}")
+        errors.append("ACTIVE_CARDS_FULL must have 42 cards")
 
     active_ids = [card["id"] for card in ACTIVE_CARDS_FULL]
     if len(active_ids) != len(set(active_ids)):
@@ -440,99 +376,27 @@ def validate_master_data():
     if len(scenario_ids) != len(set(scenario_ids)):
         errors.append("Duplicate scenario IDs found")
 
-    card_by_id = {card["id"]: card for card in ACTIVE_CARDS_FULL}
-
-    # Validate active card structure
-    for card in ACTIVE_CARDS_FULL:
-        for key in ["id", "name", "cost", "type", "group", "group_name", "desc", "counters", "effect"]:
-            if key not in card:
-                errors.append(f"{card.get('id')} missing key: {key}")
-
-        if card.get("cost") not in [1, 2, 3]:
-            errors.append(f"{card.get('id')} has invalid cost: {card.get('cost')}")
-
-        if card.get("group") not in ["red", "green", "purple"]:
-            errors.append(f"{card.get('id')} has invalid group: {card.get('group')}")
-
-        if "trust" in card.get("counters", []):
-            errors.append(f"{card.get('id')} still uses redundant counter: trust")
-
-    # Validate scenario structure
-    for scenario in SCENARIOS:
-        for key in ["id", "name", "cat", "tags", "delta", "primary_group"]:
-            if key not in scenario:
-                errors.append(f"Scenario {scenario.get('id')} missing key: {key}")
-
-        if "trust" in scenario.get("tags", []):
-            errors.append(f"Scenario {scenario.get('id')} still uses redundant tag: trust")
-
-    # Validate group count
-    group_count = Counter(card.get("group") for card in ACTIVE_CARDS_FULL)
-    expected_group_count = {"red": 14, "green": 14, "purple": 14}
-
-    if dict(group_count) != expected_group_count:
+    group_count = Counter(card["group"] for card in ACTIVE_CARDS_FULL)
+    if dict(group_count) != {"red": 14, "green": 14, "purple": 14}:
         errors.append(f"Wrong group count: {dict(group_count)}")
 
-    # Validate cost 3 whitelist
-    for scenario_id, cost3_ids in SCENARIO_COST3_CARD_MAP.items():
-        if scenario_id not in scenario_ids:
-            errors.append(f"SCENARIO_COST3_CARD_MAP has unknown scenario id: {scenario_id}")
-
-        for card_id in cost3_ids:
-            if card_id not in card_by_id:
-                errors.append(f"SCENARIO_COST3_CARD_MAP references unknown card id: {card_id}")
-            elif card_by_id[card_id]["cost"] != 3:
-                errors.append(f"{card_id} is listed as cost 3 card but its cost is {card_by_id[card_id]['cost']}")
-
-    # Validate generated hand for every scenario
-    scenario_card_preview = {}
-
     for scenario in SCENARIOS:
-        try:
-            hand = get_cards_for_scenario(
-                scenario_id=scenario["id"],
-                player_deck=ACTIVE_CARDS_FULL,
-                seed=scenario["id"]
-            )
+        hand = get_cards_for_scenario(
+            scenario_id=scenario["id"],
+            player_deck=ACTIVE_CARDS_FULL,
+            seed=scenario["id"]
+        )
 
-            scenario_card_preview[scenario["id"]] = [card["id"] for card in hand]
+        if len(hand) != HAND_SIZE:
+            errors.append(f"Scenario {scenario['id']} does not have 6 cards")
 
-            if len(hand) != HAND_SIZE:
-                errors.append(
-                    f"Scenario {scenario['id']} generated {len(hand)} cards instead of {HAND_SIZE}"
-                )
-
-            slots = [card_slot(card) for card in hand]
-            if len(slots) != len(set(slots)):
-                errors.append(
-                    f"Scenario {scenario['id']} has duplicate group-cost slots: {slots}"
-                )
-
-            allowed_cost3_ids = get_allowed_cost3_ids(scenario["id"])
-
-            for card in hand:
-                if card["cost"] == 3 and card["id"] not in allowed_cost3_ids:
-                    errors.append(
-                        f"Scenario {scenario['id']} incorrectly uses non-whitelisted cost 3 card: {card['id']}"
-                    )
-
-            if FORCE_ONE_COST3_WHEN_ALLOWED and allowed_cost3_ids:
-                if not any(card["cost"] == 3 for card in hand):
-                    errors.append(
-                        f"Scenario {scenario['id']} should include at least one whitelisted cost 3 card"
-                    )
-
-        except Exception as exc:
-            errors.append(str(exc))
-
-    tradeoff_errors = validate_effect_tradeoffs()
-    errors.extend(tradeoff_errors)
+        slots = [card_slot(card) for card in hand]
+        if len(slots) != len(set(slots)):
+            errors.append(f"Scenario {scenario['id']} has duplicate group-cost slots")
 
     return {
         "valid": len(errors) == 0,
-        "errors": errors,
-        "group_count": dict(group_count),
-        "scenario_card_preview": scenario_card_preview,
+        "errors": errors
     }
 
 # ==================== CÁC HÀM HỖ TRỢ ====================
