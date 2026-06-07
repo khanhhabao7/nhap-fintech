@@ -36,30 +36,30 @@ def normalize_tag(tag):
 def normalize_tags(tags):
     return sorted({normalize_tag(tag) for tag in tags})
 SCENARIOS = [
-    {"id": 1, "name": "Market Liquidity Improves and Capital Becomes Easier to Raise", "cat": "Market", "tags": ["market_opportunity", "capital_availability"], "delta": {"price": 0.04, "hype": 10, "sentiment": 10}},
-    {"id": 2, "name": "Investor Risk Appetite Rises for High-Growth Startup Projects ", "cat": "Market", "tags": ["market_opportunity", "capital_availability"], "delta": {"price": 0.07, "cogs": -0.01, "hype": 18, "sentiment": 15, "funding_boost_percent": 5}},
-    {"id": 3, "name": "Interest Rates Increase and Startup Financing Costs Become More Expensive ", "cat": "Market", "tags": ["market_down", "cost", "funding", "runway"], "delta": {"price": -0.06, "cogs": 0.03, "hype": -12, "sentiment": -12, "runway": -1}},
-    {"id": 4, "name": "Capital Shifts from Risky Startup Investments to Safer Assets", "cat": "Market", "tags": ["market_down", "investor_confidence", "funding"], "delta": {"price": -0.08, "hype": -18, "sentiment": -18, "trust_all": -8, "funding_boost_percent": -5}},
-    {"id": 5, "name": "Customer Spending Slows and Market Demand for New Products Weakens ", "cat": "Market", "tags": ["demand", "price", "marketing_eff"], "delta": {"price": -0.05, "marketing_eff": -0.12, "hype": -10, "sentiment": -10, "utility": -3, "runway": -1}},
-    {"id": 6, "name": "Funding Becomes Harder and Investors Slow Down New Deals", "cat": "Market", "tags": ["funding", "runway", "market_down", "investor_confidence"], "delta": {"price": -0.12, "hype": -25, "sentiment": -25, "funding_boost_percent": -12, "trust_all": -10, "runway": -2}},
-    {"id": 7, "name": "Operating Costs Exceed Budget and the Startup Runway Shrinks", "cat": "Internal", "tags": ["cost", "runway"], "delta": {"cogs": 0.05, "hype": -5, "trust_all": -5, "runway": -1}},
-    {"id": 8, "name": "Product Complaints Increase and Customer Trust Drops", "cat": "Internal", "tags": ["product", "reputation"], "delta": {"cogs": 0.04, "utility": -12, "hype": -10, "transparency": -8, "trust_all": -12, "runway": -1}},
-    {"id": 9, "name": "Customer Data Privacy Incident Raises Security and Regulatory Risk", "cat": "Internal", "tags": ["security", "disclosure_pressure", "regulatory"], "delta": {"security": -25, "hype": -15, "transparency": -20, "trust_all": -18, "reg_risk": 15, "legal_cost_percent": 5}},
-    {"id": 10, "name": "Internal Budget Tracking Breaks Down and Runway Visibility Becomes Unclear", "cat": "Internal", "tags": ["cost", "runway", "disclosure_pressure", "investor_confidence", "execution"], "delta": {"cogs": 0.03, "hype": -6, "transparency": -12, "trust_all": -9, "whale_trust": -6, "funding_boost_percent": -5, "runway": -1}},
-    {"id": 11, "name": "Strong Product-Market Fit Signal Attracts Customer and Investor Attention", "cat": "Internal", "tags": ["product_opportunity", "market_opportunity", "demand", "funding_readiness"], "delta": {"utility": 15, "hype": 15, "trust_all": 8, "funding_boost_percent": 5}},
-    {"id": 12, "name": "Unit Economics Improve and the Business Model Looks More Sustainable", "cat": "Internal", "tags": ["cost_opportunity", "funding_readiness", "investor_confidence"], "delta": {"cogs": -0.04, "utility": 5, "hype": 8, "trust_all": 8, "runway": 1}},
-    {"id": 13, "name": "Competitor Cuts Prices and Puts Pressure on Customer Demand", "cat": "External", "tags": ["competition", "price", "demand"], "delta": {"price": -0.05, "marketing_eff": -0.10, "hype": -6, "utility": -3}},
-    {"id": 14, "name": "Competitor Launches a Better Product and Weakens Your Market Position", "cat": "External", "tags": ["competition", "product", "reputation"], "delta": {"price": -0.08, "marketing_eff": -0.18, "utility": -10, "hype": -15, "trust_all": -5}},
-    {"id": 15, "name": "Strategic Partnership Opportunity Appears and Opens a New Growth Channel", "cat": "External", "tags": ["partnership", "market_opportunity", "funding_readiness", "investor_confidence"], "delta": {"price": 0.04, "marketing_eff": 0.12, "hype": 12, "utility": 8, "trust_all": 5}},
-    {"id": 16, "name": "Supplier Delivery Disruption Raises Cost and Weakens Product Availability", "cat": "External", "tags": ["supply", "cost", "runway"], "delta": {"cogs": 0.07, "utility": -6, "hype": -8, "trust_all": -5, "runway": -1}},
-    {"id": 17, "name": "Negative Media Rumor Spreads and Investor Confidence Falls", "cat": "External", "tags": ["reputation", "disclosure_pressure", "investor_confidence"], "delta": {"hype": -12, "transparency": -12, "trust_all": -15, "whale_trust": -10, "funding_boost_percent": -5}},
-    {"id": 18, "name": "Platform Algorithm Reduces Campaign Reach and Marketing Efficiency Drops", "cat": "External", "tags": ["marketing_eff", "visibility", "demand"], "delta": {"marketing_eff": -0.20, "visibility": -15, "hype": -10, "sentiment": -5}},
-    {"id": 19, "name": "Regulator Requests Additional Documents and Raises Compliance Pressure", "cat": "Regulatory", "tags": ["regulatory", "disclosure_pressure", "legal"], "delta": {"reg_risk": 15, "transparency": -10, "trust_all": -8, "legal_cost_percent": 4}},
-    {"id": 20, "name": "Regulatory Sandbox Approval Improves Trust and Funding Readiness", "cat": "Regulatory", "tags": ["regulatory_opportunity", "funding_readiness", "investor_confidence"], "delta": {"reg_risk": -25, "transparency": 15, "trust_all": 15, "hype": 10, "funding_boost_percent": 8, "legal_cost_percent": -2}},
-    {"id": 21, "name": "New Policy Supports Financial Innovation and Improves Investor Appetite", "cat": "Regulatory", "tags": ["regulatory_opportunity", "market_opportunity", "capital_availability"], "delta": {"reg_risk": -12, "transparency": 5, "trust_all": 5, "hype": 8, "funding_boost_percent": 5}},
-    {"id": 22, "name": "New Fundraising Disclosure Rule Increases Compliance Burden", "cat": "Regulatory", "tags": ["regulatory", "disclosure_pressure", "funding_pressure", "compliance_pressure"], "delta": {"reg_risk": 18, "transparency": -12, "trust_all": -10, "funding_boost_percent": -6, "legal_cost_percent": 5}},
-    {"id": 23, "name": "Tax and Reporting Review Increases Legal Cost and Shortens Runway", "cat": "Regulatory", "tags": ["regulatory", "cost", "legal", "runway"], "delta": {"reg_risk": 10, "transparency": -5, "trust_all": -5, "legal_cost_percent": 3, "runway": -1}},
-    {"id": 24, "name": "Independent Compliance Certification Opportunity Strengthens Investor Trust", "cat": "Regulatory", "tags": ["compliance_opportunity", "regulatory_opportunity", "investor_confidence"], "delta": {"reg_risk": -10, "transparency": 12, "trust_all": 12, "whale_trust": 8, "legal_cost_percent": -1}}
+    {"id": 1, "name": "Market Liquidity Improves and Capital Becomes Easier to Raise", "cat": "Market", "polarity": "good", "tags": ["market_opportunity", "capital_availability"], "delta": {"price": 0.04, "cogs": 0, "hype": 10, "sentiment": 10, "transparency": 0, "reg_risk": 0}},
+    {"id": 2, "name": "Investor Risk Appetite Rises for High-Growth Startup Projects ", "cat": "Market", "polarity": "good", "tags": ["market_opportunity", "capital_availability"], "delta": {"price": 0.07, "cogs": -0.01, "hype": 18, "sentiment": 15, "funding_boost_percent": 5, "transparency": 0, "reg_risk": 0}},
+    {"id": 3, "name": "Interest Rates Increase and Startup Financing Costs Become More Expensive ", "cat": "Market", "polarity": "bad", "tags": ["market_down", "cost", "funding_pressure", "runway"], "delta": {"price": -0.06, "cogs": 0.03, "hype": -12, "sentiment": -12, "transparency": -3, "reg_risk": 3, "runway": -1}},
+    {"id": 4, "name": "Capital Shifts from Risky Startup Investments to Safer Assets", "cat": "Market", "polarity": "bad", "tags": ["market_down", "investor_confidence", "funding_pressure"], "delta": {"price": -0.08, "cogs": 0, "hype": -18, "sentiment": -18, "trust_all": -8, "funding_boost_percent": -5, "transparency": 0}},
+    {"id": 5, "name": "Customer Spending Slows and Market Demand for New Products Weakens ", "cat": "Market", "polarity": "bad", "tags": ["demand", "price", "marketing_eff"], "delta": {"price": -0.05, "marketing_eff": -0.12, "hype": -10, "sentiment": -10, "utility": -3, "runway": -1}},
+    {"id": 6, "name": "Funding Becomes Harder and Investors Slow Down New Deals", "cat": "Market", "polarity": "bad", "tags": ["funding_pressure", "runway", "market_down", "investor_confidence"], "delta": {"price": -0.12, "cogs": 0.04, "hype": -25, "sentiment": -25, "funding_boost_percent": -12, "trust_all": -10, "runway": -2}},
+    {"id": 7, "name": "Operating Costs Exceed Budget and the Startup Runway Shrinks", "cat": "Internal", "polarity": "bad", "tags": ["cost", "runway"], "delta": {"cogs": 0.05, "hype": -5, "transparency": -5, "trust_all": -5, "runway": -1}},
+    {"id": 8, "name": "Product Complaints Increase and Customer Trust Drops", "cat": "Internal", "polarity": "bad", "tags": ["product", "reputation"], "delta": {"cogs": 0.08, "utility": -12, "hype": -10, "transparency": -8, "trust_all": -12, "runway": -1}},
+    {"id": 9, "name": "Customer Data Privacy Incident Raises Security and Regulatory Risk", "cat": "Internal", "polarity": "bad", "tags": ["security", "disclosure_pressure", "regulatory"], "delta": {"security": -25, "hype": -15, "transparency": -20, "trust_all": -18, "reg_risk": 15, "legal_cost_percent": 5}},
+    {"id": 10, "name": "Internal Budget Tracking Breaks Down and Runway Visibility Becomes Unclear", "cat": "Internal", "polarity": "bad", "tags": ["cost", "runway", "disclosure_pressure", "investor_confidence", "execution"], "delta": {"cogs": 0.03, "hype": -6, "transparency": -12, "trust_all": -9, "whale_trust": -6, "funding_boost_percent": -5, "runway": -1}},
+    {"id": 11, "name": "Strong Product-Market Fit Signal Attracts Customer and Investor Attention", "cat": "Internal", "polarity": "good", "tags": ["product_opportunity", "market_opportunity", "demand", "funding_readiness"], "delta": {"utility": 15, "hype": 15, "trust_all": 8, "transparency": 5, "funding_boost_percent": 5, "runway": 0}},
+    {"id": 12, "name": "Unit Economics Improve and the Business Model Looks More Sustainable", "cat": "Internal", "polarity": "good", "tags": ["cost_opportunity", "funding_readiness", "investor_confidence"], "delta": {"cogs": -0.04, "utility": 5, "hype": 8, "transparency": 8, "trust_all": 8, "runway": 1}},
+    {"id": 13, "name": "Competitor Cuts Prices and Puts Pressure on Customer Demand", "cat": "External", "polarity": "bad", "tags": ["competition", "price", "demand"], "delta": {"price": -0.05, "marketing_eff": -0.10, "hype": -6, "utility": -3, "transparency": 0}},
+    {"id": 14, "name": "Competitor Launches a Better Product and Weakens Your Market Position", "cat": "External", "polarity": "bad", "tags": ["competition", "product", "reputation"], "delta": {"price": -0.08, "marketing_eff": -0.18, "utility": -10, "hype": -15, "transparency": -5, "trust_all": -5}},
+    {"id": 15, "name": "Strategic Partnership Opportunity Appears and Opens a New Growth Channel", "cat": "External", "polarity": "good", "tags": ["partnership", "market_opportunity", "funding_readiness", "investor_confidence"], "delta": {"price": 0.04, "marketing_eff": 0.12, "hype": 12, "utility": 8, "transparency": 5, "trust_all": 5}},
+    {"id": 16, "name": "Supplier Delivery Disruption Raises Cost and Weakens Product Availability", "cat": "External", "polarity": "bad", "tags": ["supply", "cost", "runway"], "delta": {"cogs": 0.07, "utility": -6, "hype": -8, "transparency": -5, "trust_all": -5, "runway": -1}},
+    {"id": 17, "name": "Negative Media Rumor Spreads and Investor Confidence Falls", "cat": "External", "polarity": "bad", "tags": ["reputation", "disclosure_pressure", "investor_confidence"], "delta": {"hype": -12, "transparency": -12, "trust_all": -15, "whale_trust": -10, "funding_boost_percent": -5}},
+    {"id": 18, "name": "Platform Algorithm Reduces Campaign Reach and Marketing Efficiency Drops", "cat": "External", "polarity": "bad", "tags": ["marketing_eff", "visibility", "demand"], "delta": {"marketing_eff": -0.20, "visibility": -15, "hype": -10, "sentiment": -5, "trust_all": 0}},
+    {"id": 19, "name": "Regulator Requests Additional Documents and Raises Compliance Pressure", "cat": "Regulatory", "polarity": "bad", "tags": ["regulatory", "disclosure_pressure", "legal"], "delta": {"reg_risk": 20, "transparency": -10, "trust_all": -8, "legal_cost_percent": 4}},
+    {"id": 20, "name": "Regulatory Sandbox Approval Improves Trust and Funding Readiness", "cat": "Regulatory", "polarity": "good", "tags": ["regulatory_opportunity", "funding_readiness", "investor_confidence"], "delta": {"reg_risk": -25, "transparency": 15, "trust_all": 15, "hype": 10, "funding_boost_percent": 8, "legal_cost_percent": -2}},
+    {"id": 21, "name": "New Policy Supports Financial Innovation and Improves Investor Appetite", "cat": "Regulatory", "polarity": "good", "tags": ["regulatory_opportunity", "market_opportunity", "capital_availability"], "delta": {"reg_risk": -12, "transparency": 5, "trust_all": 5, "hype": 8, "funding_boost_percent": 5}},
+    {"id": 22, "name": "New Fundraising Disclosure Rule Increases Compliance Burden", "cat": "Regulatory", "polarity": "bad", "tags": ["regulatory", "disclosure_pressure", "funding_pressure", "compliance_pressure"], "delta": {"reg_risk": 22, "transparency": -12, "trust_all": -10, "funding_boost_percent": -6, "legal_cost_percent": 5}},
+    {"id": 23, "name": "Tax and Reporting Review Increases Legal Cost and Shortens Runway", "cat": "Regulatory", "polarity": "bad", "tags": ["regulatory", "cost", "legal", "runway"], "delta": {"reg_risk": 10, "transparency": -5, "trust_all": -5, "legal_cost_percent": 3, "runway": -1}},
+    {"id": 24, "name": "Independent Compliance Certification Opportunity Strengthens Investor Trust", "cat": "Regulatory", "polarity": "good", "tags": ["compliance_opportunity", "regulatory_opportunity", "investor_confidence"], "delta": {"reg_risk": -10, "transparency": 12, "trust_all": 12, "whale_trust": 8, "legal_cost_percent": -1}}
 ]
 
 SCENARIO_PRIMARY_GROUP = {
@@ -99,46 +99,46 @@ for scenario in SCENARIOS:
 ACTIVE_CARDS_FULL = [
     {"id": "A1", "name": "Low-Budget Target Ads", "cost": 1, "type": "red", "desc": "Run a small paid ad test to increase demand and visibility.", "counters": ["demand", "marketing_eff", "visibility"], "effect": {"hype": 6, "visibility": 5, "marketing_eff": 0.03, "cost_percent": 1}},
  	{"id": "A2", "name": "Quick Social Media Posts", "cost": 1, "type": "red", "desc": "Post a short social content for short-term attention. Cheap, fast, but shallow.", "counters": ["market_opportunity", "visibility", "reputation"], "effect": {"hype": 7, "visibility": 7, "cost_percent": 1}},
- 	{"id": "A3", "name": "Customer Referral Loop", "cost": 1, "type": "red", "desc": "Turn existing users into a small organic growth loop.", "counters": ["demand", "product_opportunity"], "effect": {"hype": 6, "trust_all": 3, "utility": 2, "marketing_eff": 0.03}},
- 	{"id": "A4", "name": "One-Week Promo Offer", "cost": 1, "type": "red", "desc": "Use a short promotion to create urgency without changing the full pricing strategy.", "counters": ["demand", "price", "competition"], "effect": {"price": -0.05, "hype": 8, "visibility": 4}},
+ 	{"id": "A3", "name": "Customer Referral Loop", "cost": 1, "type": "red", "desc": "Turn existing users into a small organic growth loop.", "counters": ["demand_pressure", "trust", "product_opportunity"], "effect": {"hype": 6, "trust_all": 3, "utility": 2, "velocity": -0.03}},
+ 	{"id": "A4", "name": "One-Week Promo Offer", "cost": 1, "type": "red", "desc": "Use a short promotion to create urgency without changing the full pricing strategy.", "counters": ["demand", "price", "competition"], "effect": {"price_percent": -5, "hype": 10, "visibility": 4}},
     {"id": "A5", "name": "Press Outreach Cycle", "cost": 2, "type": "red", "desc": "Pitch the startup story to gain public  attention.", "counters": ["visibility", "reputation", "market_opportunity"], "effect": {"hype": 12, "visibility": 14, "trust_all": 3, "cost_percent": 2}},
- 	{"id": "A6", "name": "Creator Partnership Campaign", "cost": 2, "type": "red", "desc": "Work with a creator or influencer to expand reach and awareness.", "counters": ["competition", "demand", "visibility"], "effect": {"hype": 14, "visibility": 15, "marketing_eff": 0.05, "cost_percent": 3}},
- 	{"id": "A7", "name": "Conversion Funnel Refresh", "cost": 2, "type": "red", "desc": "Improve landing pages, messaging, and conversion flow to recover weak demand.", "counters": ["marketing_eff", "demand", "price"], "effect": {"marketing_eff": 0.10, "hype": 8, "utility": 3, "cost_percent": 3}},
+ 	{"id": "A6", "name": "Creator Partnership Campaign", "cost": 2, "type": "red", "desc": "Work with a creator or influencer to expand reach and awareness.", "counters": ["competition", "demand", "visibility"], "effect": {"hype": 14, "visibility": 15, "marketing_eff": 0.05, "cost_percent": 2}},
+ 	{"id": "A7", "name": "Conversion Funnel Refresh", "cost": 2, "type": "red", "desc": "Improve landing pages, messaging, and conversion flow to recover weak demand.", "counters": ["marketing_eff", "demand", "price"], "effect": {"marketing_eff": 0.10, "hype": 8, "utility": 3, "cost_percent": 2}},
  	{"id": "A8", "name": "Feature Launch Webinar", "cost": 2, "type": "red", "desc": "Demonstrate new product features publicly to build customer interest.", "counters": ["product", "competition", "product_opportunity"], "effect": {"hype": 15, "visibility": 8, "utility": 7, "cost_percent": 3}},
  	{"id": "A9", "name": "Multi-Channel Acquisition Sprint", "cost": 2, "type": "red", "desc": "Expand promotion across several channels when one channel performs poorly.", "counters": ["marketing_eff", "visibility", "demand"], "effect": {"marketing_eff": 0.12, "visibility": 12, "hype": 8, "cost_percent": 3}},
- 	{"id": "A10", "name": "Customer Proof Campaign", "cost": 2, "type": "red", "desc": "Use customer success stories to convert credibility into demand.", "counters": ["reputation", "demand"], "effect": {"trust_all": 7, "utility": 4, "marketing_eff": 0.08, "hype": 7, "transparency": 3, "cost_percent": 2}},
+ 	{"id": "A10", "name": "Customer Proof Campaign", "cost": 2, "type": "red", "desc": "Use customer success stories to convert credibility into demand.", "counters": ["trust", "reputation", "demand"], "effect": {"trust_all": 5, "utility": 3, "marketing_eff": 0.06, "hype": 6, "transparency": 1, "cost_percent": 2}},
     {"id": "A11", "name": "Full-Scale Brand Repositioning", "cost": 3, "type": "red", "desc": "Launch a large brand campaign to change market perception and defend against competitors.", "counters": ["competition", "demand", "market_opportunity", "reputation"], "effect": {"hype": 22, "visibility": 22, "marketing_eff": 0.10, "trust_all": 5, "cost_percent": 6}},
  	{"id": "A12", "name": "National Launch Rollout", "cost": 3, "type": "red", "desc": "Run a broad launch rollout to create national awareness and accelerate acquisition.", "counters": ["demand", "visibility", "product_opportunity", "market_opportunity"], "effect": {"hype": 24, "visibility": 24, "marketing_eff": 0.13, "utility": 6, "cost_percent": 7, "runway": -1}},
- 	{"id": "A13", "name": "Aggressive Pricing Strategy", "cost": 3, "type": "red", "desc": "Cut pricing aggressively to defend market share, with margin and trust trade-offs.", "counters": ["price", "competition", "demand"], "effect": {"price": -0.15, "hype": 16, "marketing_eff": 0.08, "trust_all": -6, "runway": -1}},
+ 	{"id": "A13", "name": "Aggressive Pricing Strategy", "cost": 3, "type": "red", "desc": "Cut pricing aggressively to defend market share, with margin and trust trade-offs.", "counters": ["price", "competition", "demand"], "effect": {"price_percent": -18, "hype": 16, "marketing_eff": 0.08, "trust_all": -6, "runway": -1}},
  	{"id": "A14", "name": "Hypergrowth Expansion Program", "cost": 3, "type": "red", "desc": "Spend aggressively to turn market opportunity into rapid growth and stronger traction.", "counters": ["market_opportunity", "capital_availability", "product_opportunity"], "effect": {"hype": 24, "utility": 10, "funding_boost_percent": 8, "cost_percent": 6, "runway": -1}},
- 	{"id": "D1", "name": "Cutting cost", "cost": 1, "type": "green", "desc": "Cutting unnecessary expenses without disrupting daily operations.", "counters": ["cost", "runway"], "effect": {"cogs": -0.03}},
+ 	{"id": "D1", "name": "Cutting cost", "cost": 1, "type": "green", "desc": "Cutting unnecessary expenses without disrupting daily operations.", "counters": ["cost", "runway"], "effect": {"cogs_percent": -3}},
  	{"id": "D2", "name": "Community Update", "cost": 1, "type": "green", "desc": "Publish a clear update to explain progress and reduce uncertainty.", "counters": ["reputation", "disclosure_pressure"], "effect": {"hype": 1, "transparency": 6, "trust_all": 4}},
  	{"id": "D3", "name": "Complaint Response Desk", "cost": 1, "type": "green", "desc": "Quickly respond to complaints and reduce product frustration.", "counters": ["product", "reputation"], "effect": {"utility": 6, "trust_all": 5, "transparency": 2}},
- 	{"id": "D4", "name": "Basic Compliance Checklist", "cost": 1, "type": "green", "desc": "Check basic regulatory items such as required documents, licenses, reporting records, tax files, and fundraising disclosures.", "counters": ["regulatory", "legal", "disclosure_pressure", "compliance_pressure"], "effect": {"reg_risk": -6, "transparency": 4, "trust_all": 2, "legal_cost_percent": 1}},
+ 	{"id": "D4", "name": "Basic Compliance Checklist", "cost": 1, "type": "green", "desc": "Check basic regulatory items such as required documents, licenses, reporting records, tax files, and fundraising disclosures.", "counters": ["regulatory", "legal", "disclosure_pressure", "compliance_pressure"], "effect": {"security": 8, "transparency": 2}},
  	{"id": "D5", "name": "Founder AMA Session", "cost": 1, "type": "green", "desc": "Let founders answer questions directly to build confidence.", "counters": ["team", "reputation"], "effect": {"trust_all": 6, "transparency": 5, "hype": 1}},
-    {"id": "D6", "name": "Supplier Renegotiation", "cost": 2, "type": "green", "desc": "Negotiate with suppliers to reduce COGS and ease supply pressure.", "counters": ["cost", "supply", "runway"], "effect": {"cogs": -0.08, "runway": 1, "cost_percent": 1}},
+    {"id": "D6", "name": "Supplier Renegotiation", "cost": 2, "type": "green", "desc": "Negotiate with suppliers to reduce COGS and ease supply pressure.", "counters": ["cost", "supply", "runway"], "effect": {"cogs_percent": -8, "runway": 1, "cost_percent": 1}},
  	{"id": "D7", "name": "Quality Recovery Program", "cost": 2, "type": "green", "desc": "Improve quality control to reduce defects, complaints, and product frustration.", "counters": ["product", "reputation"], "effect": {"utility": 10, "trust_all": 8, "transparency": 4, "cost_percent": 2}},
- 	{"id": "D8", "name": "Data Protection Review", "cost": 2, "type": "green", "desc": "Review data handling and patch security weaknesses before they become worse.", "counters": ["security", "regulatory"], "effect": {"security": 15, "transparency": 8, "trust_all": 5, "cost_percent": 3}},
+ 	{"id": "D8", "name": "Data Protection Review", "cost": 2, "type": "green", "desc": "Review data handling and patch security weaknesses before they become worse.", "counters": ["security", "regulatory"], "effect": {"security": 16, "transparency": 8, "trust_all": 5, "cost_percent": 3}},
  	{"id": "D9", "name": "Regulatory Document Response Pack", "cost": 2, "type": "green", "desc": "Prepare legal, tax, and operating documents before regulators or investors ask.", "counters": ["regulatory", "legal", "disclosure_pressure"], "effect": {"reg_risk": -12, "transparency": 8, "trust_all": 4, "legal_cost_percent": 2}},
- 	{"id": "D10", "name": "Reviewed Monthly Metrics Pack", "cost": 2, "type": "green", "desc": "Share reviewed monthly metrics to support investor due diligence.", "counters": ["investor_confidence", "disclosure_pressure"], "effect": {"transparency": 14, "trust_all": 8, "hype": -2, "cost_percent": 2}},
- 	{"id": "D11", "name": "Crisis Coordination Playbook", "cost": 2, "type": "green", "desc": "Coordinate a structured response to limit damage from a negative event.", "counters": ["market_down", "reputation", "supply", "cost"], "effect": {"transparency": 8, "trust_all": 6, "reg_risk": -4, "cost_percent": 3}},
-    {"id": "D12", "name": "Governance and Reporting Recovery Program", "cost": 3, "type": "green", "desc": "Launch a full recovery program to improve internal controls, reporting quality, compliance readiness, and investor confidence after a serious trust or disclosure problem.", "counters": ["disclosure_pressure", "investor_confidence", "regulatory", "reputation", "execution", "compliance_opportunity"], "effect": {"transparency": 20, "trust_all": 14, "whale_trust": 9, "reg_risk": -10, "cost_percent": 5}},
+ 	{"id": "D10", "name": "Reviewed Monthly Metrics Pack", "cost": 2, "type": "green", "desc": "Share reviewed monthly metrics to support investor due diligence.", "counters": ["investor_confidence", "disclosure_pressure"], "effect": {"transparency": 16, "trust_all": 8, "hype": -2, "cost_percent": 2}},
+ 	{"id": "D11", "name": "Crisis Coordination Playbook", "cost": 2, "type": "green", "desc": "Coordinate a structured response to limit damage from a negative event.", "counters": ["market_down", "reputation", "supply", "cost"], "effect": {"halve_negative_delta": 1, "transparency": 5, "trust_all": 3, "cost_percent": 3}},
+    {"id": "D12", "name": "Third-Party Audit", "cost": 3, "type": "green", "desc": "Hire an independent party to verify credibility and rebuild serious investor trust.", "counters": ["regulatory", "compliance_opportunity", "disclosure_pressure", "investor_confidence"], "effect": {"transparency": 22, "trust_all": 15, "whale_trust": 10, "reg_risk": -10, "cost_percent": 6}},
  	{"id": "D13", "name": "Emergency Cash Reserve", "cost": 3, "type": "green", "desc": "Reserve cash to survive a funding slowdown or runway crisis.", "counters": ["runway", "funding", "market_down"], "effect": {"runway": 3, "trust_all": 4, "funding_boost_percent": -3, "hype": -3, "cost_percent": 8}},
  	{"id": "D14", "name": "Cybersecurity Incident Response", "cost": 3, "type": "green", "desc": "Launch a full response after a privacy or cybersecurity incident.", "counters": ["security", "regulatory"], "effect": {"security": 23, "transparency": 12, "trust_all": 10, "reg_risk": -8, "cost_percent": 5}},
     {"id": "C1", "name": "Use-of-Funds Note", "cost": 1, "type": "purple", "desc": "Explain how the startup will use raised capital across product, marketing, operations, and reserves.", "counters": ["funding", "disclosure_pressure", "investor_confidence"], "effect": {"transparency": 5, "trust_all": 4, "funding_boost_percent": 3}},
-    {"id": "C2", "name": "Funding Gap Calculator", "cost": 1, "type": "purple", "desc": "Calculate how much extra capital the startup needs by comparing current cash and target funding requirement.", "counters": ["funding", "runway", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 4, "transparency": 4, "trust_all": 3}},
+    {"id": "C2", "name": "Funding Gap Calculator", "cost": 1, "type": "purple", "desc": "Calculate how much extra capital the startup needs by comparing current cash and target funding requirement.", "counters": ["funding", "runway", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 4, "transparency": 4, "valuation_sanity": 3, "trust_all": 3}},
     {"id": "C3", "name": "Investor Risk Q&A Call", "cost": 1, "type": "purple", "desc": "Answer investor questions about revenue, costs, valuation, dilution, and business risks.", "counters": ["investor_confidence", "whale_trust"], "effect": {"whale_trust": 7, "trust_all": 5, "transparency": 3}},
     {"id": "C4", "name": "Funding Milestone Plan", "cost": 1, "type": "purple", "desc": "Link the fundraising target to measurable milestones such as revenue, users, margin, or launch timeline.", "counters": ["funding", "capital_availability", "regulatory_opportunity"], "effect": {"funding_boost_percent": 5, "transparency": 3, "trust_all": 3}},
-    {"id": "C5", "name": "Comparable Valuation Pack", "cost": 2, "type": "purple", "desc": "Prepare a valuation pack using comparable companies, revenue multiples, margin, and growth assumptions.", "counters": ["investor_confidence", "funding_readiness", "disclosure_pressure"], "effect": {"transparency": 7, "funding_boost_percent": 6, "cost_percent": 2}},
+    {"id": "C5", "name": "Comparable Valuation Pack", "cost": 2, "type": "purple", "desc": "Prepare a valuation pack using comparable companies, revenue multiples, margin, and growth assumptions.", "counters": ["investor_confidence", "funding_readiness", "disclosure_pressure"], "effect": {"valuation_sanity": 10, "transparency": 7, "funding_boost_percent": 6, "cost_percent": 2}},
     {"id": "C6", "name": "Working Capital Plan", "cost": 2, "type": "purple", "desc": "Plan short-term cash needs for inventory, receivables, operating expenses, and emergency liquidity.", "counters": ["runway", "cost", "funding"], "effect": {"runway": 1, "trust_all": 5, "funding_boost_percent": 5, "cost_percent": 2}},
     {"id": "C7", "name": "Convertible Loan Proposal", "cost": 2, "type": "purple", "desc": "Raise capital through a loan that can later convert into equity, balancing cash needs and dilution.", "counters": ["funding_pressure", "runway", "capital_availability"], "effect": {"funding_boost_percent": 12, "runway": 1, "dilution": 3, "trust_all": -2, "cost_percent": 3}},
     {"id": "C8", "name": "Founder Equity Commitment", "cost": 2, "type": "purple", "group": "purple", "group_name": "Capital & Governance", "desc": "Show that founders remain committed by linking founder equity to continued contribution and project progress.", "counters": ["team", "investor_confidence"], "effect": {"trust_all": 13, "transparency": 6, "cost_percent": 2}},
-    {"id": "C9", "name": "Runway Reforecast Plan", "cost": 2, "type": "purple", "desc": "Recalculate monthly burn, remaining runway, funding gap, and cost-saving options to show investors how the startup can survive under cash pressure.", "counters": ["runway", "cost", "funding", "investor_confidence"], "effect": {"transparency": 7, "funding_boost_percent": 7, "trust_all": 5, "runway": 1, "cost_percent": 2}},
+    {"id": "C9", "name": "Runway Reforecast Plan", "cost": 2, "type": "purple", "desc": "Recalculate monthly burn, remaining runway, funding gap, and cost-saving options to show investors how the startup can survive under cash pressure.", "counters": ["runway", "cost", "funding", "investor_confidence"], "effect": {"transparency": 7, "valuation_sanity": 6, "funding_boost_percent": 7, "trust_all": 5, "runway": 1, "cost_percent": 2}},
     {"id": "C10", "name": "Strategic Channel Partnership", "cost": 2, "type": "purple", "desc": "Build a partnership that improves distribution, revenue visibility, and investor confidence.", "counters": ["partnership", "competition", "market_opportunity", "capital_availability"], "effect": {"trust_all": 10, "utility": 6, "marketing_eff": 0.06, "funding_boost_percent": 4, "cost_percent": 3}},
-    {"id": "C11", "name": "Urgent Rescue Financing Round", "cost": 3, "type": "purple", "desc": "Negotiate an urgent financing round during a funding crisis.", "counters": ["funding_pressure", "market_down", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 23, "whale_trust": 12, "runway": 1, "trust_all": -7, "dilution": 9, "cost_percent": 5}},
-    {"id": "C12", "name": "Emergency Bridge Financing Round", "cost": 3, "type": "purple", "desc": "Raise short-term bridge financing to survive a funding gap, but accept high dilution and repayment pressure.", "counters": ["funding", "runway", "market_down", "capital_availability"], "effect": {"funding_boost_percent": 24, "runway": 2, "trust_all": -10, "dilution": 10, "cost_percent": 5}},
+    {"id": "C11", "name": "Urgent Rescue Financing Round", "cost": 3, "type": "purple", "desc": "Negotiate an urgent financing round during a funding crisis.", "counters": ["funding_pressure", "market_down", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 23, "whale_trust": 12, "runway": 1, "trust_all": -7, "dilution": 9, "cost_percent": 3}},
+    {"id": "C12", "name": "Emergency Bridge Financing Round", "cost": 3, "type": "purple", "desc": "Raise short-term bridge financing to survive a funding gap, but accept high dilution and repayment pressure.", "counters": ["funding", "runway", "market_down", "capital_availability"], "effect": {"funding_boost_percent": 24, "runway": 2, "trust_all": -10, "dilution": 10, "cost_percent": 4}},
     {"id": "C13", "name": "Investor Downside Protection Reserve", "cost": 3, "type": "purple", "desc": "Prepare a strong investor assurance package covering downside protection.", "counters": ["funding", "market_down", "investor_confidence"], "effect": {"trust_all": 18, "whale_trust": 10, "runway": -1, "cost_percent": 8}},
-    {"id": "C14", "name": "Strategic Investment Partnership", "cost": 3, "type": "purple", "desc": "Prepare a strategic acquisition, merger, or major investment negotiation to solve funding and competitive pressure.", "counters": ["competition", "partnership", "funding", "capital_availability"], "effect": {"funding_boost_percent": 20, "trust_all": 15, "utility": 10, "dilution": 9, "cost_percent": 5}},
+    {"id": "C14", "name": "M&A Negotiation Package", "cost": 3, "type": "purple", "group": "purple", "group_name": "Capital & Governance", "desc": "Prepare a strategic acquisition, merger, or major investment negotiation to solve funding and competitive pressure.", "counters": ["competition", "partnership", "funding", "capital_availability"], "effect": {"funding_boost_percent": 20, "trust_all": 15, "utility": 10, "dilution": 9, "cost_percent": 5}},
 ]
 
 for card in ACTIVE_CARDS_FULL:
@@ -196,189 +196,29 @@ def draw_hand_with_cost_ladder(player_deck, scenario, hand_size=5):
 
 MAX_REACTION_CARDS_PER_GAME = 3
 
-MAX_REACTION_USES_PER_GAME = 3
-
 REACTION_CARDS = [
-    {
-        "id": "R1",
-        "name": "Investor Standstill Agreement",
-        "desc": "Negotiate with key investors to temporarily pause withdrawal and give the startup time to stabilize.",
-        "triggers": ["bot_withdraw", "near_bankruptcy"],
-        "effect": {
-            "runway": 1,
-            "whale_trust": 8,
-            "funding_boost_percent": 4,
-            "trust_all": -4,
-            "dilution": 6,
-            "cost_percent": 3
-        }
-    },
-    {
-        "id": "R2",
-        "name": "Founder Emergency Cash Injection",
-        "desc": "Founders inject short-term emergency cash to cover critical expenses such as payroll, cloud bills, and essential operations.",
-        "triggers": ["runway_crisis", "near_bankruptcy"],
-        "effect": {
-            "runway": 1,
-            "trust_all": 5,
-            "funding_boost_percent": 3,
-            "dilution": 4,
-            "cost_percent": 2
-        }
-    },
-    {
-        "id": "R3",
-        "name": "Vendor Payment Restructuring",
-        "desc": "Negotiate delayed payments with suppliers, cloud providers, or service vendors to reduce immediate cash pressure.",
-        "triggers": ["runway_crisis", "cost_crisis"],
-        "effect": {
-            "runway": 1,
-            "cogs": -0.03,
-            "trust_all": -3,
-            "utility": -3,
-            "cost_percent": 2
-        }
-    },
-    {
-        "id": "R4",
-        "name": "Incident Containment and Customer Notice",
-        "desc": "Contain a security or data incident, notify affected customers, and provide a short-term support plan.",
-        "triggers": ["security_crisis", "trust_crisis"],
-        "effect": {
-            "security": 15,
-            "transparency": 10,
-            "trust_all": 6,
-            "hype": -2,
-            "utility": -3,
-            "cost_percent": 5
-        }
-    },
-    {
-        "id": "R5",
-        "name": "Regulatory Remediation Filing",
-        "desc": "Submit an urgent remediation plan, missing documents, and legal explanation to reduce regulatory pressure.",
-        "triggers": ["regulatory_crisis"],
-        "effect": {
-            "reg_risk": -12,
-            "transparency": 8,
-            "trust_all": 4,
-            "legal_cost_percent": 6,
-            "cost_percent": 2 
-        }
-    },
-    {
-        "id": "R6",
-        "name": "Emergency Customer Prepayment Deal",
-        "desc": "Offer selected customers a prepaid discount package to bring cash in earlier and avoid immediate bankruptcy.",
-        "triggers": ["near_bankruptcy", "runway_crisis"],
-        "effect": {
-            "runway": 1,
-            "funding_boost_percent": 4,
-            "trust_all": 2,
-            "price": -0.06,
-            "hype": -2
-        }
-    }
+    {"id": "R1", "name": "Investor Calm Update", "trigger": "on_scenario_market_bad", "condition": {"scenario_tag": "market_down"}, "desc": "Send a quick update to reassure investors when the market suddenly turns negative.", "cost_percent": 2, "effect": {"halve_negative_delta": 1, "trust_all": 5, "transparency": 5}},
+
+    {"id": "R2", "name": "Public Rumor Response", "trigger": "on_reputation_shock", "condition": {"scenario_tag": "reputation"}, "desc": "Respond clearly to rumors, complaints, or negative media before trust drops further.", "cost_percent": 3, "effect": {"transparency": 10, "trust_all": 8, "hype": -3}},
+
+    {"id": "R3", "name": "Data Breach Emergency Fix", "trigger": "on_security_low", "condition": {"metric": "security", "operator": "<", "value": 40}, "desc": "Take urgent action to contain a data privacy or cybersecurity problem.", "cost_percent": 5, "effect": {"security": 20, "transparency": 8, "trust_all": 6, "reg_risk": -8}},
+
+    {"id": "R4", "name": "Urgent Legal Support", "trigger": "on_reg_risk_high", "condition": {"metric": "reg_risk", "operator": ">", "value": 70}, "desc": "Bring in legal support when compliance or regulatory risk becomes too high.", "cost_percent": 4, "effect": {"reg_risk": -20, "transparency": 4, "legal_cost_percent": 3}},
+
+    {"id": "R5", "name": "Cash Runway Protection", "trigger": "on_runway_low", "condition": {"metric": "runway", "operator": "<", "value": 3}, "desc": "Protect remaining cash when the startup is close to running out of money.", "cost_percent": 8, "effect": {"runway": 3, "trust_all": 5, "funding_boost_percent": -3, "hype": -4}},
+
+    {"id": "R6", "name": "Major Investor Confidence Call", "trigger": "on_whale_trust_low", "condition": {"metric": "whale_trust", "operator": "<", "value": 35}, "desc": "Hold a direct call with major investors to restore confidence before they withdraw.", "cost_percent": 4, "effect": {"whale_trust": 15, "trust_all": 5, "transparency": 5, "sell_pressure_reduce": 0.2}},
+
+    {"id": "R7", "name": "Product Quality Recall", "trigger": "on_utility_low", "condition": {"metric": "utility", "operator": "<", "value": 35}, "desc": "Recall or fix poor-quality products before customer trust is damaged further.", "cost_percent": 5, "effect": {"utility": 15, "trust_all": 8, "transparency": 5, "hype": -3}},
+
+    {"id": "R8", "name": "Emergency Cost Freeze", "trigger": "on_cogs_rise", "condition": {"metric": "cogs", "operator": ">", "value": 0.06}, "desc": "Freeze non-essential spending when production or operating costs rise sharply.", "cost_percent": 1, "effect": {"cogs_percent": -6, "runway": 1, "hype": -3}},
+
+    {"id": "R9", "name": "Expectation Reset Update", "trigger": "on_hype_high", "condition": {"metric": "hype", "operator": ">", "value": 85}, "desc": "Reduce unrealistic public expectations before excessive hype turns into disappointment.", "cost_percent": 1, "effect": {"hype": -12, "transparency": 8, "trust_all": 5}},
+
+    {"id": "R10", "name": "Investor Withdrawal Defense", "trigger": "on_bot_withdraw", "condition": {"event": "bot_withdraw"}, "desc": "Reassure investors when withdrawal pressure starts and reduce the risk of panic selling.", "cost_percent": 3, "effect": {"sell_pressure_reduce": 0.5, "trust_all": 8, "whale_trust": 5}},
 ]
 
 from collections import Counter
-
-def get_emergency_events(state):
-    """Trả về danh sách các sự kiện khẩn cấp dựa trên state hiện tại của dự án."""
-    events = []
-
-    if state.get("runway", 999) <= 0:
-        events.append("near_bankruptcy")
-    if state.get("runway", 999) <= 1:
-        events.append("runway_crisis")
-
-    if state.get("trust_all", 100) <= 20:
-        events.append("trust_crisis")
-
-    if state.get("whale_trust", 100) <= 20:
-        events.append("bot_withdraw")
-
-    if state.get("funding_boost_percent", 0) <= -12:
-        events.append("bot_withdraw")
-
-    if state.get("security", 100) <= 25:
-        events.append("security_crisis")
-
-    if state.get("reg_risk", 0) >= 70:
-        events.append("regulatory_crisis")
-
-    return sorted(set(events))
-
-
-def get_available_reaction_cards(state):
-    """Trả về danh sách các reaction cards có thể kích hoạt dựa trên emergency events."""
-    if state.get("reaction_uses", 0) >= MAX_REACTION_USES_PER_GAME:
-        return []
-
-    emergency_events = get_emergency_events(state)
-
-    available_cards = []
-    for card in REACTION_CARDS:
-        if any(trigger in emergency_events for trigger in card["triggers"]):
-            available_cards.append(card)
-
-    return available_cards
-
-
-def apply_reaction_card(state, reaction_card_id):
-    """Áp dụng effect của reaction card lên state và tăng bộ đếm reaction_uses."""
-    # Tìm card theo id
-    selected_card = None
-    for card in REACTION_CARDS:
-        if card["id"] == reaction_card_id:
-            selected_card = card
-            break
-
-    if selected_card is None:
-        raise ValueError(f"Reaction card {reaction_card_id} not found.")
-
-    # Áp dụng từng effect
-    for key, value in selected_card["effect"].items():
-        if key == "runway":
-            # runway effect: tăng available_cash dựa trên monthly burn
-            monthly_burn = state.get("monthly_burn", 0)
-            state["available_cash"] = state.get("available_cash", 0) + value * monthly_burn
-        elif key == "cost_percent":
-            # giảm cash theo % target funding
-            cost = (value / 100.0) * state.get("target_funding", 1)
-            state["available_cash"] = max(0, state.get("available_cash", 0) - cost)
-        elif key == "legal_cost_percent":
-            cost = (value / 100.0) * state.get("target_funding", 1)
-            state["legal_cost_spent"] = state.get("legal_cost_spent", 0) + cost
-            state["available_cash"] -= cost
-        elif key == "funding_boost_percent":
-            boost = (value / 100.0) * state.get("target_funding", 0)
-            state["total_invested"] = state.get("total_invested", 0) + boost
-            state["available_cash"] = state.get("available_cash", 0) + boost
-            state["funding_progress"] = min(1.0, state["total_invested"] / state.get("target_funding", 1))
-        elif key == "cogs":
-            # cogs là giá vốn hàng bán (material+packaging+labor)
-            # giảm theo tỷ lệ phần trăm (value = -0.03 => giảm 3%)
-            factor = 1 + value
-            state["material"] = state.get("material", 0) * factor
-            state["packaging"] = state.get("packaging", 0) * factor
-            state["labor"] = state.get("labor", 0) * factor
-        elif key == "price":
-            # price là % thay đổi (value = -0.06 => giảm 6%)
-            state["price"] = state.get("price", 1) * (1 + value)
-        elif key in ["hype", "transparency", "security", "utility", "trust_all", "whale_trust"]:
-            # Các chỉ số % (0-100)
-            old = state.get(key, 50)
-            new = old + value
-            state[key] = max(0, min(100, new))
-        elif key == "dilution":
-            state["dilution"] = state.get("dilution", 0) + value
-        elif key == "reg_risk":
-            state["reg_risk"] = max(0, state.get("reg_risk", 0) + value)
-        # Các key khác có thể thêm nếu cần
-
-    state["reaction_uses"] = state.get("reaction_uses", 0) + 1
-    return state
 
 def validate_master_data():
     errors = []
@@ -389,8 +229,8 @@ def validate_master_data():
     if len(ACTIVE_CARDS_FULL) != 42:
         errors.append(f"ACTIVE_CARDS_FULL must have 42 cards, found {len(ACTIVE_CARDS_FULL)}")
 
-    if len(REACTION_CARDS) != 6:
-        errors.append(f"REACTION_CARDS must have 6 cards, found {len(REACTION_CARDS)}")
+    if len(REACTION_CARDS) != 10:
+        errors.append(f"REACTION_CARDS must have 10 cards, found {len(REACTION_CARDS)}")
 
     active_ids = [card["id"] for card in ACTIVE_CARDS_FULL]
     if len(active_ids) != len(set(active_ids)):
@@ -1062,10 +902,6 @@ def submit_project():
         'current_hand': [],
         'energy_left': 3,
         'funding_complete_phase': None,
-		'reaction_uses': 0,
-    	'security': 100,          
-    	'utility': 50,            
-    	'dilution': 0,            
     })
     
     project_data['scale'] = scale   # lưu scale vào project
@@ -1146,9 +982,6 @@ def submit_deck():
 
         if not isinstance(active_indices, list) or len(active_indices) != 22:
             return jsonify({'error': 'Phải chọn đúng 22 active cards'}), 400
-
-        if len(reaction_indices) > MAX_REACTION_CARDS_PER_GAME:
-            return jsonify({'error': f'Chỉ được chọn tối đa {MAX_REACTION_CARDS_PER_GAME} reaction cards'}), 400
 
         # Kiểm tra các index có hợp lệ không
         total_active = len(ACTIVE_CARDS_FULL)
@@ -1431,127 +1264,89 @@ def mulligan():
     
     return jsonify({'ok': True, 'message': 'Mulligan thành công! Đã đổi 5 lá bài mới.'})
 
-@app.route('/api/use_reaction', methods=['POST'])
-def use_reaction():
+@app.route('/api/player_ready_phase', methods=['POST'])
+def player_ready_phase():
     data = request.json
-    room_id = data.get('room_id')
-    player_index = data.get('player_index')
-    reaction_id = data.get('reaction_id')
-    reaction_index = data.get('reaction_index')  # fallback
-
-    if not room_id or player_index is None:
-        return jsonify({'error': 'Missing room_id or player_index'}), 400
-
+    room_id = data['room_id']
+    player_index = data['player_index']
+    
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
     room = rooms[room_id]
-
+    
     if room['status'] != 'playing':
-        return jsonify({'error': 'Not playing'}), 400
-
+        return jsonify({'error': 'Game chưa bắt đầu'}), 400
+    
     proj = room['players'][player_index]
     if not proj or proj.get('status') != 'active':
-        return jsonify({'error': 'Player not found or inactive'}), 400
+        return jsonify({'error': 'Dự án không còn hoạt động'}), 400
+    
+    room['player_ready'][player_index] = True
+    return jsonify({'ok': True})
 
-    # Nếu có reaction_index thì tìm id từ hand
-    if reaction_index is not None and reaction_id is None:
-        reaction_hand = proj.get('reaction_hand', [])
-        if 0 <= reaction_index < len(reaction_hand):
-            reaction_id = reaction_hand[reaction_index]['id']
-        else:
-            return jsonify({'error': 'Invalid reaction index'}), 400
-
-    if not reaction_id:
-        return jsonify({'error': 'Missing reaction_id'}), 400
-
-    # Kiểm tra reaction có khả dụng không
+@app.route('/api/use_reaction', methods=['POST'])
+def use_reaction():
+    data = request.json
+    room_id = data['room_id']
+    player_index = data['player_index']
+    reaction_index = data['reaction_index']
+    
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    room = rooms[room_id]
+    
+    if room['status'] != 'playing':
+        return jsonify({'error': 'Not playing'}), 400
+    
+    proj = room['players'][player_index]
+    if not proj:
+        return jsonify({'error': 'Player not found'}), 400
+    
+    reaction_hand = proj.get('reaction_hand', [])
+    if reaction_index >= len(reaction_hand):
+        return jsonify({'error': 'Invalid reaction index'}), 400
+    
+    rc = reaction_hand[reaction_index]
     available_reactions = room['player_triggers'][player_index].get('available_reactions', [])
     available_ids = [r['id'] for r in available_reactions]
-    if reaction_id not in available_ids:
+    
+    if rc['id'] not in available_ids:
         return jsonify({'error': 'Reaction này hiện không thể kích hoạt'}), 400
-
-
-    # Tìm card trong reaction_hand của player
-    reaction_hand = proj.get('reaction_hand', [])
-    card_index = None
-    for i, rc in enumerate(reaction_hand):
-        if rc['id'] == reaction_id:
-            card_index = i
-            break
-
-    if card_index is None:
-        return jsonify({'error': 'Reaction card không có trong bộ bài'}), 400
-
-    # Chuẩn bị state đầy đủ cho apply_reaction_card
-    metrics = calculate_metrics(proj)
-    trust_scores = proj.get('trust_scores', {})
-    trust_all = sum(trust_scores.values()) / len(trust_scores) if trust_scores else 50
-    whale_values = [trust_scores.get(bot['id'], 50) for bot in BOTS if bot['type'] == 'Whale']
-    whale_trust = sum(whale_values) / len(whale_values) if whale_values else 50
-
-    state = {
-        'runway': metrics.get('runway', 999),
-        'trust_all': trust_all,
-        'whale_trust': whale_trust,
-        'funding_boost_percent': proj.get('funding_boost_percent', 0),
-        'security': proj.get('security', 100),
-        'reg_risk': metrics.get('reg_risk', 0),
-        'reaction_uses': proj.get('reaction_uses', 0),
-        'target_funding': proj.get('target_funding', 1),
-        'available_cash': proj.get('available_cash', 0),
-        'material': proj.get('material', 0),
-        'packaging': proj.get('packaging', 0),
-        'labor': proj.get('labor', 0),
-        'price': proj.get('price', 1),
-        'hype': proj.get('hype', 50),
-        'transparency': proj.get('transparency', 50),
-        'utility': proj.get('utility', 50),
-        'dilution': proj.get('dilution', 0),
-        'legal_cost_spent': proj.get('legal_cost_spent', 0),
-        'total_invested': proj.get('total_invested', 0),
-        'funding_progress': proj.get('funding_progress', 0),
-        'monthly_burn': metrics.get('monthly_burn', 0),
-    }
-
-    # Áp dụng effect
-    try:
-        apply_reaction_card(state, reaction_id)
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
-
-    # Cập nhật lại proj từ state
-    for key in ['runway', 'trust_all', 'whale_trust', 'funding_boost_percent', 'security',
-                'reg_risk', 'reaction_uses', 'available_cash', 'material', 'packaging',
-                'labor', 'price', 'hype', 'transparency', 'utility', 'dilution',
-                'legal_cost_spent', 'total_invested', 'funding_progress']:
-        if key in state:
-            proj[key] = state[key]
-
-    # Cập nhật trust_scores nếu trust_all hoặc whale_trust thay đổi
-    # (có thể cập nhật đồng đều cho tất cả bot, hoặc chỉ bot Whale)
-    if 'trust_all' in state:
-        old_trust_all = trust_all
-        delta_all = state['trust_all'] - old_trust_all
-        for bot_id in trust_scores:
-            trust_scores[bot_id] = max(0, min(100, trust_scores[bot_id] + delta_all))
-    if 'whale_trust' in state:
-        # Cập nhật riêng cho bot Whale
-        whale_bots = [b for b in BOTS if b['type'] == 'Whale']
-        if whale_bots:
-            old_whale = whale_trust
-            delta_whale = state['whale_trust'] - old_whale
-            for bot in whale_bots:
-                trust_scores[bot['id']] = max(0, min(100, trust_scores.get(bot['id'], 50) + delta_whale))
-
-    # Xóa reaction card khỏi hand và khỏi available_reactions
-    proj['reaction_hand'].pop(card_index)
+    
+    eff = rc.get('effect', {})
+    cost_percent = rc.get('cost_percent', 0)
+    
+    if 'transparency' in eff:
+        proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
+    if 'hype' in eff:
+        proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
+    if 'runway' in eff:
+        m = calculate_metrics(proj)
+        proj['available_cash'] += eff['runway'] * m.get('monthly_burn', 0)
+    if 'reg_risk' in eff and eff['reg_risk'] < 0:
+        reduction = (abs(eff['reg_risk']) / 100.0) * proj['target_funding']
+        proj['legal_cost_spent'] = max(0, proj['legal_cost_spent'] - reduction)
+    if 'trust_all' in eff:
+        for bid in proj['trust_scores']:
+            proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + eff['trust_all'], 0, 100)
+    if 'trust_whale' in eff:
+        for bot in BOTS:
+            if bot['type'] == 'Whale':
+                bid = bot['id']
+                proj['trust_scores'][bid] = clamp(proj['trust_scores'].get(bid, 50) + eff['trust_whale'], 0, 100)
+    if 'sell_pressure_reduce' in eff:
+        proj['sell_pressure_reduce'] = eff.get('sell_pressure_reduce', 0.5)
+    
+    cost = (cost_percent / 100.0) * proj['target_funding']
+    proj['available_cash'] = max(0, proj['available_cash'] - cost)
+    
+    proj['reaction_hand'].pop(reaction_index)
     room['player_triggers'][player_index]['available_reactions'] = [
-        r for r in available_reactions if r['id'] != reaction_id
+        r for r in available_reactions if r['id'] != rc['id']
     ]
+    
+    return jsonify({'ok': True, 'message': f'Đã kích hoạt reaction: {rc["name"]}'})
 
-    room['logs'].append(f"🎴 Player {player_index+1} đã dùng reaction {reaction_id}")
-
-    return jsonify({'ok': True, 'message': f'Đã kích hoạt reaction: {reaction_id}'})
 @app.route('/api/run_phase', methods=['POST'])
 def run_phase():
     data = request.json
@@ -1680,55 +1475,26 @@ def run_phase():
                 logs.append(f" → Dự án {idx+1} chơi thẻ {card['name']}")
 
         # Kích hoạt reaction (chỉ hiển thị, không tự động dùng)
-        # Tạo state đầy đủ cho dự án để kiểm tra emergency events
-        metrics = calculate_metrics(proj)   # (nếu chưa có metrics ở đây thì gọi lại)
-        # Tính trust_all trung bình
-        trust_scores = proj.get('trust_scores', {})
-        if trust_scores:
-            trust_all = sum(trust_scores.values()) / len(trust_scores)
-        else:
-            trust_all = 50
-        # Tính whale_trust trung bình của các bot loại Whale
-        whale_trust_values = [trust_scores.get(bot['id'], 50) for bot in BOTS if bot['type'] == 'Whale']
-        whale_trust = sum(whale_trust_values) / len(whale_trust_values) if whale_trust_values else 50
-
-        # Lấy funding_boost_percent (có thể từ effect card)
-        funding_boost = proj.get('funding_boost_percent', 0)
-
-        # Tạo state dict
-        state = {
-            'runway': metrics.get('runway', 999),
-            'trust_all': trust_all,
-            'whale_trust': whale_trust,
-            'funding_boost_percent': funding_boost,
-            'security': proj.get('security', 100),
-            'reg_risk': metrics.get('reg_risk', 0),
-            'reaction_uses': proj.get('reaction_uses', 0),
-            # các field khác nếu cần cho effect
-            'target_funding': proj.get('target_funding', 1),
-            'available_cash': proj.get('available_cash', 0),
-            'material': proj.get('material', 0),
-            'packaging': proj.get('packaging', 0),
-            'labor': proj.get('labor', 0),
-            'price': proj.get('price', 1),
-            'hype': proj.get('hype', 50),
-            'transparency': proj.get('transparency', 50),
-            'utility': proj.get('utility', 50),
-            'dilution': proj.get('dilution', 0),
-            'legal_cost_spent': proj.get('legal_cost_spent', 0),
-            'total_invested': proj.get('total_invested', 0),
-            'funding_progress': proj.get('funding_progress', 0),
-			'monthly_burn': metrics.get('monthly_burn', 0),
-        }
-
-        # Lấy các reaction cards có thể dùng
-        available = get_available_reaction_cards(state)
-        if available:
-            room['player_triggers'][idx]['available_reactions'] = available
-            logs.append(f" → Dự án {idx+1} có {len(available)} reaction có thể kích hoạt: {[c['name'] for c in available]}")
-        else:
-            room['player_triggers'][idx]['available_reactions'] = []
-            logs.append(f" → Dự án {idx+1} không có reaction khả dụng")
+        triggers = []
+        for rc in proj.get('reaction_hand', []):
+            if rc.get('trigger') == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
+                if any(k in scenario['name'].lower() for k in ['crisis', 'slow', 'khủng', 'xấu']):
+                    triggers.append(rc)
+            elif rc.get('trigger') == 'on_transparency_low' and proj['transparency'] < 30:
+                triggers.append(rc)
+            elif rc.get('trigger') == 'on_reg_risk_high':
+                reg = (proj['legal_cost_spent'] / proj['target_funding']) * 100 if proj['target_funding'] > 0 else 0
+                if reg > 70:
+                    triggers.append(rc)
+            elif rc.get('trigger') == 'on_hype_high' and proj['hype'] > 80:
+                triggers.append(rc)
+            elif rc.get('trigger') == 'on_runway_low':
+                m = calculate_metrics(proj)
+                if m.get('runway', 999) < 3:
+                    triggers.append(rc)
+        if triggers:
+            room['player_triggers'][idx]['available_reactions'] = triggers
+            logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
 
     # Snapshot starting cash for each player before bot processing
     starting_cash = {}
