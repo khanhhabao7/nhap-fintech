@@ -1357,32 +1357,40 @@ def run_phase():
     
     room = rooms[room_id]
     ensure_room_lists(room)
-
-    # ===== 1. TRƯỜNG HỢP: GAME ĐANG Ở GIAI ĐOẠN CHỌN DECK =====
+    
+    # ===== TRƯỜNG HỢP: GAME ĐANG Ở GIAI ĐOẠN CHỌN DECK =====
     if room['status'] == 'choosing_deck':
-        # Kiểm tra tất cả người chơi đã submit deck chưa
-        all_deck_ready = True
-        for i, p in enumerate(room['players']):
-            if p is not None and not room['deck_ready'][i]:
-                all_deck_ready = False
-                break
-        if not all_deck_ready:
-            return jsonify({'error': 'Chưa sẵn sàng: một số người chơi chưa submit deck'}), 400
-        
-        # Khởi tạo game (chia bài, set phase=1, ...)
+        # 1. Kiểm tra đã có đủ số người chơi theo num_players chưa?
+        if room.get('submitted_players', 0) < room['num_players']:
+            return jsonify({
+                'error': f'Chưa đủ người chơi: cần {room["num_players"]} người, mới có {room["submitted_players"]}. Vui lòng chờ thêm người tham gia.'
+            }), 400
+
+        # 2. Kiểm tra tất cả người chơi đã submit deck chưa?
+        not_ready = []
+        for i in range(room['num_players']):
+            # Vì đã đủ người nên players[i] chắc chắn không None
+            if not room['deck_ready'][i]:
+                not_ready.append(i + 1)   # số thứ tự player (1-based)
+
+        if not_ready:
+            return jsonify({
+                'error': f'Các player {not_ready} chưa submit deck. Vui lòng chờ họ hoàn tất.'
+            }), 400
+
+        # 3. Đủ điều kiện -> khởi tạo game
         success = try_start_game(room)
         if not success:
             return jsonify({'error': 'Không thể khởi tạo game. Kiểm tra deck của từng người chơi.'}), 400
-        
-        # Reset trạng thái ready cho các player (bắt buộc ready phase 1)
+
         room['player_ready'] = [False] * room['num_players']
-        
         room['logs'].append("🚀 Game đã được khởi tạo. Các người chơi cần nhấn READY cho Phase 1, sau đó host nhấn RUN PHASE lần nữa.")
         return jsonify({
             'game_started': True,
             'phase': room['phase'],
             'message': 'Game started. Please wait for players to ready and click RUN PHASE again.'
         })
+
 
     # ===== 2. CHỈ CHO PHÉP CHẠY KHI GAME Ở TRẠNG THÁI PLAYING =====
     if room['status'] != 'playing':
