@@ -391,7 +391,7 @@ REACTION_CARDS = [
         "id": "R3",
         "name": "Vendor Payment Restructuring",
         "desc": "Negotiate delayed payments with suppliers, cloud providers, or service vendors to reduce immediate cash pressure.",
-        "triggers": ["runway_crisis", "cost_crisis"],
+        "triggers": ["runway_crisis"],
         "effect": {
             "runway": 1,
             "cogs": -0.03,
@@ -448,7 +448,7 @@ def get_emergency_events(state):
     if state.get("runway", 999) <= 0:
     events.append("near_bankruptcy")
 
-if state.get("runway", 999) <= 1:
+	if state.get("runway", 999) <= 1:
     events.append("runway_crisis")
 
 
