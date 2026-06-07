@@ -389,7 +389,7 @@ def validate_master_data():
     if len(ACTIVE_CARDS_FULL) != 42:
         errors.append(f"ACTIVE_CARDS_FULL must have 42 cards, found {len(ACTIVE_CARDS_FULL)}")
 
-    if len(REACTION_CARDS) != 10:
+    if len(REACTION_CARDS) != 6:
         errors.append(f"REACTION_CARDS must have 10 cards, found {len(REACTION_CARDS)}")
 
     active_ids = [card["id"] for card in ACTIVE_CARDS_FULL]
@@ -1147,6 +1147,9 @@ def submit_deck():
         if not isinstance(active_indices, list) or len(active_indices) != 22:
             return jsonify({'error': 'Phải chọn đúng 22 active cards'}), 400
 
+		        if len(reaction_indices) > MAX_REACTION_CARDS_PER_GAME:
+            return jsonify({'error': f'Chỉ được chọn tối đa {MAX_REACTION_CARDS_PER_GAME} reaction cards'}), 400
+
         # Kiểm tra các index có hợp lệ không
         total_active = len(ACTIVE_CARDS_FULL)
         total_reaction = len(REACTION_CARDS)
@@ -1729,7 +1732,7 @@ def run_phase():
             logs.append(f" → Dự án {idx+1} có {len(available)} reaction có thể kích hoạt: {[c['name'] for c in available]}")
         else:
             room['player_triggers'][idx]['available_reactions'] = []
-            logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
+            logs.append(f" → Dự án {idx+1} không có reaction khả dụng")
 
     # Snapshot starting cash for each player before bot processing
     starting_cash = {}
