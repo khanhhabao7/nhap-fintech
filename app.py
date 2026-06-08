@@ -98,33 +98,33 @@ for scenario in SCENARIOS:
     
 ACTIVE_CARDS_FULL = [
     {"id": "A1", "name": "Low-Budget Target Ads", "cost": 1, "type": "red", "desc": "Run a small paid ad test to increase demand and visibility.", "counters": ["demand", "marketing_eff", "visibility"], "effect": {"hype": 6, "visibility": 5, "cost_percent": 1}},
- 	{"id": "A2", "name": "Quick Social Media Posts", "cost": 1, "type": "red", "desc": "Post a short social content for short-term attention. Cheap, fast, but shallow.", "counters": ["market_opportunity", "visibility", "reputation"], "effect": {"hype": 7, "visibility": 7, "cost_percent": 1}},
- 	{"id": "A3", "name": "Customer Referral Loop", "cost": 1, "type": "red", "desc": "Turn existing users into a small organic growth loop.", "counters": ["demand", "product_opportunity"], "effect": {"hype": 6, "trust_all": 3}},
- 	{"id": "A4", "name": "One-Week Promo Offer", "cost": 1, "type": "red", "desc": "Use a short promotion to create urgency without changing the full pricing strategy.", "counters": ["demand", "price", "competition"], "effect": {"price": -0.05, "hype": 8, "visibility": 4}},
+    {"id": "A2", "name": "Quick Social Media Posts", "cost": 1, "type": "red", "desc": "Post a short social content for short-term attention. Cheap, fast, but shallow.", "counters": ["market_opportunity", "visibility", "reputation"], "effect": {"hype": 7, "visibility": 7, "cost_percent": 1}},
+    {"id": "A3", "name": "Customer Referral Loop", "cost": 1, "type": "red", "desc": "Turn existing users into a small organic growth loop.", "counters": ["demand", "product_opportunity"], "effect": {"hype": 6, "trust_all": 3}},
+    {"id": "A4", "name": "One-Week Promo Offer", "cost": 1, "type": "red", "desc": "Use a short promotion to create urgency without changing the full pricing strategy.", "counters": ["demand", "price", "competition"], "effect": {"price": -0.05, "hype": 8, "visibility": 4}},
     {"id": "A5", "name": "Press Outreach Cycle", "cost": 2, "type": "red", "desc": "Pitch the startup story to gain public  attention.", "counters": ["visibility", "reputation", "market_opportunity"], "effect": {"hype": 12, "visibility": 14, "trust_all": 3, "cost_percent": 2}},
- 	{"id": "A6", "name": "Creator Partnership Campaign", "cost": 2, "type": "red", "desc": "Work with a creator or influencer to expand reach and awareness.", "counters": ["competition", "demand", "visibility"], "effect": {"hype": 14, "visibility": 15, "cost_percent": 3}},
- 	{"id": "A7", "name": "Conversion Funnel Refresh", "cost": 2, "type": "red", "desc": "Improve landing pages, messaging, and conversion flow to recover weak demand.", "counters": ["marketing_eff", "demand", "price"], "effect": {"hype": 8, "trust_all": 3, "cost_percent": 3}},
- 	{"id": "A8", "name": "Feature Launch Webinar", "cost": 2, "type": "red", "desc": "Demonstrate new product features publicly to build customer interest.", "counters": ["product", "competition", "product_opportunity"], "effect": {"hype": 15, "visibility": 8, "cost_percent": 3}},
- 	{"id": "A9", "name": "Multi-Channel Acquisition Sprint", "cost": 2, "type": "red", "desc": "Expand promotion across several channels when one channel performs poorly.", "counters": ["marketing_eff", "visibility", "demand"], "effect": {"visibility": 12, "hype": 8, "cost_percent": 3}},
- 	{"id": "A10", "name": "Customer Proof Campaign", "cost": 2, "type": "red", "desc": "Use customer success stories to convert credibility into demand.", "counters": ["reputation", "demand"], "effect": {"trust_all": 7, "hype": 7, "transparency": 3, "cost_percent": 2}},
+    {"id": "A6", "name": "Creator Partnership Campaign", "cost": 2, "type": "red", "desc": "Work with a creator or influencer to expand reach and awareness.", "counters": ["competition", "demand", "visibility"], "effect": {"hype": 14, "visibility": 15, "cost_percent": 3}},
+    {"id": "A7", "name": "Conversion Funnel Refresh", "cost": 2, "type": "red", "desc": "Improve landing pages, messaging, and conversion flow to recover weak demand.", "counters": ["marketing_eff", "demand", "price"], "effect": {"hype": 8, "trust_all": 3, "cost_percent": 3}},
+    {"id": "A8", "name": "Feature Launch Webinar", "cost": 2, "type": "red", "desc": "Demonstrate new product features publicly to build customer interest.", "counters": ["product", "competition", "product_opportunity"], "effect": {"hype": 15, "visibility": 8, "cost_percent": 3}},
+    {"id": "A9", "name": "Multi-Channel Acquisition Sprint", "cost": 2, "type": "red", "desc": "Expand promotion across several channels when one channel performs poorly.", "counters": ["marketing_eff", "visibility", "demand"], "effect": {"visibility": 12, "hype": 8, "cost_percent": 3}},
+    {"id": "A10", "name": "Customer Proof Campaign", "cost": 2, "type": "red", "desc": "Use customer success stories to convert credibility into demand.", "counters": ["reputation", "demand"], "effect": {"trust_all": 7, "hype": 7, "transparency": 3, "cost_percent": 2}},
     {"id": "A11", "name": "Full-Scale Brand Repositioning", "cost": 3, "type": "red", "desc": "Launch a large brand campaign to change market perception and defend against competitors.", "counters": ["competition", "demand", "market_opportunity", "reputation"], "effect": {"hype": 22, "visibility": 22, "trust_all": 5, "cost_percent": 6}},
- 	{"id": "A12", "name": "National Launch Rollout", "cost": 3, "type": "red", "desc": "Run a broad launch rollout to create national awareness and accelerate acquisition.", "counters": ["demand", "visibility", "product_opportunity", "market_opportunity"], "effect": {"hype": 24, "visibility": 24, "cost_percent": 7, "runway": -1}},
- 	{"id": "A13", "name": "Aggressive Pricing Strategy", "cost": 3, "type": "red", "desc": "Cut pricing aggressively to defend market share, with margin and trust trade-offs.", "counters": ["price", "competition", "demand"], "effect": {"price": -0.15, "hype": 16, "trust_all": -6, "runway": -1}},
- 	{"id": "A14", "name": "Hypergrowth Expansion Program", "cost": 3, "type": "red", "desc": "Spend aggressively to turn market opportunity into rapid growth and stronger traction.", "counters": ["market_opportunity", "capital_availability", "product_opportunity"], "effect": {"hype": 24, "funding_boost_percent": 8, "cost_percent": 6, "runway": -1}},
- 	{"id": "D1", "name": "Cutting cost", "cost": 1, "type": "green", "desc": "Cutting unnecessary expenses without disrupting daily operations.", "counters": ["cost", "runway"], "effect": {"cogs": -0.03}},
- 	{"id": "D2", "name": "Community Update", "cost": 1, "type": "green", "desc": "Publish a clear update to explain progress and reduce uncertainty.", "counters": ["reputation", "disclosure_pressure"], "effect": {"hype": 1, "transparency": 6, "trust_all": 4}},
- 	{"id": "D3", "name": "Complaint Response Desk", "cost": 1, "type": "green", "desc": "Quickly respond to complaints and reduce product frustration.", "counters": ["product", "reputation"], "effect": {"trust_all": 5, "transparency": 2}},
- 	{"id": "D4", "name": "Basic Compliance Checklist", "cost": 1, "type": "green", "desc": "Check basic regulatory items such as required documents, licenses, reporting records, tax files, and fundraising disclosures.", "counters": ["regulatory", "legal", "disclosure_pressure", "compliance_pressure"], "effect": {"reg_risk": -6, "transparency": 4, "trust_all": 2}},
- 	{"id": "D5", "name": "Founder AMA Session", "cost": 1, "type": "green", "desc": "Let founders answer questions directly to build confidence.", "counters": ["reputation"], "effect": {"trust_all": 6, "transparency": 5, "hype": 1}},
+    {"id": "A12", "name": "National Launch Rollout", "cost": 3, "type": "red", "desc": "Run a broad launch rollout to create national awareness and accelerate acquisition.", "counters": ["demand", "visibility", "product_opportunity", "market_opportunity"], "effect": {"hype": 24, "visibility": 24, "cost_percent": 7, "runway": -1}},
+    {"id": "A13", "name": "Aggressive Pricing Strategy", "cost": 3, "type": "red", "desc": "Cut pricing aggressively to defend market share, with margin and trust trade-offs.", "counters": ["price", "competition", "demand"], "effect": {"price": -0.15, "hype": 16, "trust_all": -6, "runway": -1}},
+    {"id": "A14", "name": "Hypergrowth Expansion Program", "cost": 3, "type": "red", "desc": "Spend aggressively to turn market opportunity into rapid growth and stronger traction.", "counters": ["market_opportunity", "capital_availability", "product_opportunity"], "effect": {"hype": 24, "funding_boost_percent": 8, "cost_percent": 6, "runway": -1}},
+    {"id": "D1", "name": "Cutting cost", "cost": 1, "type": "green", "desc": "Cutting unnecessary expenses without disrupting daily operations.", "counters": ["cost", "runway"], "effect": {"cogs": -0.03}},
+    {"id": "D2", "name": "Community Update", "cost": 1, "type": "green", "desc": "Publish a clear update to explain progress and reduce uncertainty.", "counters": ["reputation", "disclosure_pressure"], "effect": {"hype": 1, "transparency": 6, "trust_all": 4}},
+    {"id": "D3", "name": "Complaint Response Desk", "cost": 1, "type": "green", "desc": "Quickly respond to complaints and reduce product frustration.", "counters": ["product", "reputation"], "effect": {"trust_all": 5, "transparency": 2}},
+    {"id": "D4", "name": "Basic Compliance Checklist", "cost": 1, "type": "green", "desc": "Check basic regulatory items such as required documents, licenses, reporting records, tax files, and fundraising disclosures.", "counters": ["regulatory", "legal", "disclosure_pressure", "compliance_pressure"], "effect": {"reg_risk": -6, "transparency": 4, "trust_all": 2}},
+    {"id": "D5", "name": "Founder AMA Session", "cost": 1, "type": "green", "desc": "Let founders answer questions directly to build confidence.", "counters": ["reputation"], "effect": {"trust_all": 6, "transparency": 5, "hype": 1}},
     {"id": "D6", "name": "Supplier Renegotiation", "cost": 2, "type": "green", "desc": "Negotiate with suppliers to reduce COGS and ease supply pressure.", "counters": ["cost", "supply", "runway"], "effect": {"cogs": -0.08, "runway": 1, "cost_percent": 1}},
- 	{"id": "D7", "name": "Quality Recovery Program", "cost": 2, "type": "green", "desc": "Improve quality control to reduce defects, complaints, and product frustration.", "counters": ["product", "reputation"], "effect": {"trust_all": 8, "transparency": 4, "cost_percent": 2}},
- 	{"id": "D8", "name": "Data Protection Review", "cost": 2, "type": "green", "desc": "Review data handling and patch security weaknesses before they become worse.", "counters": ["security", "regulatory"], "effect": {"security": 15, "transparency": 8, "trust_all": 5, "cost_percent": 3}},
- 	{"id": "D9", "name": "Regulatory Document Response Pack", "cost": 2, "type": "green", "desc": "Prepare legal, tax, and operating documents before regulators or investors ask.", "counters": ["regulatory", "legal", "disclosure_pressure"], "effect": {"reg_risk": -12, "transparency": 8, "trust_all": 4, "cost_percent": 2}},
- 	{"id": "D10", "name": "Reviewed Monthly Metrics Pack", "cost": 2, "type": "green", "desc": "Share reviewed monthly metrics to support investor due diligence.", "counters": ["investor_confidence", "disclosure_pressure"], "effect": {"transparency": 14, "trust_all": 8, "hype": -2, "cost_percent": 2}},
- 	{"id": "D11", "name": "Crisis Coordination Playbook", "cost": 2, "type": "green", "desc": "Coordinate a structured response to limit damage from a negative event.", "counters": ["market_down", "reputation", "supply", "cost"], "effect": {"transparency": 8, "trust_all": 6, "reg_risk": -4, "cost_percent": 3}},
+    {"id": "D7", "name": "Quality Recovery Program", "cost": 2, "type": "green", "desc": "Improve quality control to reduce defects, complaints, and product frustration.", "counters": ["product", "reputation"], "effect": {"trust_all": 8, "transparency": 4, "cost_percent": 2}},
+    {"id": "D8", "name": "Data Protection Review", "cost": 2, "type": "green", "desc": "Review data handling and patch security weaknesses before they become worse.", "counters": ["security", "regulatory"], "effect": {"security": 15, "transparency": 8, "trust_all": 5, "cost_percent": 3}},
+    {"id": "D9", "name": "Regulatory Document Response Pack", "cost": 2, "type": "green", "desc": "Prepare legal, tax, and operating documents before regulators or investors ask.", "counters": ["regulatory", "legal", "disclosure_pressure"], "effect": {"reg_risk": -12, "transparency": 8, "trust_all": 4, "cost_percent": 2}},
+    {"id": "D10", "name": "Reviewed Monthly Metrics Pack", "cost": 2, "type": "green", "desc": "Share reviewed monthly metrics to support investor due diligence.", "counters": ["investor_confidence", "disclosure_pressure"], "effect": {"transparency": 14, "trust_all": 8, "hype": -2, "cost_percent": 2}},
+    {"id": "D11", "name": "Crisis Coordination Playbook", "cost": 2, "type": "green", "desc": "Coordinate a structured response to limit damage from a negative event.", "counters": ["market_down", "reputation", "supply", "cost"], "effect": {"transparency": 8, "trust_all": 6, "reg_risk": -4, "cost_percent": 3}},
     {"id": "D12", "name": "Governance and Reporting Recovery Program", "cost": 3, "type": "green", "desc": "Launch a full recovery program to improve internal controls, reporting quality, compliance readiness, and investor confidence after a serious trust or disclosure problem.", "counters": ["disclosure_pressure", "investor_confidence", "regulatory", "reputation", "execution", "compliance_opportunity"], "effect": {"transparency": 20, "trust_all": 14, "whale_trust": 9, "reg_risk": -10, "cost_percent": 5}},
- 	{"id": "D13", "name": "Emergency Cash Reserve", "cost": 3, "type": "green", "desc": "Reserve cash to survive a funding slowdown or runway crisis.", "counters": ["runway", "funding", "market_down"], "effect": {"runway": 3, "trust_all": 4, "funding_boost_percent": -3, "hype": -3, "cost_percent": 8}},
- 	{"id": "D14", "name": "Cybersecurity Incident Response", "cost": 3, "type": "green", "desc": "Launch a full response after a privacy or cybersecurity incident.", "counters": ["security", "regulatory"], "effect": {"security": 23, "transparency": 12, "trust_all": 10, "reg_risk": -8, "cost_percent": 5}},
+    {"id": "D13", "name": "Emergency Cash Reserve", "cost": 3, "type": "green", "desc": "Reserve cash to survive a funding slowdown or runway crisis.", "counters": ["runway", "funding", "market_down"], "effect": {"runway": 3, "trust_all": 4, "funding_boost_percent": -3, "hype": -3, "cost_percent": 8}},
+    {"id": "D14", "name": "Cybersecurity Incident Response", "cost": 3, "type": "green", "desc": "Launch a full response after a privacy or cybersecurity incident.", "counters": ["security", "regulatory"], "effect": {"security": 23, "transparency": 12, "trust_all": 10, "reg_risk": -8, "cost_percent": 5}},
     {"id": "C1", "name": "Use-of-Funds Note", "cost": 1, "type": "purple", "desc": "Explain how the startup will use raised capital across product, marketing, operations, and reserves.", "counters": ["funding", "disclosure_pressure", "investor_confidence"], "effect": {"transparency": 5, "trust_all": 4, "funding_boost_percent": 3}},
     {"id": "C2", "name": "Funding Gap Calculator", "cost": 1, "type": "purple", "desc": "Calculate how much extra capital the startup needs by comparing current cash and target funding requirement.", "counters": ["funding", "runway", "capital_availability", "investor_confidence"], "effect": {"funding_boost_percent": 4, "transparency": 4, "trust_all": 3}},
     {"id": "C3", "name": "Investor Risk Q&A Call", "cost": 1, "type": "purple", "desc": "Answer investor questions about revenue, costs, valuation, dilution, and business risks.", "counters": ["investor_confidence"], "effect": {"whale_trust": 7, "trust_all": 5, "transparency": 3}},
@@ -1601,22 +1601,65 @@ def run_phase():
 
         # Kích hoạt reaction (chỉ hiển thị, không tự động dùng)
         triggers = []
+        metrics = calculate_metrics(proj)  # tính metrics để dùng nhiều lần
+        
         for rc in proj.get('reaction_hand', []):
-            if rc.get('trigger') == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
+            trigger = rc.get('trigger')
+            
+            # 1. on_scenario_market_bad (giữ cũ)
+            if trigger == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
                 if any(k in scenario['name'].lower() for k in ['crisis', 'slow', 'khủng', 'xấu']):
                     triggers.append(rc)
-            elif rc.get('trigger') == 'on_transparency_low' and proj['transparency'] < 30:
+            
+            # 2. on_transparency_low (giữ cũ, ngưỡng 25 theo card mới)
+            elif trigger == 'on_transparency_low' and proj['transparency'] < 25:
                 triggers.append(rc)
-            elif rc.get('trigger') == 'on_reg_risk_high':
+            
+            # 3. on_reg_risk_high (giữ cũ)
+            elif trigger == 'on_reg_risk_high':
                 reg = (proj['legal_cost_spent'] / proj['target_funding']) * 100 if proj['target_funding'] > 0 else 0
                 if reg > 70:
                     triggers.append(rc)
-            elif rc.get('trigger') == 'on_hype_high' and proj['hype'] > 80:
+            
+            # 4. on_hype_high (giữ cũ)
+            elif trigger == 'on_hype_high' and proj['hype'] > 80:
                 triggers.append(rc)
-            elif rc.get('trigger') == 'on_runway_low':
-                m = calculate_metrics(proj)
-                if m.get('runway', 999) < 3:
-                    triggers.append(rc)
+            
+            # 5. on_runway_warning (mới) - runway <= 2
+            elif trigger == 'on_runway_warning' and metrics.get('runway', 999) <= 2:
+                triggers.append(rc)
+            
+            # 6. on_near_bankruptcy (mới) - runway <= 1
+            elif trigger == 'on_near_bankruptcy' and metrics.get('runway', 999) <= 1:
+                triggers.append(rc)
+            
+            # 7. on_trust_low (mới) - trust_all < 20
+            elif trigger == 'on_trust_low' and proj['trust_scores'] and (sum(proj['trust_scores'].values()) / len(proj['trust_scores'])) < 20:
+                triggers.append(rc)
+            
+            # 8. on_customer_trust_low (mới) - trust_all < 10
+            elif trigger == 'on_customer_trust_low' and proj['trust_scores'] and (sum(proj['trust_scores'].values()) / len(proj['trust_scores'])) < 10:
+                triggers.append(rc)
+            
+            # 9. on_visibility_collapse (mới) - visibility < 25
+            elif trigger == 'on_visibility_collapse' and proj.get('visibility', 50) < 25:
+                triggers.append(rc)
+            
+            # 10. on_cogs_rise (mới) - cogs > 0.6 (lấy từ material hoặc labor tổng hợp, tạm dùng material)
+            elif trigger == 'on_cogs_rise' and proj.get('material', 0) > 0.6:
+                triggers.append(rc)
+            
+            # 11. on_security_low (mới) - security < 20
+            elif trigger == 'on_security_low' and proj.get('security', 50) < 20:
+                triggers.append(rc)
+            
+            # 12. on_bot_withdraw (giữ cũ)
+            elif trigger == 'on_bot_withdraw':
+                # Bot withdraw event được xử lý riêng ở process_phase, ở đây ta có thể bỏ qua hoặc giữ logic cũ
+                # Tuy nhiên trong code cũ không có event bot_withdraw ở đây, nên giữ nguyên nếu muốn
+                # Để an toàn, ta vẫn thêm điều kiện false vì event này không xảy ra trong vòng lặp này
+                pass
+        
         if triggers:
             room['player_triggers'][idx]['available_reactions'] = triggers
             logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
