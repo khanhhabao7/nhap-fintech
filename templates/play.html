@@ -1060,29 +1060,68 @@
             const reactionListDiv = document.getElementById('reactionList2');
             if (data.triggers && data.triggers.length > 0) {
                 reactionTriggersDiv.classList.remove('hidden');
-                reactionListDiv.innerHTML = data.triggers.map(rc => `
-                    <div class="reaction-item bg-purple-100 rounded-lg p-2 mb-2">
-                        <button class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-sm reaction-btn w-full" data-id="${rc.id}" data-name="${rc.name}">
-                            ${rc.name}
-                        </button>
-                        <div class="text-xs text-gray-600 mt-1 px-1">${rc.desc || ''}</div>
-                    </div>
-                `).join('');
+                reactionListDiv.innerHTML = data.triggers.map(rc => {
+                    // Xác định màu sắc dựa trên type (nếu có), mặc định là purple
+                    let borderColor = '#a855f7';
+                    let bgColor = '#f3e8ff';
+                    if (rc.type === 'red') {
+                        borderColor = '#f43f5e';
+                        bgColor = '#ffe4e6';
+                    } else if (rc.type === 'green') {
+                        borderColor = '#0ea5e9';
+                        bgColor = '#e0f2fe';
+                    } else if (rc.type === 'purple') {
+                        borderColor = '#a855f7';
+                        bgColor = '#f3e8ff';
+                    }
+                    const rcCost = (rc.cost !== undefined) ? rc.cost : 3;
+                    return `
+                        <div class="hand-card p-3 mb-2" 
+                             style="border-left-color: ${borderColor}; background: ${bgColor}; cursor: pointer;" 
+                             data-id="${rc.id}" data-name="${rc.name}">
+                            <div class="font-bold text-purple-800 flex justify-between items-center">
+                                <span>${rc.name}</span>
+                                <span class="text-xs bg-purple-200 px-2 py-0.5 rounded-full">⚡ Cost: ${rcCost}</span>
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1 break-words">${rc.desc || ''}</div>
+                            <button class="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-sm reaction-btn w-full" 
+                                    data-id="${rc.id}" data-name="${rc.name}">Kích hoạt</button>
+                        </div>
+                    `;
+                }).join('');
+            
+                // Gắn sự kiện cho nút "Kích hoạt"
                 document.querySelectorAll('.reaction-btn').forEach(btn => {
-                    btn.onclick = async () => {
+                    btn.onclick = async (e) => {
+                        e.stopPropagation();  // tránh sự kiện từ div cha
                         const reactionId = btn.dataset.id;
                         const reactionIndex = (data.reaction_hand || []).findIndex(r => r.id === reactionId);
-                        if (reactionIndex === -1) { alert('Reaction not available'); return; }
+                        if (reactionIndex === -1) {
+                            alert('Reaction không còn khả dụng');
+                            return;
+                        }
                         try {
                             const res = await fetch(`${API_BASE}/use_reaction`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ room_id: roomIdFromUrl, player_index: playerIndexFromUrl, reaction_index: reactionIndex })
+                                body: JSON.stringify({ 
+                                    room_id: roomIdFromUrl, 
+                                    player_index: playerIndexFromUrl, 
+                                    reaction_index: reactionIndex 
+                                })
                             });
                             const result = await res.json();
-                            if (result.ok) alert(`Đã kích hoạt: ${btn.dataset.name}`);
-                            else alert(result.error || 'Failed');
-                        } catch (err) { alert(err.message); }
+                            if (result.ok) {
+                                alert(`✅ Đã kích hoạt: ${btn.dataset.name}`);
+                                // Cập nhật lại UI ngay sau khi dùng reaction
+                                const newState = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
+                                updateGameUIFromData(newState);
+                            } else {
+                                alert(result.error || 'Không thể kích hoạt reaction');
+                            }
+                        } catch (err) {
+                            alert(err.message);
+                        }
                     };
                 });
             } else {
