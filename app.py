@@ -229,6 +229,7 @@ REACTION_CARDS = [
     {
         "id": "R1",
         "name": "Emergency Bridge Cash",
+        "cost": 3,
         "trigger": "on_near_bankruptcy",
         "condition": {"metric": "runway", "operator": "<=", "value": 1},
         "desc": "Secure emergency bridge cash when the startup is almost out of runway.",
@@ -238,13 +239,13 @@ REACTION_CARDS = [
             "funding_boost_percent": 4,
             "trust_all": -6,
             "hype": -3,
-            "survival_phase": 1
         }
     },
 
     {
         "id": "R2",
         "name": "Emergency Burn Reduction Plan",
+        "cost": 3,
         "trigger": "on_runway_warning",
         "condition": {"metric": "runway", "operator": "==", "value": 2},
         "desc": "Cut non-essential spending when the startup has only two months of runway left.",
@@ -260,6 +261,7 @@ REACTION_CARDS = [
     {
         "id": "R3",
         "name": "One-Month Cash Gap Rescue",
+        "cost": 3,
         "trigger": "on_monthly_burn_exceeds_cash",
         "condition": {
             "left": {"metric": "monthly_burn"},
@@ -269,17 +271,17 @@ REACTION_CARDS = [
         "desc": "Take emergency action when monthly burn is higher than available cash.",
         "cost_percent": 1,
         "effect": {
-            "runway": 1,
+            "runway": 2,
             "cogs": -0.03,
             "hype": -4,
             "trust_all": -3,
-            "survival_phase": 1
         }
     },
 
     {
         "id": "R4",
         "name": "Two-Month Cash Coverage Plan",
+        "cost": 3,
         "trigger": "on_two_month_cash_coverage_risk",
         "condition": {
             "all": [
@@ -298,7 +300,7 @@ REACTION_CARDS = [
         "desc": "Reduce spending when available cash cannot cover the next two months of burn.",
         "cost_percent": 2,
         "effect": {
-            "runway": 2,
+            "runway": 1,
             "cogs": -0.02,
             "hype": -2,
         }
@@ -307,6 +309,7 @@ REACTION_CARDS = [
     {
         "id": "R5",
         "name": "Critical Cash Ratio Protection",
+        "cost": 3,
         "trigger": "on_cash_ratio_critical",
         "condition": {"metric": "cash_ratio", "operator": "<", "value": 0.2},
         "desc": "Protect cash when cash ratio falls below 20%.",
@@ -322,6 +325,7 @@ REACTION_CARDS = [
     {
         "id": "R6",
         "name": "Cash Ratio Watch Plan",
+        "cost": 3,
         "trigger": "on_cash_ratio_warning",
         "condition": {
             "all": [
@@ -341,6 +345,7 @@ REACTION_CARDS = [
     {
         "id": "R7",
         "name": "Investor Withdrawal Defense",
+        "cost": 3,
         "trigger": "on_bot_withdraw_high",
         "condition": {"metric": "bot_withdraw", "operator": ">=", "value": 0.7},
         "desc": "Reassure investors only when withdrawal pressure becomes severe.",
