@@ -226,10 +226,10 @@ def draw_hand_no_duplicate_color_cost(deck, hand_size=5):
 MAX_REACTION_CARDS_PER_GAME = 3
 
 REACTION_CARDS = [
-    {"id": "R1", "name": "Investor Calm Update", "trigger": "on_scenario_market_bad", "condition": {"scenario_tag": "market_down"}, "desc": "Send a quick update to reassure investors when the market suddenly turns negative.", "cost_percent": 2, "effect": {"trust_all": 5, "transparency": 5}},
+    {"id": "R1", "name": "Emergency Investor Trust Recovery Update", "trigger": "on_trust_low", "condition": {"metric": "trust_all", "operator": "<", "value": 35}, "desc": "Send a clear recovery update when overall investor trust becomes dangerously low.", "cost_percent": 2, "effect": {"trust_all": 8, "transparency": 5, "hype": -2}},
 
-    {"id": "R2", "name": "Public Rumor Response", "trigger": "on_reputation_shock", "condition": {"scenario_tag": "reputation"}, "desc": "Respond clearly to rumors, complaints, or negative media before trust drops further.", "cost_percent": 3, "effect": {"transparency": 10, "trust_all": 8, "hype": -3}},
-
+    {"id": "R2", "name": "Emergency Disclosure Statement", "trigger": "on_transparency_low", "condition": {"metric": "transparency", "operator": "<", "value": 35}, "desc": "Publish a clear emergency statement when lack of information creates serious doubt.", "cost_percent": 3, "effect": {"transparency": 12, "trust_all": 6, "hype": -3}},
+    
     {"id": "R3", "name": "Data Breach Emergency Fix", "trigger": "on_security_low", "condition": {"metric": "security", "operator": "<", "value": 40}, "desc": "Take urgent action to contain a data privacy or cybersecurity problem.", "cost_percent": 5, "effect": {"security": 20, "transparency": 8, "trust_all": 6, "reg_risk": -8}},
 
     {"id": "R4", "name": "Urgent Legal Support", "trigger": "on_reg_risk_high", "condition": {"metric": "reg_risk", "operator": ">", "value": 70}, "desc": "Bring in legal support when compliance or regulatory risk becomes too high.", "cost_percent": 4, "effect": {"reg_risk": -20, "transparency": 4, "legal_cost_percent": 3}},
