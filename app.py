@@ -194,6 +194,35 @@ def draw_hand_with_cost_ladder(player_deck, scenario, hand_size=5):
     random.shuffle(hand)
     return hand
 
+def draw_hand_no_duplicate_color_cost(deck, hand_size=5):
+    """Chọn hand_size lá từ deck sao cho không có 2 lá cùng (group, cost).
+       Nếu deck không đủ đa dạng, vẫn cố gắng tránh trùng lặp tối đa."""
+    from collections import defaultdict
+    import random
+
+    # Nhóm các lá bài theo (group, cost)
+    groups = defaultdict(list)
+    for card in deck:
+        groups[(card['group'], card['cost'])].append(card)
+
+    unique_groups = list(groups.keys())
+    hand = []
+
+    if len(unique_groups) >= hand_size:
+        # Đủ nhóm khác nhau: chọn hand_size nhóm ngẫu nhiên, mỗi nhóm lấy 1 lá
+        selected_groups = random.sample(unique_groups, hand_size)
+        hand = [random.choice(groups[g]) for g in selected_groups]
+    else:
+        # Không đủ nhóm: lấy mỗi nhóm một lá trước, sau đó bổ sung ngẫu nhiên
+        for g in unique_groups:
+            hand.append(random.choice(groups[g]))
+        while len(hand) < hand_size:
+            g = random.choice(unique_groups)
+            hand.append(random.choice(groups[g]))
+    random.shuffle(hand)
+    return hand
+
+
 MAX_REACTION_CARDS_PER_GAME = 3
 
 REACTION_CARDS = [
@@ -793,7 +822,7 @@ def try_start_game(room):
         # Phát bài ban đầu cho người chơi active và chọn sự kiện khởi đầu
         for idx, p in enumerate(room['players']):
             if p and p.get('active_deck') and len(p['active_deck']) > 0:
-                p['current_hand'] = random.sample(p['active_deck'], min(5, len(p['active_deck'])))
+                p['current_hand'] = draw_hand_no_duplicate_color_cost(p['active_deck'], 5)
                 p['energy_left'] = 3
                 scenario = random.choice(SCENARIOS)
                 p['last_scenario'] = scenario['name']
@@ -1531,7 +1560,7 @@ def run_phase():
     room['phase'] += 1
     for idx, proj in enumerate(players):
         if proj and proj.get('status') == 'active' and proj.get('current_phase', 0) < proj.get('max_phase', 999):
-            proj['current_hand'] = random.sample(proj['active_deck'], min(5, len(proj['active_deck'])))
+            proj['current_hand'] = draw_hand_no_duplicate_color_cost(proj['active_deck'], 5)
             proj['energy_left'] = 3
             room['mulligan_used'][idx] = False
             next_scenario = random.choice(SCENARIOS)
