@@ -716,29 +716,30 @@ def process_phase(room, phase, players, logs, bot_actions=None):
             desired = invested * withdraw_ratio
             max_withdraw = invested * max_ratio
             actual = min(desired, max_withdraw)
+            # Kiểm tra nếu available_cash <= 0 thì bankrupt luôn
+            if players[idx].get('available_cash', 0) <= 0:
+                players[idx]['status'] = 'bankrupt'
+                players[idx]['funding_progress'] = 0
+                players[idx]['total_invested'] = 0
+                logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền mặt để rút)")
+                continue
+                
             if actual > 0:
-    if actual <= players[idx]['available_cash']:
-        players[idx]['available_cash'] -= actual
-        players[idx]['total_invested'] -= actual
-        players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
-        alloc_entry['perProject'][idx] -= actual
-        alloc_entry['idle'] += actual
-        bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': actual})
-        logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
-    else:
-        # Dự án không đủ tiền mặt → rút hết số tiền mặt còn lại, phần còn thiếu bot mất
-        remaining_cash = players[idx]['available_cash']
-        if remaining_cash > 0:
-            players[idx]['available_cash'] = 0
-            alloc_entry['perProject'][idx] -= remaining_cash
-            alloc_entry['idle'] += remaining_cash
-            bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': remaining_cash})
-            logs.append(f"Bot {bot['type']} rút {remaining_cash:.0f} (hết tiền mặt) từ dự án {idx+1}")
-        # Đánh dấu phá sản
-        players[idx]['status'] = 'bankrupt'
-        players[idx]['funding_progress'] = 0
-        players[idx]['total_invested'] = 0
-        logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền mặt)!")
+                actual = min(actual, players[idx]['total_invested'], players[idx]['available_cash'])
+                if actual > 0:
+                    players[idx]['available_cash'] -= actual
+                    players[idx]['total_invested'] -= actual
+                    players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
+                    alloc_entry['perProject'][idx] -= actual
+                    alloc_entry['idle'] += actual
+                    bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': actual})
+                    logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
+                else:
+                    # Không thể rút do không đủ tiền -> bankrupt
+                    players[idx]['status'] = 'bankrupt'
+                    players[idx]['funding_progress'] = 0
+                    players[idx]['total_invested'] = 0
+                    logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền để rút)")
 
     for bot in active_bots:
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
@@ -1396,6 +1397,9 @@ def use_reaction():
     proj = room['players'][player_index]
     if not proj:
         return jsonify({'error': 'Player not found'}), 400
+
+    if proj.get('status') != 'active':
+        return jsonify({'error': 'Dự án đã kết thúc hoặc phá sản, không thể dùng reaction'}), 400
     
     reaction_hand = proj.get('reaction_hand', [])
     if reaction_index >= len(reaction_hand):
@@ -1611,7 +1615,14 @@ def run_phase():
                 if 'visibility' in eff:
                     proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
                 logs.append(f" → Dự án {idx+1} chơi thẻ {card['name']}")
-
+       
+        if proj.get('available_cash', 0) < 0:
+            proj['status'] = 'bankrupt'
+            proj['funding_progress'] = 0
+            proj['total_invested'] = 0
+            logs.append(f"❌ Dự án {idx+1} PHÁ SẢN do âm tiền mặt (${proj['available_cash']:.2f})!")
+            continue   # bỏ qua phần kích hoạt reaction và các bước sau cho dự án này
+        
         # Kích hoạt reaction (chỉ hiển thị, không tự động dùng)
         triggers = []
         metrics = calculate_metrics(proj)  # tính metrics để dùng nhiều lần
@@ -2027,6 +2038,7 @@ def handle_exception(e):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
 
 
 
