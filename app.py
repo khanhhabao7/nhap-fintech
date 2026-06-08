@@ -327,10 +327,10 @@ def calculate_metrics(proj):
     # Giới hạn x trong khoảng [-700, 700] để tránh tràn số
     return math.exp(max(-700, min(700, x)))
 
-sum_exp = sum(safe_exp(a / 35) for a in shifted)
-if sum_exp == 0:
-    sum_exp = 1e-9   # tránh chia cho 0
-probs = [safe_exp(a / 35) / sum_exp for a in shifted]
+    sum_exp = sum(safe_exp(a / 35) for a in shifted)
+    if sum_exp == 0:
+        sum_exp = 1e-9   # tránh chia cho 0
+    probs = [safe_exp(a / 35) / sum_exp for a in shifted]
 
     if gm > 0.2:
         gm_score = 20 + 10 * (1 - math.exp(-5 * (gm - 0.2) / 0.6))
