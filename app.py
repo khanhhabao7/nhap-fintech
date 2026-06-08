@@ -242,9 +242,9 @@ REACTION_CARDS = [
 
     {"id": "R8", "name": "Emergency Cost Freeze", "trigger": "on_cogs_rise", "condition": {"metric": "cogs", "operator": ">", "value": 0.06}, "desc": "Freeze non-essential spending when production or operating costs rise sharply.", "cost_percent": 1, "effect": {"cogs": -0.06, "runway": 1, "hype": -3}},
 
-    {"id": "R9", "name": "Expectation Reset Update", "trigger": "on_hype_high", "condition": {"metric": "hype", "operator": ">", "value": 85}, "desc": "Reduce unrealistic public expectations before excessive hype turns into disappointment.", "cost_percent": 1, "effect": {"hype": -12, "transparency": 8, "trust_all": 5}},
+    {"id": "R9", "name": "Emergency Bridge Cash", "trigger": "on_near_bankruptcy", "condition": {"metric": "runway", "operator": "<=", "value": 1}, "desc": "Secure short-term emergency cash to prevent immediate bankruptcy, but accept dilution and weaker investor confidence.", "cost_percent": 3, "effect": {"runway": 2, "funding_boost_percent": 5, "trust_all": -4, "dilution": 6}},
 
-    {"id": "R10", "name": "Investor Withdrawal Defense", "trigger": "on_bot_withdraw", "condition": {"event": "bot_withdraw"}, "desc": "Reassure investors when withdrawal pressure starts and reduce the risk of panic selling.", "cost_percent": 3, "effect": {"sell_pressure_reduce": 0.5, "trust_all": 8, "whale_trust": 5}},
+    {"id": "R10", "name": "Investor Withdrawal Defense", "trigger": "on_bot_withdraw", "condition": {"event": "bot_withdraw"}, "desc": "Reassure investors when withdrawal pressure starts and reduce the risk of panic selling.", "cost_percent": 3, "effect": {"sell_pressure_reduce": 0.5, "trust_all": 8, "whale_trust": 5, "runway": 1}},
 ]
 
 from collections import Counter
