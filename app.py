@@ -1596,7 +1596,9 @@ def use_reaction():
     
     if rc['id'] not in available_ids:
         return jsonify({'error': 'Reaction này hiện không thể kích hoạt'}), 400
-    
+    rc_cost = rc.get('cost', 3)          # mặc định cost = 3 nếu card không có trường cost
+    if proj.get('energy_left', 0) < rc_cost:
+        return jsonify({'error': f'Không đủ Energy! Cần {rc_cost} energy, hiện có {proj["energy_left"]}.'}), 400
     eff = rc.get('effect', {})
     cost_percent = rc.get('cost_percent', 0)
     
@@ -1648,6 +1650,15 @@ def use_reaction():
     # Trừ chi phí của reaction card
     cost = (cost_percent / 100.0) * proj['target_funding']
     proj['available_cash'] = max(0, proj['available_cash'] - cost)
+
+    proj['energy_left'] -= rc_cost
+    
+    # Xoá reaction đã dùng (giữ nguyên)
+    proj['reaction_hand'].pop(reaction_index)
+    room['player_triggers'][player_index]['available_reactions'] = [
+        r for r in available_reactions if r['id'] != rc['id']
+    ]
+    return jsonify({'ok': True, 'message': f'Đã kích hoạt reaction: {rc["name"]} (tiêu tốn {rc_cost} năng lượng)'})
     
     # Xoá reaction đã dùng
     proj['reaction_hand'].pop(reaction_index)
