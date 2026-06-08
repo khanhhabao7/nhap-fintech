@@ -288,6 +288,33 @@ def get_scale_factor(scale):
     return {"S": 0.8, "M": 1.0, "L": 1.2}.get(scale, 1.0)
 
 def calculate_metrics(proj):
+    # Đảm bảo các key cần thiết có giá trị mặc định
+    proj.setdefault('fee_ecom', 0)
+    proj.setdefault('fee_retail', 0)
+    proj.setdefault('fee_direct', 0)
+    proj.setdefault('material', 0)
+    proj.setdefault('packaging', 0)
+    proj.setdefault('labor', 0)
+    proj.setdefault('defect_rate', 0)
+    proj.setdefault('fixed_cost', 0)
+    proj.setdefault('marketing_cost', 0)
+    proj.setdefault('loan', 0)
+    proj.setdefault('interest_rate', 0)
+    proj.setdefault('target_funding', 1)   # tránh chia 0
+    proj.setdefault('units_m1', 1)
+    proj.setdefault('units_m6', 1)
+    proj.setdefault('owner_equity', 0)
+    proj.setdefault('price', 1)
+    proj.setdefault('has_license', False)
+    proj.setdefault('legal_cost_spent', 0)
+    proj.setdefault('transparency', 50)
+    proj.setdefault('available_cash', 0)
+    proj.setdefault('security', 50)
+    proj.setdefault('reg_risk', 0)
+    proj.setdefault('hype', 50)
+    proj.setdefault('visibility', 50)
+    proj.setdefault('total_invested', 0)
+
     total_fees = proj.get("fee_ecom", 0) + proj.get("fee_retail", 0) + proj.get("fee_direct", 0)
     ch_fees = total_fees / 100.0
     price_real = proj["price"] * (1 - ch_fees)
@@ -628,6 +655,8 @@ def process_phase(room, phase, players, logs, bot_actions=None):
     bot_alloc = room['bot_alloc']
     A = {}
 
+
+
     for bot in active_bots:
         for idx, proj in enumerate(players):
             if not proj or proj.get('status') != 'active' or proj['funding_progress'] >= 1 or proj.get('current_phase', 0) >= proj['max_phase']:
@@ -659,11 +688,15 @@ def process_phase(room, phase, players, logs, bot_actions=None):
                 continue
             if players[idx].get('status') != 'active' or players[idx].get('current_phase', 0) >= players[idx]['max_phase']:
                 if invested > 0:
-                    players[idx]['available_cash'] -= invested
-                    alloc_entry['idle'] += invested
-                    alloc_entry['perProject'][idx] = 0
-                    bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': invested})
-                    logs.append(f"Bot {bot['type']} rút toàn bộ {invested:.0f} từ dự án {idx+1} (kết thúc)")
+                    withdraw_amount = min(invested, players[idx]['available_cash'], players[idx]['total_invested'])
+                    if withdraw_amount > 0:
+                        players[idx]['available_cash'] -= withdraw_amount
+                        players[idx]['total_invested'] -= withdraw_amount
+                        players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
+                        alloc_entry['idle'] += withdraw_amount
+                        alloc_entry['perProject'][idx] = 0
+                        bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': withdraw_amount})
+                        logs.append(f"Bot {bot['type']} rút toàn bộ {withdraw_amount:.0f} từ dự án {idx+1} (kết thúc)")
                 continue
             diff = A.get((bot['id'], best_idx), -1e9) - A.get((bot['id'], idx), -1e9)
             if diff > 25:
@@ -684,7 +717,9 @@ def process_phase(room, phase, players, logs, bot_actions=None):
             max_withdraw = invested * max_ratio
             actual = min(desired, max_withdraw)
             if actual > 0:
-                if actual <= players[idx]['available_cash']:
+                # Giới hạn actual không vượt quá total_invested và available_cash
+                actual = min(actual, players[idx]['total_invested'], players[idx]['available_cash'])
+                if actual > 0:
                     players[idx]['available_cash'] -= actual
                     players[idx]['total_invested'] -= actual
                     players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
@@ -692,6 +727,7 @@ def process_phase(room, phase, players, logs, bot_actions=None):
                     alloc_entry['idle'] += actual
                     bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': actual})
                     logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
+                # Nếu actual = 0 thì không làm gì (không đủ tiền để rút)
                 else:
                     players[idx]['status'] = 'bankrupt'
                     players[idx]['funding_progress'] = 0
@@ -1502,9 +1538,13 @@ def run_phase():
         # ========== CÁC DELTA MỚI ==========
         if 'funding_boost_percent' in d:
             boost = (d['funding_boost_percent'] / 100) * proj['target_funding']
+            new_total = proj['total_invested'] + boost
+            if new_total < 0:
+                boost = -proj['total_invested']   # chỉ giảm đến 0
             proj['total_invested'] += boost
             proj['available_cash'] += boost
-            proj['funding_progress'] = min(1.0, proj['total_invested'] / proj['target_funding'])
+            proj['funding_progress'] = min(1.0, max(0, proj['total_invested'] / proj['target_funding']))
+            logs.append(f" → Dự án {idx+1}: funding_boost {d.get('funding_boost_percent',0)}%, total_invested={proj['total_invested']:.0f}, progress={proj['funding_progress']:.2f}")
         
         if 'security' in d:
             proj['security'] = clamp(proj.get('security', 50) + d['security'], 0, 100)
@@ -1548,9 +1588,12 @@ def run_phase():
                     proj['labor'] = proj.get('labor', 0) * (1 + eff['cogs_percent'] / 100)
                 if 'funding_boost_percent' in eff:
                     boost = (eff['funding_boost_percent'] / 100) * proj['target_funding']
+                    new_total = proj['total_invested'] + boost
+                    if new_total < 0:
+                        boost = -proj['total_invested']
                     proj['total_invested'] += boost
                     proj['available_cash'] += boost
-                    proj['funding_progress'] = min(1.0, proj['total_invested'] / proj['target_funding'])
+                    proj['funding_progress'] = min(1.0, max(0, proj['total_invested'] / proj['target_funding']))
                 if 'cost_percent' in eff:
                     proj['available_cash'] -= (eff['cost_percent'] / 100) * proj['target_funding']
                 if 'visibility' in eff:
