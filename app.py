@@ -478,9 +478,9 @@ def attractiveness(project, bot, metrics):
         elif key == "funding_prog":
             val = metrics["funding_progress"] * 100
         elif key == "security":
-            val = proj.get('security', 50)
+            val = project.get('security', 50)
         elif key == "reg_risk":
-            val = 100 - proj.get('reg_risk', 0)   # đảo ngược: reg_risk thấp → điểm cao
+            val = 100 - project.get('reg_risk', 0)  # đảo ngược: reg_risk thấp → điểm cao
         else:
             continue
         sens = bot["hype_sens"] if key == "hype" else (bot["trans_sens"] if key == "transparency" else 1.0)
