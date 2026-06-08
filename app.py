@@ -498,7 +498,29 @@ def final_score(proj, phases_used, metrics):
     roi_score = min(20, (metrics["roi_norm"] / 100) * 20)
     trans_score = max(0, min(20, (proj["transparency"] / 100) * 20))
 
-    raw = funding_score + speed_score + roi_score + trans_score
+    # === THÊM: điểm COGS (margin) ===
+    price = proj.get("price", 1)
+    cogs_unit = (proj.get("material", 0) + proj.get("packaging", 0) + proj.get("labor", 0)) * (1 + proj.get("defect_rate", 0) / 100.0)
+    if price > 0:
+        gross_margin = (price - cogs_unit) / price
+    else:
+        gross_margin = 0
+    margin_score = min(15, max(0, gross_margin * 30))   # 0-15 điểm
+
+    # === THÊM: điểm runway ===
+    runway = metrics.get("runway", 0)
+    if runway >= 12:
+        runway_score = 10
+    elif runway >= 6:
+        runway_score = 5
+    elif runway <= 2:
+        runway_score = -10
+    elif runway <= 4:
+        runway_score = -5
+    else:
+        runway_score = 0
+
+    raw = funding_score + speed_score + roi_score + trans_score + margin_score + runway_score
     raw = max(0, min(100, raw))
 
     scale_map = {"S": 0.8, "M": 0.9, "L": 1.0}
@@ -926,6 +948,9 @@ def submit_project():
         'hype': project_data.get('hype', 50),
         'transparency': project_data.get('transparency', 50),
         'visibility': project_data.get('visibility', 50),
+        'security': 50,               
+        'utility': 50,                
+        'whale_trust': 50,            
         'active_deck': [],
         'reaction_hand': [],
         'current_hand': [],
@@ -1345,30 +1370,70 @@ def use_reaction():
     eff = rc.get('effect', {})
     cost_percent = rc.get('cost_percent', 0)
     
+    # Transparency
     if 'transparency' in eff:
         proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
+    # Hype
     if 'hype' in eff:
         proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
+    # Runway (thay đổi available cash theo monthly burn)
     if 'runway' in eff:
         m = calculate_metrics(proj)
         proj['available_cash'] += eff['runway'] * m.get('monthly_burn', 0)
-    if 'reg_risk' in eff and eff['reg_risk'] < 0:
-        reduction = (abs(eff['reg_risk']) / 100.0) * proj['target_funding']
-        proj['legal_cost_spent'] = max(0, proj['legal_cost_spent'] - reduction)
+    # Reg risk -> ảnh hưởng transparency và legal cost
+    if 'reg_risk' in eff:
+        proj['transparency'] = clamp(proj['transparency'] - eff['reg_risk'] * 0.5, 0, 100)
+        cost = (abs(eff['reg_risk']) / 100.0) * proj['target_funding']
+        proj['legal_cost_spent'] += cost
+        proj['available_cash'] -= cost
+    # Trust all bots
     if 'trust_all' in eff:
         for bid in proj['trust_scores']:
             proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + eff['trust_all'], 0, 100)
-    if 'trust_whale' in eff:
+    # Whale trust riêng
+    if 'whale_trust' in eff:
+        proj['whale_trust'] = clamp(proj['whale_trust'] + eff['whale_trust'], 0, 100)
+        # Đồng thời cập nhật trust_scores cho các bot Whale
         for bot in BOTS:
             if bot['type'] == 'Whale':
                 bid = bot['id']
-                proj['trust_scores'][bid] = clamp(proj['trust_scores'].get(bid, 50) + eff['trust_whale'], 0, 100)
+                proj['trust_scores'][bid] = clamp(proj['trust_scores'].get(bid, 50) + eff['whale_trust'], 0, 100)
+    # Security và ảnh hưởng trust
+    if 'security' in eff:
+        proj['security'] = clamp(proj['security'] + eff['security'], 0, 100)
+        trust_delta = eff['security'] * 0.6
+        for bid in proj['trust_scores']:
+            proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + trust_delta, 0, 100)
+    # Utility
+    if 'utility' in eff:
+        proj['utility'] = clamp(proj['utility'] + eff['utility'], 0, 100)
+    # Sell pressure reduce
     if 'sell_pressure_reduce' in eff:
         proj['sell_pressure_reduce'] = eff.get('sell_pressure_reduce', 0.5)
+    # COGS percent
+    if 'cogs_percent' in eff:
+        factor = 1 + eff['cogs_percent'] / 100.0
+        proj['material'] *= factor
+        proj['packaging'] *= factor
+        proj['labor'] = proj.get('labor', 0) * factor
+    # Price percent
+    if 'price_percent' in eff:
+        proj['price'] *= (1 + eff['price_percent'] / 100.0)
+    # Funding boost percent (quan trọng!)
+    if 'funding_boost_percent' in eff:
+        boost = (eff['funding_boost_percent'] / 100.0) * proj['target_funding']
+        proj['total_invested'] += boost
+        proj['available_cash'] += boost
+        proj['funding_progress'] = min(1.0, proj['total_invested'] / proj['target_funding'])
+    # Cost percent (trừ tiền mặt)
+    if 'cost_percent' in eff:
+        proj['available_cash'] -= (eff['cost_percent'] / 100.0) * proj['target_funding']
     
+    # Trừ chi phí kích hoạt reaction
     cost = (cost_percent / 100.0) * proj['target_funding']
     proj['available_cash'] = max(0, proj['available_cash'] - cost)
     
+    # Xoá reaction khỏi hand
     proj['reaction_hand'].pop(reaction_index)
     room['player_triggers'][player_index]['available_reactions'] = [
         r for r in available_reactions if r['id'] != rc['id']
@@ -1377,6 +1442,51 @@ def use_reaction():
     return jsonify({'ok': True, 'message': f'Đã kích hoạt reaction: {rc["name"]}'})
 
 @app.route('/api/run_phase', methods=['POST'])
+def evaluate_reaction_triggers(proj, scenario, metrics, bot_withdraw_occurred=False):
+    triggers = []
+    for rc in proj.get('reaction_hand', []):
+        cond = rc.get('condition', {})
+        trigger_type = rc.get('trigger', '')
+        
+        # Kiểm tra từng loại trigger
+        if trigger_type == 'on_trust_low' and cond.get('metric') == 'trust_all':
+            # Lấy trust trung bình của tất cả bot (hoặc dùng giá trị trung bình)
+            avg_trust = sum(proj['trust_scores'].values()) / len(proj['trust_scores']) if proj['trust_scores'] else 50
+            if avg_trust < cond.get('value', 35):
+                triggers.append(rc)
+        elif trigger_type == 'on_transparency_low' and proj.get('transparency', 50) < cond.get('value', 35):
+            triggers.append(rc)
+        elif trigger_type == 'on_security_low' and proj.get('security', 50) < cond.get('value', 40):
+            triggers.append(rc)
+        elif trigger_type == 'on_reg_risk_high':
+            reg_risk = metrics.get('reg_risk', 0)
+            if reg_risk > cond.get('value', 70):
+                triggers.append(rc)
+        elif trigger_type == 'on_runway_low' and metrics.get('runway', 999) < cond.get('value', 3):
+            triggers.append(rc)
+        elif trigger_type == 'on_whale_trust_low' and proj.get('whale_trust', 50) < cond.get('value', 35):
+            triggers.append(rc)
+        elif trigger_type == 'on_customer_trust_low' and cond.get('metric') == 'trust_all':
+            avg_trust = sum(proj['trust_scores'].values()) / len(proj['trust_scores']) if proj['trust_scores'] else 50
+            if avg_trust < cond.get('value', 25):
+                triggers.append(rc)
+        elif trigger_type == 'on_cogs_rise':
+            price = proj.get('price', 1)
+            cogs_unit = (proj.get('material', 0) + proj.get('packaging', 0) + proj.get('labor', 0))
+            cogs_ratio = cogs_unit / price if price > 0 else 0
+            if cogs_ratio > cond.get('value', 0.06):
+                triggers.append(rc)
+        elif trigger_type == 'on_near_bankruptcy' and metrics.get('runway', 999) <= cond.get('value', 1):
+            triggers.append(rc)
+        elif trigger_type == 'on_bot_withdraw' and bot_withdraw_occurred:
+            triggers.append(rc)
+        # Giữ lại trigger cũ cho tương thích
+        elif trigger_type == 'on_scenario_market_bad' and scenario.get('cat') == 'Market':
+            if any(k in scenario['name'].lower() for k in ['crisis', 'slow', 'khủng', 'xấu', 'giảm']):
+                triggers.append(rc)
+        elif trigger_type == 'on_hype_high' and proj.get('hype', 50) > 85:
+            triggers.append(rc)
+    return triggers
 def run_phase():
     data = request.json
     room_id = data['room_id']
@@ -1459,29 +1569,42 @@ def run_phase():
             proj['last_scenario'] = scenario['name']
         logs.append(f"Dự án {idx+1}: {scenario['name']}")
 
-        d = scenario['delta']
-        if 'price' in d:
-            proj['price'] *= (1 + d['price'])
-        if 'cogs' in d:
-            proj['material'] *= (1 + d['cogs'])
-            proj['packaging'] *= (1 + d['cogs'])
-            proj['labor'] = proj.get('labor', 0) * (1 + d['cogs'])
-        if 'hype' in d:
-            proj['hype'] = clamp(proj['hype'] + d['hype'], 0, 100)
-        if 'transparency' in d:
-            proj['transparency'] = clamp(proj['transparency'] + d['transparency'], 0, 100)
-        if 'trust_all' in d:
-            for bid in proj['trust_scores']:
-                proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + d['trust_all'], 0, 100)
-        if 'runway' in d:
-            m = calculate_metrics(proj)
-            proj['available_cash'] += d['runway'] * m.get('monthly_burn', 0)
-        if 'legal_cost_percent' in d:
-            cost = (d['legal_cost_percent'] / 100) * proj['target_funding']
-            proj['legal_cost_spent'] += cost
-            proj['available_cash'] -= cost
-        if 'reg_risk' in d:
-            proj['legal_cost_spent'] += (d['reg_risk'] / 100) * proj['target_funding']
+    d = scenario['delta']
+    if 'price' in d:
+        proj['price'] *= (1 + d['price'])
+    if 'cogs' in d:
+        proj['material'] *= (1 + d['cogs'])
+        proj['packaging'] *= (1 + d['cogs'])
+        proj['labor'] = proj.get('labor', 0) * (1 + d['cogs'])
+    if 'hype' in d:
+        proj['hype'] = clamp(proj['hype'] + d['hype'], 0, 100)
+    if 'transparency' in d:
+        proj['transparency'] = clamp(proj['transparency'] + d['transparency'], 0, 100)
+    if 'trust_all' in d:
+        for bid in proj['trust_scores']:
+            proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + d['trust_all'], 0, 100)
+    if 'runway' in d:
+        m = calculate_metrics(proj)
+        proj['available_cash'] += d['runway'] * m.get('monthly_burn', 0)
+    if 'legal_cost_percent' in d:
+        cost = (d['legal_cost_percent'] / 100) * proj['target_funding']
+        proj['legal_cost_spent'] += cost
+        proj['available_cash'] -= cost
+    if 'reg_risk' in d:
+        # Reg risk ảnh hưởng trực tiếp đến transparency
+        proj['transparency'] = clamp(proj['transparency'] - d['reg_risk'] * 0.5, 0, 100)
+        proj['legal_cost_spent'] += (d['reg_risk'] / 100) * proj['target_funding']
+    # ===== THÊM CÁC DÒNG MỚI =====
+    if 'security' in d:
+        proj['security'] = clamp(proj['security'] + d['security'], 0, 100)
+        # Security thay đổi ảnh hưởng đến trust
+        trust_delta = d['security'] * 0.6
+        for bid in proj['trust_scores']:
+            proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + trust_delta, 0, 100)
+    if 'utility' in d:
+        proj['utility'] = clamp(proj['utility'] + d['utility'], 0, 100)
+    if 'whale_trust' in d:
+        proj['whale_trust'] = clamp(proj['whale_trust'] + d['whale_trust'], 0, 100)
 
         # Áp dụng thẻ đã chơi (pending_cards)
         pending_key = str(idx)
@@ -1509,29 +1632,33 @@ def run_phase():
                     proj['available_cash'] -= (eff['cost_percent'] / 100) * proj['target_funding']
                 if 'visibility' in eff:
                     proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
+                # ===== THÊM CÁC DÒNG MỚI =====
+                if 'security' in eff:
+                    proj['security'] = clamp(proj['security'] + eff['security'], 0, 100)
+                    trust_delta = eff['security'] * 0.6
+                    for bid in proj['trust_scores']:
+                        proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + trust_delta, 0, 100)
+                if 'utility' in eff:
+                    proj['utility'] = clamp(proj['utility'] + eff['utility'], 0, 100)
+                if 'whale_trust' in eff:
+                    proj['whale_trust'] = clamp(proj['whale_trust'] + eff['whale_trust'], 0, 100)
                 logs.append(f" → Dự án {idx+1} chơi thẻ {card['name']}")
 
-        # Kích hoạt reaction (chỉ hiển thị, không tự động dùng)
-        triggers = []
-        for rc in proj.get('reaction_hand', []):
-            if rc.get('trigger') == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
-                if any(k in scenario['name'].lower() for k in ['crisis', 'slow', 'khủng', 'xấu']):
-                    triggers.append(rc)
-            elif rc.get('trigger') == 'on_transparency_low' and proj['transparency'] < 30:
-                triggers.append(rc)
-            elif rc.get('trigger') == 'on_reg_risk_high':
-                reg = (proj['legal_cost_spent'] / proj['target_funding']) * 100 if proj['target_funding'] > 0 else 0
-                if reg > 70:
-                    triggers.append(rc)
-            elif rc.get('trigger') == 'on_hype_high' and proj['hype'] > 80:
-                triggers.append(rc)
-            elif rc.get('trigger') == 'on_runway_low':
-                m = calculate_metrics(proj)
-                if m.get('runway', 999) < 3:
-                    triggers.append(rc)
-        if triggers:
-            room['player_triggers'][idx]['available_reactions'] = triggers
-            logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
+        
+        # Tạm thời gọi evaluate với bot_withdraw=False
+        for idx, proj in enumerate(players):
+            if not proj or proj.get('status') != 'active':
+                continue
+            metrics = calculate_metrics(proj)
+            # Lấy scenario hiện tại
+            scenario_name = proj.get('last_scenario')
+            scenario = next((s for s in SCENARIOS if s['name'] == scenario_name), None)
+            if not scenario:
+                continue
+            triggers = evaluate_reaction_triggers(proj, scenario, metrics, bot_withdraw_occurred=False)
+            if triggers:
+                room['player_triggers'][idx]['available_reactions'] = triggers
+                logs.append(f" → Dự án {idx+1} có {len(triggers)} reaction có thể kích hoạt")
 
     # Snapshot starting cash for each player before bot processing
     starting_cash = {}
