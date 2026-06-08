@@ -226,25 +226,114 @@ def draw_hand_no_duplicate_color_cost(deck, hand_size=5):
 MAX_REACTION_CARDS_PER_GAME = 3
 
 REACTION_CARDS = [
-    {"id": "R1", "name": "Emergency Investor Trust Recovery Update", "trigger": "on_trust_low", "condition": {"metric": "trust_all", "operator": "<", "value": 20}, "desc": "Send a clear recovery update when overall investor trust becomes dangerously low.", "cost_percent": 2, "effect": {"trust_all": 8, "transparency": 5, "hype": -2}},
-
-    {"id": "R2", "name": "Emergency Disclosure Statement", "trigger": "on_transparency_low", "condition": {"metric": "transparency", "operator": "<", "value": 25}, "desc": "Publish a clear emergency statement when lack of information creates serious doubt.", "cost_percent": 3, "effect": {"transparency": 12, "trust_all": 6, "hype": -3}},
-    
-    {"id": "R3", "name": "Data Breach Emergency Fix", "trigger": "on_security_low", "condition": {"metric": "security", "operator": "<", "value": 20}, "desc": "Take urgent action to contain a data privacy or cybersecurity problem.", "cost_percent": 5, "effect": {"security": 20, "transparency": 8, "trust_all": 6, "reg_risk": -8}},
-
-    {"id": "R4", "name": "Urgent Legal Support", "trigger": "on_reg_risk_high", "condition": {"metric": "reg_risk", "operator": ">", "value": 70}, "desc": "Bring in legal support when compliance or regulatory risk becomes too high.", "cost_percent": 4, "effect": {"reg_risk": -20, "transparency": 4}},
-
-    {"id": "R5", "name": "Emergency Burn Reduction Plan", "trigger": "on_runway_warning", "condition": {"metric": "runway", "operator": "<=", "value": 2}, "desc": "Cut non-essential spending when the startup has only a short runway left before a cash crisis.", "cost_percent": 2, "effect": {"runway": 1, "cogs": -0.03, "hype": -3, "trust_all": -2}},
-    
-    {"id": "R6", "name": "Emergency Visibility Recovery Sprint", "trigger": "on_visibility_collapse", "condition": {"metric": "visibility", "operator": "<", "value": 25}, "desc": "Run an urgent visibility recovery sprint when the startup loses market reach.", "cost_percent": 4, "effect": {"visibility": 16, "hype": 6, "trust_all": 3, "cost_percent": 3}},
-
-    {"id": "R7", "name": "Product Quality Recall", "trigger": "on_customer_trust_low", "condition": {"metric": "trust_all", "operator": "<", "value": 10}, "desc": "Recall or fix poor-quality products before customer trust is damaged further.", "cost_percent": 5, "effect": {"trust_all": 8, "transparency": 5, "hype": -3}},
-    
-    {"id": "R8", "name": "Emergency Cost Freeze", "trigger": "on_cogs_rise", "condition": {"metric": "cogs", "operator": ">", "value": 0.6}, "desc": "Freeze non-essential spending when production or operating costs rise sharply.", "cost_percent": 1, "effect": {"cogs": -0.04, "runway": 1, "hype": -3}},
-
-    {"id": "R9", "name": "Emergency Bridge Cash", "trigger": "on_near_bankruptcy", "condition": {"metric": "runway", "operator": "<=", "value": 1}, "desc": "Secure short-term emergency cash to prevent immediate bankruptcy, but accept weaker investor confidence.", "cost_percent": 3, "effect": {"runway": 2, "funding_boost_percent": 5, "trust_all": -6}},
-
-    {"id": "R10", "name": "Investor Withdrawal Defense", "trigger": "on_bot_withdraw", "condition": {"event": "bot_withdraw"}, "desc": "Reassure investors when withdrawal pressure starts and reduce the risk of panic selling.", "cost_percent": 3, "effect": {"sell_pressure_reduce": 0.5, "trust_all": 8, "whale_trust": 5, "runway": 1}},
+    {
+        "id": "R1",
+        "name": "Emergency Bridge Cash",
+        "trigger": "on_near_bankruptcy",
+        "condition": {"metric": "runway", "operator": "<=", "value": 1},
+        "desc": "Secure emergency bridge cash when the startup is almost out of runway.",
+        "cost_percent": 2,
+        "effect": {
+            "runway": 2,
+            "funding_boost_percent": 4,
+            "trust_all": -6,
+            "hype": -3,
+            "survival_phase": 1
+        }
+    },
+    {
+        "id": "R2",
+        "name": "Emergency Burn Reduction Plan",
+        "trigger": "on_runway_warning",
+        "condition": {"metric": "runway", "operator": "==", "value": 2},
+        "desc": "Cut non-essential spending when the startup has only two months of runway left.",
+        "cost_percent": 1,
+        "effect": {
+            "runway": 1,
+            "cogs": -0.03,
+            "hype": -3,
+            "trust_all": -2
+        }
+    },
+    {
+        "id": "R3",
+        "name": "One-Month Cash Gap Rescue",
+        "trigger": "on_monthly_burn_exceeds_cash",
+        "condition": {
+            "left": {"metric": "monthly_burn"},
+            "operator": ">",
+            "right": {"metric": "available_cash"}
+        },
+        "desc": "Take emergency action when monthly burn is higher than available cash.",
+        "cost_percent": 1,
+        "effect": {
+            "runway": 1,
+            "cogs": -0.03,
+            "hype": -4,
+            "trust_all": -3,
+            "survival_phase": 1
+        }
+    },
+    {
+        "id": "R4",
+        "name": "Two-Month Cash Coverage Plan",
+        "trigger": "on_two_month_cash_coverage_risk",
+        "condition": {
+            "all": [
+                {
+                    "left": {"metric": "monthly_burn", "multiplier": 2},
+                    "operator": ">",
+                    "right": {"metric": "available_cash"}
+                },
+                {
+                    "left": {"metric": "monthly_burn"},
+                    "operator": "<=",
+                    "right": {"metric": "available_cash"}
+                }
+            ]
+        },
+        "desc": "Reduce spending when available cash cannot cover the next two months of burn.",
+        "cost_percent": 2,
+        "effect": {
+            "runway": 1,
+            "cogs": -0.02,
+            "hype": -2,
+            "visibility": -2
+        }
+    },
+    {
+        "id": "R5",
+        "name": "Critical Cash Ratio Protection",
+        "trigger": "on_cash_ratio_critical",
+        "condition": {"metric": "cash_ratio", "operator": "<", "value": 0.2},
+        "desc": "Protect cash when available cash falls below 20% of the target funding requirement.",
+        "cost_percent": 1,
+        "effect": {
+            "runway": 1,
+            "cogs": -0.02,
+            "hype": -2,
+            "trust_all": -2
+        }
+    },
+    {
+        "id": "R6",
+        "name": "Cash Ratio Watch Plan",
+        "trigger": "on_cash_ratio_warning",
+        "condition": {
+            "all": [
+                {"metric": "cash_ratio", "operator": ">", "value": 0.2},
+                {"metric": "cash_ratio", "operator": "<", "value": 0.3}
+            ]
+        },
+        "desc": "Start early cash control when available cash is between 20% and 30% of target funding.",
+        "cost_percent": 2,
+        "effect": {
+            "runway": 1,
+            "cogs": -0.01,
+            "hype": -1,
+            "visibility": -1
+        }
+    },
 ]
 from collections import Counter
 
@@ -257,7 +346,7 @@ def validate_master_data():
     if len(ACTIVE_CARDS_FULL) != 42:
         errors.append(f"ACTIVE_CARDS_FULL must have 42 cards, found {len(ACTIVE_CARDS_FULL)}")
 
-    if len(REACTION_CARDS) != 10:
+    if len(REACTION_CARDS) != 6:
         errors.append(f"REACTION_CARDS must have 10 cards, found {len(REACTION_CARDS)}")
 
     active_ids = [card["id"] for card in ACTIVE_CARDS_FULL]
@@ -285,6 +374,66 @@ def clamp(x, lo, hi):
 
 def get_scale_factor(scale):
     return {"S": 0.8, "M": 1.0, "L": 1.2}.get(scale, 1.0)
+
+def evaluate_condition(cond, proj, metrics):
+    """Đánh giá điều kiện của reaction card.
+       cond có thể là dict đơn giản: {"metric": "runway", "operator": "<=", "value": 1}
+       hoặc phức tạp: {"left": {...}, "operator": "...", "right": {...}}
+       hoặc {"all": [cond1, cond2, ...]}.
+    """
+    # Lấy giá trị của một metric từ proj hoặc metrics
+    def get_metric_value(metric_def):
+        if isinstance(metric_def, dict):
+            metric_name = metric_def.get("metric")
+            multiplier = metric_def.get("multiplier", 1)
+            if metric_name == "monthly_burn":
+                val = metrics.get("monthly_burn", 0)
+            elif metric_name == "available_cash":
+                val = proj.get("available_cash", 0)
+            elif metric_name == "cash_ratio":
+                val = proj.get("available_cash", 0) / proj.get("target_funding", 1)
+            elif metric_name == "runway":
+                val = metrics.get("runway", 0)
+            else:
+                val = proj.get(metric_name, 0)
+            return val * multiplier
+        else:
+            return metric_def
+
+    # So sánh hai giá trị
+    def compare(left, op, right):
+        if op == "<":
+            return left < right
+        elif op == "<=":
+            return left <= right
+        elif op == ">":
+            return left > right
+        elif op == ">=":
+            return left >= right
+        elif op == "==":
+            return left == right
+        elif op == "!=":
+            return left != right
+        return False
+
+    # Xử lý condition dạng {"all": [...]}
+    if "all" in cond:
+        return all(evaluate_condition(sub, proj, metrics) for sub in cond["all"])
+
+    # Xử lý condition dạng {"left": ..., "operator": ..., "right": ...}
+    if "left" in cond and "operator" in cond and "right" in cond:
+        left_val = get_metric_value(cond["left"])
+        right_val = get_metric_value(cond["right"])
+        return compare(left_val, cond["operator"], right_val)
+
+    # Xử lý condition đơn giản {"metric": ..., "operator": ..., "value": ...}
+    if "metric" in cond and "operator" in cond and "value" in cond:
+        left_val = get_metric_value({"metric": cond["metric"]})
+        right_val = cond["value"]
+        return compare(left_val, cond["operator"], right_val)
+
+    # Mặc định false nếu không hiểu
+    return False
 
 def calculate_metrics(proj):
     # Đảm bảo các key cần thiết có giá trị mặc định
@@ -418,7 +567,8 @@ def calculate_metrics(proj):
         "funding_progress": proj.get("funding_progress", 0),
         "estimated_valuation": estimated_valuation,
         "raw_roi": raw_roi,
-        "reg_risk": reg_risk
+        "reg_risk": reg_risk,
+        "cash_ratio": proj.get("available_cash", 0) / proj.get("target_funding", 1) if proj.get("target_funding", 1) > 0 else 0,
     }
 
 # ==================== KHANH: AI BOT GENERATION ====================
@@ -1427,16 +1577,13 @@ def use_reaction():
     eff = rc.get('effect', {})
     cost_percent = rc.get('cost_percent', 0)
     
+    # Các effect cơ bản
     if 'transparency' in eff:
         proj['transparency'] = clamp(proj['transparency'] + eff['transparency'], 0, 100)
     if 'hype' in eff:
         proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
-    if 'runway' in eff:
-        m = calculate_metrics(proj)
-        proj['available_cash'] += eff['runway'] * m.get('monthly_burn', 0)
-    if 'reg_risk' in eff and eff['reg_risk'] < 0:
-        reduction = (abs(eff['reg_risk']) / 100.0) * proj['target_funding']
-        proj['legal_cost_spent'] = max(0, proj['legal_cost_spent'] - reduction)
+    if 'visibility' in eff:
+        proj['visibility'] = clamp(proj.get('visibility', 50) + eff['visibility'], 0, 100)
     if 'trust_all' in eff:
         for bid in proj['trust_scores']:
             proj['trust_scores'][bid] = clamp(proj['trust_scores'][bid] + eff['trust_all'], 0, 100)
@@ -1445,17 +1592,45 @@ def use_reaction():
             if bot['type'] == 'Whale':
                 bid = bot['id']
                 proj['trust_scores'][bid] = clamp(proj['trust_scores'].get(bid, 50) + eff['trust_whale'], 0, 100)
-    if 'sell_pressure_reduce' in eff:
-        proj['sell_pressure_reduce'] = eff.get('sell_pressure_reduce', 0.5)
     
+    # Effect đặc biệt: tăng runway (cộng tháng)
+    if 'runway' in eff:
+        m = calculate_metrics(proj)
+        proj['available_cash'] += eff['runway'] * m.get('monthly_burn', 0)
+    
+    # Effect: funding_boost_percent (tăng tổng vốn huy động)
+    if 'funding_boost_percent' in eff:
+        boost = (eff['funding_boost_percent'] / 100.0) * proj['target_funding']
+        proj['total_invested'] += boost
+        proj['available_cash'] += boost
+        proj['funding_progress'] = min(1.0, proj['total_invested'] / proj['target_funding'])
+    
+    # Effect: cogs (giảm chi phí sản xuất)
+    if 'cogs' in eff:
+        # cogs là tỷ lệ thay đổi (vd -0.03 giảm 3%)
+        factor = 1 + eff['cogs']
+        proj['material'] *= factor
+        proj['packaging'] *= factor
+        proj['labor'] = proj.get('labor', 0) * factor
+    
+    # Effect: survival_phase (tăng số phase tối đa của dự án)
+    if 'survival_phase' in eff:
+        proj['max_phase'] = proj.get('max_phase', 5) + eff['survival_phase']
+    
+    # Effect: reg_risk (giảm rủi ro pháp lý)
+    if 'reg_risk' in eff and eff['reg_risk'] < 0:
+        reduction = (abs(eff['reg_risk']) / 100.0) * proj['target_funding']
+        proj['legal_cost_spent'] = max(0, proj['legal_cost_spent'] - reduction)
+    
+    # Trừ chi phí của reaction card
     cost = (cost_percent / 100.0) * proj['target_funding']
     proj['available_cash'] = max(0, proj['available_cash'] - cost)
     
+    # Xoá reaction đã dùng
     proj['reaction_hand'].pop(reaction_index)
     room['player_triggers'][player_index]['available_reactions'] = [
         r for r in available_reactions if r['id'] != rc['id']
     ]
-    
     return jsonify({'ok': True, 'message': f'Đã kích hoạt reaction: {rc["name"]}'})
 
 @app.route('/api/run_phase', methods=['POST'])
@@ -1637,15 +1812,17 @@ def run_phase():
         
         # Kích hoạt reaction (chỉ hiển thị, không tự động dùng)
         triggers = []
-        metrics = calculate_metrics(proj)  # tính metrics để dùng nhiều lần
-        
+        metrics = calculate_metrics(proj)  # đã có từ trước, có thể dùng lại
+
         for rc in proj.get('reaction_hand', []):
-            trigger = rc.get('trigger')
-            
-            # 1. on_scenario_market_bad (giữ cũ)
-            if trigger == 'on_scenario_market_bad' and scenario['cat'] == 'Market':
-                if any(k in scenario['name'].lower() for k in ['crisis', 'slow', 'khủng', 'xấu']):
-                    triggers.append(rc)
+            # Kiểm tra condition (nếu có)
+            cond = rc.get('condition')
+            if cond is not None:
+                if not evaluate_condition(cond, proj, metrics):
+                    continue   # không thỏa điều kiện -> bỏ qua
+
+            # Nếu không có condition hoặc condition đúng thì thêm vào triggers
+            triggers.append(rc)
             
             # 2. on_transparency_low (giữ cũ, ngưỡng 25 theo card mới)
             elif trigger == 'on_transparency_low' and proj['transparency'] < 25:
