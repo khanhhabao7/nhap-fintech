@@ -725,21 +725,28 @@ def process_phase(room, phase, players, logs, bot_actions=None):
                 continue
                 
             if actual > 0:
-                actual = min(actual, players[idx]['total_invested'], players[idx]['available_cash'])
-                if actual > 0:
-                    players[idx]['available_cash'] -= actual
-                    players[idx]['total_invested'] -= actual
-                    players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
-                    alloc_entry['perProject'][idx] -= actual
-                    alloc_entry['idle'] += actual
-                    bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': actual})
-                    logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
-                else:
-                    # Không thể rút do không đủ tiền -> bankrupt
-                    players[idx]['status'] = 'bankrupt'
-                    players[idx]['funding_progress'] = 0
-                    players[idx]['total_invested'] = 0
-                    logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền để rút)")
+            if actual <= players[idx]['available_cash']:
+            players[idx]['available_cash'] -= actual
+            players[idx]['total_invested'] -= actual
+            players[idx]['funding_progress'] = max(0, players[idx]['total_invested'] / players[idx]['target_funding'])
+            alloc_entry['perProject'][idx] -= actual
+            alloc_entry['idle'] += actual
+            bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': actual})
+            logs.append(f"Bot {bot['type']} rút {actual:.0f} từ dự án {idx+1}")
+        else:
+            # Dự án không đủ tiền mặt → rút hết số tiền mặt còn lại, phần còn thiếu bot mất
+            remaining_cash = players[idx]['available_cash']
+            if remaining_cash > 0:
+                players[idx]['available_cash'] = 0
+                alloc_entry['perProject'][idx] -= remaining_cash
+                alloc_entry['idle'] += remaining_cash
+                bot_actions.append({'bot_type': bot['type'], 'action': 'withdraw', 'player_index': idx, 'amount': remaining_cash})
+                logs.append(f"Bot {bot['type']} rút {remaining_cash:.0f} (hết tiền mặt) từ dự án {idx+1}")
+            # Đánh dấu phá sản
+            players[idx]['status'] = 'bankrupt'
+            players[idx]['funding_progress'] = 0
+            players[idx]['total_invested'] = 0
+            logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền mặt)!")
 
     for bot in active_bots:
         alloc_entry = next(entry for entry in bot_alloc if entry['bot_id'] == bot['id'])
