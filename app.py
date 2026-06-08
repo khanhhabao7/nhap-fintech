@@ -354,8 +354,8 @@ REACTION_CARDS = [
             "sell_pressure_reduce": 0.5,
             "trust_all": 8,
             "runway": 1
+        }  
     }
-}
 ]
 
 from collections import Counter
@@ -1795,12 +1795,14 @@ def run_phase():
             # cost = (abs(d['reg_risk']) / 100) * proj['target_funding']
             # proj['legal_cost_spent'] += cost
 
-        # Áp dụng thẻ đã chơi (pending_cards)
+            # Áp dụng thẻ đã chơi (pending_cards)
+            pending_cards = room.get('pending_cards', {})   # THÊM DÒNG NÀY
             pending_key = str(idx)
             card = pending_cards.get(pending_key)
             if card is None:
                 card = pending_cards.get(idx)   # fallback cho key int (nếu có)
             if card:
+                # xử lý effect ...
                 eff = card.get('effect', {})
                 if 'hype' in eff:
                     proj['hype'] = clamp(proj['hype'] + eff['hype'], 0, 100)
