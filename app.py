@@ -197,7 +197,7 @@ def draw_hand_with_cost_ladder(player_deck, scenario, hand_size=5):
 MAX_REACTION_CARDS_PER_GAME = 3
 
 REACTION_CARDS = [
-    {"id": "R1", "name": "Investor Calm Update", "trigger": "on_scenario_market_bad", "condition": {"scenario_tag": "market_down"}, "desc": "Send a quick update to reassure investors when the market suddenly turns negative.", "cost_percent": 2, "effect": {"halve_negative_delta": 1, "trust_all": 5, "transparency": 5}},
+    {"id": "R1", "name": "Investor Calm Update", "trigger": "on_scenario_market_bad", "condition": {"scenario_tag": "market_down"}, "desc": "Send a quick update to reassure investors when the market suddenly turns negative.", "cost_percent": 2, "effect": {"trust_all": 5, "transparency": 5}},
 
     {"id": "R2", "name": "Public Rumor Response", "trigger": "on_reputation_shock", "condition": {"scenario_tag": "reputation"}, "desc": "Respond clearly to rumors, complaints, or negative media before trust drops further.", "cost_percent": 3, "effect": {"transparency": 10, "trust_all": 8, "hype": -3}},
 
