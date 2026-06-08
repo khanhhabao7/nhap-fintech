@@ -1796,10 +1796,10 @@ def run_phase():
             # proj['legal_cost_spent'] += cost
 
         # Áp dụng thẻ đã chơi (pending_cards)
-        pending_key = str(idx)
-        pending_cards = room.get('pending_cards', {})
-        if pending_key in pending_cards or idx in pending_cards:
-            card = pending_cards.get(pending_key, pending_cards.get(idx))
+            pending_key = str(idx)
+            card = pending_cards.get(pending_key)
+            if card is None:
+                card = pending_cards.get(idx)   # fallback cho key int (nếu có)
             if card:
                 eff = card.get('effect', {})
                 if 'hype' in eff:
@@ -1834,67 +1834,47 @@ def run_phase():
             continue   # bỏ qua phần kích hoạt reaction và các bước sau cho dự án này
         
         # Kích hoạt reaction (chỉ hiển thị, không tự động dùng)
+        metrics = calculate_metrics(proj)   # thêm dòng này
         triggers = []
-        metrics = calculate_metrics(proj)  # đã có từ trước, có thể dùng lại
-
         for rc in proj.get('reaction_hand', []):
-            # Kiểm tra condition (nếu có)
             cond = rc.get('condition')
             if cond is not None:
                 if not evaluate_condition(cond, proj, metrics):
-                    continue   # không thỏa điều kiện -> bỏ qua
-
-            # Nếu không có condition hoặc condition đúng thì thêm vào triggers
-            triggers.append(rc)
-            
-            # 2. on_transparency_low (giữ cũ, ngưỡng 25 theo card mới)
-            elif trigger == 'on_transparency_low' and proj['transparency'] < 25:
-                triggers.append(rc)
-            
-            # 3. on_reg_risk_high (giữ cũ)
+                    continue   # không thỏa điều kiện → bỏ qua reaction này
+        
+            # Lấy trigger type từ reaction card
+            trigger = rc.get('trigger')
+            is_triggered = False
+        
+            # Xác định xem reaction có được kích hoạt không dựa vào trigger
+            if trigger == 'on_transparency_low' and proj['transparency'] < 25:
+                is_triggered = True
             elif trigger == 'on_reg_risk_high':
                 reg = (proj['legal_cost_spent'] / proj['target_funding']) * 100 if proj['target_funding'] > 0 else 0
                 if reg > 70:
-                    triggers.append(rc)
-            
-            # 4. on_hype_high (giữ cũ)
+                    is_triggered = True
             elif trigger == 'on_hype_high' and proj['hype'] > 80:
-                triggers.append(rc)
-            
-            # 5. on_runway_warning (mới) - runway <= 2
+                is_triggered = True
             elif trigger == 'on_runway_warning' and metrics.get('runway', 999) <= 2:
-                triggers.append(rc)
-            
-            # 6. on_near_bankruptcy (mới) - runway <= 1
+                is_triggered = True
             elif trigger == 'on_near_bankruptcy' and metrics.get('runway', 999) <= 1:
-                triggers.append(rc)
-            
-            # 7. on_trust_low (mới) - trust_all < 20
-            elif trigger == 'on_trust_low' and proj['trust_scores'] and (sum(proj['trust_scores'].values()) / len(proj['trust_scores'])) < 20:
-                triggers.append(rc)
-            
-            # 8. on_customer_trust_low (mới) - trust_all < 10
-            elif trigger == 'on_customer_trust_low' and proj['trust_scores'] and (sum(proj['trust_scores'].values()) / len(proj['trust_scores'])) < 10:
-                triggers.append(rc)
-            
-            # 9. on_visibility_collapse (mới) - visibility < 25
+                is_triggered = True
+            elif trigger == 'on_trust_low' and (sum(proj['trust_scores'].values()) / len(proj['trust_scores'])) < 20:
+                is_triggered = True
+            elif trigger == 'on_customer_trust_low' and (sum(proj['trust_scores'].values()) / len(proj['trust_scores'])) < 10:
+                is_triggered = True
             elif trigger == 'on_visibility_collapse' and proj.get('visibility', 50) < 25:
-                triggers.append(rc)
-            
-            # 10. on_cogs_rise (mới) - cogs > 0.6 (lấy từ material hoặc labor tổng hợp, tạm dùng material)
+                is_triggered = True
             elif trigger == 'on_cogs_rise' and proj.get('material', 0) > 0.6:
-                triggers.append(rc)
-            
-            # 11. on_security_low (mới) - security < 20
+                is_triggered = True
             elif trigger == 'on_security_low' and proj.get('security', 50) < 20:
+                is_triggered = True
+            # Nếu reaction có condition mà không có trigger, coi như triggered (vì đã qua evaluate_condition)
+            elif cond is not None:
+                is_triggered = True
+        
+            if is_triggered:
                 triggers.append(rc)
-            
-            # 12. on_bot_withdraw (giữ cũ)
-            elif trigger == 'on_bot_withdraw':
-                # Bot withdraw event được xử lý riêng ở process_phase, ở đây ta có thể bỏ qua hoặc giữ logic cũ
-                # Tuy nhiên trong code cũ không có event bot_withdraw ở đây, nên giữ nguyên nếu muốn
-                # Để an toàn, ta vẫn thêm điều kiện false vì event này không xảy ra trong vòng lặp này
-                pass
         
         if triggers:
             room['player_triggers'][idx]['available_reactions'] = triggers
