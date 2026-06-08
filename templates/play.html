@@ -1041,9 +1041,12 @@
             if (data.triggers && data.triggers.length > 0) {
                 reactionTriggersDiv.classList.remove('hidden');
                 reactionListDiv.innerHTML = data.triggers.map(rc => `
-                    <button class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-sm reaction-btn" data-id="${rc.id}" data-name="${rc.name}">
-                        ${rc.name}
-                    </button>
+                    <div class="reaction-item bg-purple-100 rounded-lg p-2 mb-2">
+                        <button class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-sm reaction-btn w-full" data-id="${rc.id}" data-name="${rc.name}">
+                            ${rc.name}
+                        </button>
+                        <div class="text-xs text-gray-600 mt-1 px-1">${rc.desc || ''}</div>
+                    </div>
                 `).join('');
                 document.querySelectorAll('.reaction-btn').forEach(btn => {
                     btn.onclick = async () => {
