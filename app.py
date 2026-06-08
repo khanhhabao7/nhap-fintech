@@ -323,14 +323,6 @@ def calculate_metrics(proj):
     burn_rate = monthly_burn / proj["target_funding"] if proj["target_funding"] > 0 else 0
     growth = (proj["units_m6"] / proj["units_m1"]) - 1 if proj["units_m1"] > 0 else 0
 
-    def safe_exp(x):
-    # Giới hạn x trong khoảng [-700, 700] để tránh tràn số
-    return math.exp(max(-700, min(700, x)))
-
-    sum_exp = sum(safe_exp(a / 35) for a in shifted)
-    if sum_exp == 0:
-        sum_exp = 1e-9   # tránh chia cho 0
-    probs = [safe_exp(a / 35) / sum_exp for a in shifted]
 
     if gm > 0.2:
         gm_score = 20 + 10 * (1 - math.exp(-5 * (gm - 0.2) / 0.6))
@@ -760,7 +752,15 @@ def process_phase(room, phase, players, logs, bot_actions=None):
             saturation = already_invested / players[idx]['target_funding']   # 0..1
             diversity_penalty = saturation * 30
             shifted[j] = max(0, shifted[j] - diversity_penalty)
+
+
+        def safe_exp(x):
+            return math.exp(max(-700, min(700, x)))
         
+        sum_exp = sum(safe_exp(a / 35) for a in shifted)
+        if sum_exp == 0:
+            sum_exp = 1e-9
+        probs = [safe_exp(a / 35) / sum_exp for a in shifted]
         
         remaining = idle
         for _ in range(5):
