@@ -241,6 +241,7 @@ REACTION_CARDS = [
             "survival_phase": 1
         }
     },
+
     {
         "id": "R2",
         "name": "Emergency Burn Reduction Plan",
@@ -255,6 +256,7 @@ REACTION_CARDS = [
             "trust_all": -2
         }
     },
+
     {
         "id": "R3",
         "name": "One-Month Cash Gap Rescue",
@@ -274,6 +276,7 @@ REACTION_CARDS = [
             "survival_phase": 1
         }
     },
+
     {
         "id": "R4",
         "name": "Two-Month Cash Coverage Plan",
@@ -295,18 +298,18 @@ REACTION_CARDS = [
         "desc": "Reduce spending when available cash cannot cover the next two months of burn.",
         "cost_percent": 2,
         "effect": {
-            "runway": 1,
+            "runway": 2,
             "cogs": -0.02,
             "hype": -2,
-            "visibility": -2
         }
     },
+
     {
         "id": "R5",
         "name": "Critical Cash Ratio Protection",
         "trigger": "on_cash_ratio_critical",
         "condition": {"metric": "cash_ratio", "operator": "<", "value": 0.2},
-        "desc": "Protect cash when available cash falls below 20% of the target funding requirement.",
+        "desc": "Protect cash when cash ratio falls below 20%.",
         "cost_percent": 1,
         "effect": {
             "runway": 1,
@@ -315,6 +318,7 @@ REACTION_CARDS = [
             "trust_all": -2
         }
     },
+
     {
         "id": "R6",
         "name": "Cash Ratio Watch Plan",
@@ -325,16 +329,30 @@ REACTION_CARDS = [
                 {"metric": "cash_ratio", "operator": "<", "value": 0.3}
             ]
         },
-        "desc": "Start early cash control when available cash is between 20% and 30% of target funding.",
+        "desc": "Start early cash control when cash ratio is between 20% and 30%",
         "cost_percent": 2,
         "effect": {
             "runway": 1,
             "cogs": -0.01,
             "hype": -1,
-            "visibility": -1
         }
     },
+
+    {
+        "id": "R7",
+        "name": "Investor Withdrawal Defense",
+        "trigger": "on_bot_withdraw_high",
+        "condition": {"metric": "bot_withdraw", "operator": ">=", "value": 0.7},
+        "desc": "Reassure investors only when withdrawal pressure becomes severe.",
+        "cost_percent": 2,
+        "effect": {
+            "sell_pressure_reduce": 0.5,
+            "trust_all": 8,
+            "runway": 1
+    }
+}
 ]
+
 from collections import Counter
 
 def validate_master_data():
