@@ -298,6 +298,27 @@
         padding: 10px 12px; text-align: left; border-bottom: 1px solid #e2e8f0;
     }
     .leaderboard-table th { background: #f3e8ff; }       
+
+    #reactionList2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+    }
+    .reaction-item {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 1rem;
+        padding: 8px;
+        transition: all 0.2s;
+        border: 1px solid #e9d5ff;
+    }
+    .reaction-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .reaction-btn {
+        width: 100%;
+        text-align: center;
+    }
         
     </style>
 </head>
