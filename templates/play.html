@@ -1189,13 +1189,13 @@
                 if (readySpan) {
                     // Nếu game đang ở giai đoạn chọn deck -> hiển thị trạng thái deck_ready
                     if (data.choosing_deck === true) {
-                        readySpan.innerText = data.deck_ready ? '📦 Đã chọn deck' : '📦 Chưa chọn deck';
-                        readySpan.title = data.deck_ready ? 'Bạn đã chọn xong bộ bài' : 'Bạn cần chọn 22 lá bài Active và nhấn CONFIRM DECK';
+                        readySpan.innerText = data.deck_ready ? '📦 Deck submitted' : '📦 Deck not submitted';
+                        readySpan.title = data.deck_ready ? 'You have finished selecting your cards' : 'You need to choose 22 Active cards and click CONFIRM DECK';
                     }
                     // Nếu game đang chơi -> hiển thị trạng thái ready cho phase
                     else if (data.game_started === true && data.game_ended !== true) {
-                        readySpan.innerText = data.ready ? '✅ Ready' : '⏳ Chưa ready';
-                        readySpan.title = data.ready ? 'Bạn đã sẵn sàng cho phase tiếp theo' : 'Hãy nhấn nút READY để báo hiệu sẵn sàng';
+                        readySpan.innerText = data.ready ? '✅ Ready' : '⏳ Not ready';
+                        readySpan.title = data.ready ? 'You are ready for the next phase' : 'Please click READY to inform the host';
                     }
                     else {
                         readySpan.innerText = '';
@@ -1287,7 +1287,7 @@
                                     const newState = await fetchJSON(`${API_BASE}/player_state?room_id=${roomIdFromUrl}&player_index=${playerIndexFromUrl}`);
                                     updateGameUIFromData(newState);
                                 } else {
-                                    alert(result.error || 'Không thể kích hoạt reaction');
+                                    alert(result.error || 'Cannot use reaction card');
                                 }
                             } catch (err) {
                                 alert(err.message);
