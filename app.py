@@ -894,7 +894,7 @@ def process_phase(room, phase, players, logs, bot_actions=None):
                 players[idx]['status'] = 'bankrupt'
                 players[idx]['funding_progress'] = 0
                 players[idx]['total_invested'] = 0
-                logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền mặt để rút)")
+                logs.append(f"Project {idx+1} BANKRUPT (insufficient cash to withdraw)")
                 continue
                 
             if actual > 0:
@@ -1292,7 +1292,7 @@ def submit_deck():
     except Exception as e:
         import traceback
         error_trace = traceback.format_exc()
-        print("=== LỖI SUBMIT DECK ===")
+        print("=== DECK SUBMIT ERROR ===")
         print(error_trace)
         if 'room_id' in locals() and room_id in rooms:
             rooms[room_id]['logs'].append(f"❌ Deck submit error for Player {player_index+1}: {str(e)}")
