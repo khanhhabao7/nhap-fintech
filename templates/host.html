@@ -537,7 +537,7 @@
       <div class="panel">
         <h2>✨ Fun(d) raising - When you have funds you have fun ✨</h2>
         <div class="loading-placeholder" id="connectionStatus">
-          🔌 Connecting to Backend...
+          🔌 Đang kết nối đến Backend...
         </div>
       </div>
 
@@ -557,7 +557,7 @@
           <button onclick="createNewRoom()">🚀 CREATE ROOM & START GAME</button>
         </div>
         <div style="margin-top: 12px; font-size: 13px; color: #6b21a5">
-          ⚡ After creating a room, each player has a link to join.
+          ⚡ Sau khi tạo phòng, mỗi người chơi có link riêng để tham gia.
         </div>
       </div>
 
@@ -577,7 +577,7 @@
             <span id="roomId">---</span>
           </h2>
           <div class="room-selector">
-            <span>📋 Viewing room:</span>
+            <span>📋 Đang xem phòng:</span>
             <select id="roomSelector" onchange="switchToRoom()"></select>
             <button
               onclick="showCreateRoomModal()"
@@ -599,7 +599,7 @@
             class="link-item"
             style="background: transparent; padding: 0"
           >
-            <div class="loading-placeholder">Loading join links...</div>
+            <div class="loading-placeholder">Đang tải link tham gia...</div>
           </div>
         </div>
 
@@ -636,7 +636,7 @@
               >📜 Phase archive:</label
             >
             <select id="phaseSelect" onchange="showPhaseDetails()">
-              <option>-- No data yet --</option>
+              <option>-- Chưa có dữ liệu --</option>
             </select>
           </div>
           <div
@@ -644,14 +644,14 @@
             class="panel"
             style="background: rgba(245, 240, 255, 0.5)"
           >
-            <div class="data-empty">📌 Choose a phase to view details</div>
+            <div class="data-empty">📌 Chọn một phase để xem chi tiết</div>
           </div>
         </div>
 
         <div class="section-panel">
           <h3>📜 Event Log</h3>
           <div id="logsArea" class="logs">
-            <div class="data-empty">⏳ No event yet</div>
+            <div class="data-empty">⏳ Chưa có sự kiện nào</div>
           </div>
         </div>
 
@@ -735,11 +735,11 @@
           margin: 20px;
         "
       >
-        <h3 style="margin-bottom: 16px">➕ Create new room</h3>
+        <h3 style="margin-bottom: 16px">➕ Tạo phòng mới</h3>
         <input
           type="text"
           id="newRoomName"
-          placeholder="Room name"
+          placeholder="Tên phòng"
           style="width: 100%; margin-bottom: 12px"
           value="Startup Game"
         />
@@ -795,7 +795,7 @@
       function updateRoomSelector() {
         const selector = document.getElementById("roomSelector");
         if (!selector) return;
-        selector.innerHTML = '<option value="">-- Choose room --</option>';
+        selector.innerHTML = '<option value="">-- Chọn phòng --</option>';
         hostRooms.forEach((room) => {
           const selected = currentRoomId === room.id ? "selected" : "";
           selector.innerHTML += `<option value="${room.id}" ${selected}>🏠 ${room.name} (${room.id})</option>`;
@@ -834,11 +834,11 @@
         document.getElementById("roomId").innerText = currentRoomId;
 
         document.getElementById("rankings").innerHTML =
-          '<div class="loading-placeholder">Loading player data...</div>';
+          '<div class="loading-placeholder">Đang tải dữ liệu người chơi...</div>';
         document.getElementById("logsArea").innerHTML =
           '<div class="data-empty">⏳ Đang tải log...</div>';
         document.getElementById("joinLinksList").innerHTML =
-          '<div class="loading-placeholder">Loading join links...</div>';
+          '<div class="loading-placeholder">Đang tải link tham gia...</div>';
         document.getElementById("playerCount").innerText = "0";
         document.getElementById("currentPhase").innerText = "?";
 
@@ -860,7 +860,7 @@
           parseInt(document.getElementById("numPlayers").value, 10);
 
         if (numPlayers < 2 || numPlayers > 10) {
-          alert("Amount of players must range from 2 to 10");
+          alert("Số lượng người chơi phải từ 2 đến 10");
           return null;
         }
 
@@ -872,7 +872,7 @@
           });
 
           if (!response.ok)
-            throw new Error(`Fail to create room: ${response.status}`);
+            throw new Error(`Tạo phòng thất bại: ${response.status}`);
 
           const roomData = await response.json();
           const newRoomId = roomData.room_id;
@@ -898,7 +898,7 @@
             updateRoomSelector();
             startPolling();
             alert(
-              `✅ Room "${roomName}" is sucessfully created!\nRoom ID: ${currentRoomId}`,
+              `✅ Phòng "${roomName}" đã được tạo thành công!\nRoom ID: ${currentRoomId}`,
             );
           } else {
             updateRoomSelector();
@@ -910,14 +910,14 @@
             if (pollingInterval) clearInterval(pollingInterval);
             startPolling();
             alert(
-              `✅ Room "${roomName}" created. You are viewing this room.`,
+              `✅ Đã tạo thêm phòng "${roomName}". Bạn đang xem phòng mới này.`,
             );
           }
 
           return roomData;
         } catch (error) {
           console.error("Create room error:", error);
-          alert(`❌ Cannot create room: ${error.message}`);
+          alert(`❌ Không thể tạo phòng: ${error.message}`);
           updateConnectionStatus(false, error.message);
           return null;
         }
@@ -948,12 +948,12 @@
       function updateConnectionStatus(connected, message) {
         const statusDiv = document.getElementById("connectionStatus");
         if (connected) {
-          statusDiv.innerHTML = "✅ Connected to backend";
+          statusDiv.innerHTML = "✅ Đã kết nối đến Backend | Dữ liệu real-time";
           statusDiv.style.background = "rgba(34, 197, 94, 0.15)";
           statusDiv.style.color = "#16a34a";
           isConnected = true;
         } else {
-          statusDiv.innerHTML = `⚠️ ${message || "Cannot connect to Backend"}<br><small>Vui lòng kiểm tra API URL: ${API_BASE_URL}</small>`;
+          statusDiv.innerHTML = `⚠️ ${message || "Không thể kết nối đến Backend"}<br><small>Vui lòng kiểm tra API URL: ${API_BASE_URL}</small>`;
           statusDiv.style.background = "rgba(220, 38, 38, 0.15)";
           statusDiv.style.color = "#dc2626";
           isConnected = false;
@@ -1122,7 +1122,7 @@
                 `;
           });
           document.getElementById("rankingsOverall").innerHTML =
-            overallHtml || '<div class="data-empty">No player yet</div>';
+            overallHtml || '<div class="data-empty">Chưa có người chơi</div>';
 
           // 2. Xếp hạng theo scale (S, M, L)
           const scales = ["S", "M", "L"];
@@ -1206,9 +1206,9 @@
           document.getElementById("rankingsByScale").innerHTML = byScaleHtml;
         } else {
           document.getElementById("rankingsOverall").innerHTML =
-            '<div class="data-empty">👥 No player joined yet</div>';
+            '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
           document.getElementById("rankingsByScale").innerHTML =
-            '<div class="data-empty">👥 No player joined yet</div>';
+            '<div class="data-empty">👥 Chưa có người chơi nào tham gia</div>';
         }
         // Logs
         if (roomData.logs && roomData.logs.length > 0) {
@@ -1248,7 +1248,7 @@
           document.getElementById("joinLinksList").innerHTML = linksHtml;
         } else {
           document.getElementById("joinLinksList").innerHTML =
-            '<div class="data-empty">🔗 No join links. Please create room again.</div>';
+            '<div class="data-empty">🔗 Chưa có link tham gia. Vui lòng tạo phòng lại.</div>';
         }
 
         // Phase details
@@ -1275,7 +1275,7 @@
         const container = document.getElementById("phaseDetails");
         if (!detail) {
           container.innerHTML =
-            '<div class="data-empty">No data for this phase</div>';
+            '<div class="data-empty">Không có dữ liệu cho phase này</div>';
           return;
         }
         let html = `<div style="margin-bottom:10px;"><strong style="color:#2e1a47;">📅 ${detail.event} (${detail.date})</strong></div>`;
@@ -1327,7 +1327,7 @@
           });
           html += `</tbody></table></div>`;
         } else {
-          html += `<div class="data-empty">🤖 No transaction in this phase</div>`;
+          html += `<div class="data-empty">🤖 Không có giao dịch bot trong phase này</div>`;
         }
 
         container.innerHTML = html;
@@ -1357,7 +1357,7 @@
 
       async function endGame() {
         if (!currentRoomId) return;
-        if (confirm("The game hasn't finished. Are you sure to end this game right now?")) {
+        if (confirm("Bạn có chắc muốn kết thúc game ngay bây giờ?")) {
           try {
             const response = await fetch(
               `${API_BASE_URL}/rooms/${currentRoomId}/end`,
@@ -1376,7 +1376,7 @@
 
       async function resetGame() {
         if (!currentRoomId) return;
-        if (confirm("RESET the game? All data will be lost.")) {
+        if (confirm("RESET toàn bộ game? Dữ liệu hiện tại sẽ bị mất.")) {
           try {
             const response = await fetch(
               `${API_BASE_URL}/rooms/${currentRoomId}/reset`,
@@ -1396,12 +1396,12 @@
       function copyToClipboard(text) {
         navigator.clipboard
           .writeText(text)
-          .then(() => alert("✅ Link copied!"));
+          .then(() => alert("✅ Đã copy link!"));
       }
 
       function copyAllJoinLinks() {
         if (!currentRoomData || !currentRoomData.joinLinks || currentRoomData.joinLinks.length === 0) {
-          alert("No link yet!");
+          alert("Chưa có link tham gia để copy!");
           return;
         }
         const formattedText = currentRoomData.joinLinks
@@ -1409,10 +1409,10 @@
           .join('\n');
         
         navigator.clipboard.writeText(formattedText)
-          .then(() => alert("✅ Copied all links!"))
+          .then(() => alert("✅ Đã copy toàn bộ link tham gia!"))
           .catch(err => {
             console.error("Copy failed: ", err);
-            alert("❌ Cannot copy link!");
+            alert("❌ Không thể copy link!");
           });
       }
 
@@ -1447,7 +1447,7 @@
       }
 
       fetch(`${API_BASE_URL}/health`).catch((err) => {
-        updateConnectionStatus(false, "Backend not reachable.");
+        updateConnectionStatus(false, "Backend không khả dụng.");
       });
 
       // ==================== RULES SIDEBAR CONTROLLER (Host) ====================
