@@ -89,7 +89,7 @@ SCENARIO_PRIMARY_GROUP = {
     21: "purple",
     22: "green",
     23: "green",
-    24: "green",
+    24: "red",
 }
 
 for scenario in SCENARIOS:
