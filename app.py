@@ -237,7 +237,7 @@ REACTION_CARDS = [
         "effect": {
             "runway": 2,
             "funding_boost_percent": 4,
-            "trust_all": -6,
+            "trust_all": -4,
             "hype": -3,
         }
     },
@@ -352,7 +352,7 @@ REACTION_CARDS = [
         "cost_percent": 2,
         "effect": {
             "sell_pressure_reduce": 0.5,
-            "trust_all": 8,
+            "trust_all": 4,
             "runway": 1
         }  
     }
