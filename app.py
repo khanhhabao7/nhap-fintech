@@ -1082,6 +1082,65 @@ def try_start_game(room):
         room['logs'].append(f"❌ Lỗi khi bắt đầu game: {str(e)}")
         return False
 
+def build_analysis_report(room, idx):
+    proj = room['players'][idx]
+    if proj is None:
+        return None
+    metrics = calculate_metrics(proj)
+    
+    intrinsic_breakdown = {
+        'gross_margin': gm_component(proj),
+        'burn_rate': burn_component(proj, metrics),
+        'growth': growth_component(proj),
+        'revenue': revenue_component(proj),
+        'efficiency': efficiency_component(proj),
+        'leverage': leverage_component(proj),
+        'security_penalty': max(0, (50 - proj.get('security', 50)) / 5),
+        'reg_risk_penalty': proj.get('reg_risk', 0) / 10,
+    }
+    
+    total_fees = proj.get('fee_ecom', 0) + proj.get('fee_retail', 0) + proj.get('fee_direct', 0)
+    price_real = proj['price'] * (1 - total_fees / 100.0)
+    avg_monthly_units = (proj.get('units_m1', 1) + proj.get('units_m6', 1)) / 2
+    revenue_year = avg_monthly_units * 12 * price_real
+    ps_multiple = metrics.get('estimated_valuation', 0) / max(1, revenue_year) if revenue_year > 0 else 0
+    
+    valuation_block = {
+        'estimated_valuation': metrics.get('estimated_valuation', 0),
+        'ps_multiple': ps_multiple,
+        'valuation_sanity': metrics.get('valuation_sanity', 0),
+        'roi_norm': metrics.get('roi_norm', 0),
+        'raw_roi_percent': metrics.get('raw_roi', 0),
+    }
+    
+    risk_block = {
+        'security': proj.get('security', 50),
+        'reg_risk': proj.get('reg_risk', 0),
+        'transparency': proj.get('transparency', 50),
+        'avg_trust': avg_trust(proj),
+    }
+    
+    perception_block = perception_quadrant(proj, metrics)
+    bot_breakdown_data = bot_breakdown(room, idx)
+    journey = decision_journey(room, idx)
+    insights = generate_insights(proj, metrics, intrinsic_breakdown, risk_block, bot_breakdown_data['capital_share_percent'])
+    
+    return {
+        'project_index': idx,
+        'intrinsic_breakdown': intrinsic_breakdown,
+        'valuation': valuation_block,
+        'risk_trust': risk_block,
+        'market_perception': perception_block,
+        'bot_breakdown': bot_breakdown_data,
+        'decision_journey': journey,
+        'insights': insights,
+        'final_metrics': metrics,
+        'status': proj.get('status', 'active'),
+        'funding_progress': proj.get('funding_progress', 0),
+        'total_invested': proj.get('total_invested', 0),
+        'target_funding': proj.get('target_funding', 1),
+    }
+
 @app.route('/')
 def index():
     return render_template('host.html')
@@ -1937,6 +1996,15 @@ def run_phase():
     if game_ended:
         room['game_ended'] = True
         room['status'] = 'ended'
+        
+        # Tạo báo cáo cho tất cả player
+        room['final_reports'] = []
+        for idx, proj in enumerate(room.get('players', [])):
+            if proj is not None:
+                report = build_analysis_report(room, idx)
+                room['final_reports'].append(report)
+            else:
+                room['final_reports'].append(None)
 
     # Lưu phase details with bot actions and cash flow
     phase_detail = {
@@ -2194,11 +2262,19 @@ def api_reset_phase(room_id):
 def api_end_game(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
-    
     room = rooms[room_id]
     room['game_ended'] = True
     room['status'] = 'ended'
     room['logs'].append("🏁 Game đã kết thúc bởi host!")
+    
+    # Tạo báo cáo cho tất cả player
+    room['final_reports'] = []
+    for idx, proj in enumerate(room.get('players', [])):
+        if proj is not None:
+            report = build_analysis_report(room, idx)
+            room['final_reports'].append(report)
+        else:
+            room['final_reports'].append(None)
     
     return jsonify({'success': True})
 
@@ -2239,6 +2315,213 @@ def handle_exception(e):
     print("=== UNHANDLED EXCEPTION ===")
     print(error_trace)
     return jsonify({'error': f'Internal Server Error: {str(e)}'}), 500
+
+
+@app.route('/api/rooms/<room_id>/analysis/<int:player_index>', methods=['GET'])
+def api_get_analysis(room_id, player_index):
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    room = rooms[room_id]
+    if player_index < 0 or player_index >= len(room.get('players', [])):
+        return jsonify({'error': 'Player index invalid'}), 400
+    if room['players'][player_index] is None:
+        return jsonify({'error': 'Player not joined'}), 404
+    
+    # Nếu đã có report lưu sẵn thì trả về luôn
+    if 'final_reports' in room and player_index < len(room['final_reports']):
+        report = room['final_reports'][player_index]
+        if report:
+            return jsonify({'success': True, 'report': report})
+    
+    report = build_analysis_report(room, player_index)
+    if report is None:
+        return jsonify({'error': 'Cannot build report'}), 500
+    
+    if 'final_reports' not in room:
+        room['final_reports'] = [None] * len(room['players'])
+    room['final_reports'][player_index] = report
+    
+    return jsonify({'success': True, 'report': report})
+
+# ========== ANALYSIS HELPER FUNCTIONS ==========
+import math
+
+def clamp_analysis(x, lo, hi):
+    return max(lo, min(hi, x))
+
+def label_for_value(value, thresholds, labels):
+    for i, th in enumerate(thresholds):
+        if value < th:
+            return labels[i]
+    return labels[-1]
+
+def gm_component(proj):
+    total_fees = proj.get('fee_ecom', 0) + proj.get('fee_retail', 0) + proj.get('fee_direct', 0)
+    price_real = proj['price'] * (1 - total_fees / 100.0)
+    cogs_unit = (proj['material'] + proj['packaging'] + proj.get('labor', 0)) * (1 + proj.get('defect_rate', 0) / 100.0)
+    gm = (price_real - cogs_unit) / price_real if price_real > 0 else 0
+    if gm > 0.2:
+        score = 20 + 10 * (1 - math.exp(-5 * (gm - 0.2) / 0.6))
+    else:
+        score = max(0, 20 * (gm / 0.2))
+    score = clamp_analysis(score, 0, 30)
+    label = label_for_value(gm, [0.0, 0.2, 0.5], ['Yếu', 'Khá', 'Tốt', 'Rất tốt'])
+    return {'value': gm, 'score': score, 'max': 30, 'label': label}
+
+def burn_component(proj, metrics):
+    burn_rate = metrics.get('monthly_burn', 0) / proj.get('target_funding', 1) if proj.get('target_funding', 1) > 0 else 0
+    if burn_rate < 0.3:
+        score = 15 + 5 * (1 - math.exp(-4 * (0.3 - burn_rate) / 0.25))
+    else:
+        score = max(0, 15 * (1 - (burn_rate - 0.3) / 0.7))
+    score = clamp_analysis(score, 0, 20)
+    label = label_for_value(burn_rate, [0.7, 0.3, 0.1], ['Nguy hiểm', 'Trung bình', 'An toàn', 'Rất an toàn'])
+    return {'value': burn_rate, 'score': score, 'max': 20, 'label': label}
+
+def growth_component(proj):
+    growth = (proj.get('units_m6', 1) / max(1, proj.get('units_m1', 1))) - 1
+    if growth > 0:
+        score = 10 + 10 * (1 - math.exp(-3 * growth / 0.5))
+    else:
+        score = max(0, 10 * (1 + growth / 0.5))
+    score = clamp_analysis(score, 0, 20)
+    label = label_for_value(growth, [0, 0.5, 1.0], ['Suy giảm', 'Tăng trưởng thấp', 'Tăng trưởng mạnh', 'Tăng trưởng rất mạnh'])
+    return {'value': growth, 'score': score, 'max': 20, 'label': label}
+
+def revenue_component(proj):
+    price_real = proj['price'] * (1 - (proj.get('fee_ecom', 0) + proj.get('fee_retail', 0) + proj.get('fee_direct', 0)) / 100.0)
+    avg_monthly_units = (proj.get('units_m1', 1) + proj.get('units_m6', 1)) / 2
+    revenue_year = avg_monthly_units * 12 * price_real
+    score = min(10, max(0, math.log10(max(1, revenue_year / 100000)) / 2 * 10))
+    label = label_for_value(revenue_year, [100000, 500000, 1000000], ['Thấp', 'Trung bình', 'Cao', 'Rất cao'])
+    return {'value': revenue_year, 'score': score, 'max': 10, 'label': label}
+
+def efficiency_component(proj):
+    total_fees = proj.get('fee_ecom', 0) + proj.get('fee_retail', 0) + proj.get('fee_direct', 0)
+    price_real = proj['price'] * (1 - total_fees / 100.0)
+    cogs_unit = (proj['material'] + proj['packaging'] + proj.get('labor', 0)) * (1 + proj.get('defect_rate', 0) / 100.0)
+    monthly_burn = proj['fixed_cost'] + proj['marketing_cost'] + (proj['loan'] * proj['interest_rate'] / 100 / 12)
+    total_capital = proj['owner_equity'] + proj['loan'] + proj.get('total_invested', 0)
+    annual_profit = (price_real - cogs_unit) * proj['units_m6'] * 12 - (monthly_burn * 12)
+    if total_capital > 0 and annual_profit > 0:
+        roe = annual_profit / total_capital
+        efficiency_score = min(10, roe * 10)
+    else:
+        efficiency_score = 0
+    efficiency_score = clamp_analysis(efficiency_score, 0, 10)
+    label = label_for_value(annual_profit, [0, 10000, 50000], ['Âm', 'Thấp', 'Trung bình', 'Cao'])
+    return {'value': annual_profit, 'score': efficiency_score, 'max': 10, 'label': label}
+
+def leverage_component(proj):
+    if proj['owner_equity'] > 0:
+        debt_ratio = proj['loan'] / proj['owner_equity']
+        if debt_ratio < 0.5:
+            leverage_score = 5 + debt_ratio * 10
+        elif debt_ratio <= 1.5:
+            leverage_score = 10 - (debt_ratio - 0.5) * 5
+        else:
+            leverage_score = max(0, 5 - (debt_ratio - 1.5) * 3)
+    else:
+        leverage_score = 0
+    leverage_score = clamp_analysis(leverage_score, 0, 10)
+    label = label_for_value(debt_ratio, [0.5, 1.5, 3.0], ['An toàn', 'Trung bình', 'Rủi ro', 'Rất rủi ro'])
+    return {'value': debt_ratio, 'score': leverage_score, 'max': 10, 'label': label}
+
+def avg_trust(proj):
+    scores = proj.get('trust_scores', {})
+    return sum(scores.values()) / len(scores) if scores else 50
+
+def perception_quadrant(proj, metrics):
+    hype = proj.get('hype', 50)
+    intrinsic_norm = min(100, metrics['intrinsic'] / 90 * 100)
+    if hype >= 60 and intrinsic_norm < 50:
+        quadrant = 'Hype Bubble'
+    elif hype < 50 and intrinsic_norm >= 60:
+        quadrant = 'Hidden Gem'
+    elif hype >= 60 and intrinsic_norm >= 60:
+        quadrant = 'Balanced Growth'
+    else:
+        quadrant = 'Struggling'
+    return {'hype': hype, 'intrinsic_normalized': intrinsic_norm, 'quadrant': quadrant}
+
+def bot_breakdown(room, idx):
+    bot_alloc = room.get('bot_alloc', [])
+    bot_type_map = {bot['id']: bot['type'] for bot in BOTS}
+    capital_by_type = {'FOMO': 0, 'Value Hunter': 0, 'Whale': 0, 'Random': 0}
+    for entry in bot_alloc:
+        bot_id = entry.get('bot_id')
+        if bot_id not in bot_type_map:
+            continue
+        invested = entry.get('perProject', [])[idx] if idx < len(entry.get('perProject', [])) else 0
+        capital_by_type[bot_type_map[bot_id]] += invested
+    total = sum(capital_by_type.values()) or 1
+    capital_share = {k: round(v / total * 100, 1) for k, v in capital_by_type.items()}
+    recent_events = []
+    player_name = f"dự án {idx+1}"
+    for log in room.get('logs', [])[-20:]:
+        if player_name in log.lower() and ('rút' in log or 'đầu tư' in log):
+            recent_events.append(log)
+    return {
+        'capital_by_type': capital_by_type,
+        'capital_share_percent': capital_share,
+        'recent_investor_events': recent_events[:5]
+    }
+
+def decision_journey(room, idx):
+    timeline = []
+    for detail in room.get('phase_details', []):
+        player_entry = None
+        for p in detail.get('players', []):
+            if p.get('name') == f'Player {idx+1}':
+                player_entry = p
+                break
+        if player_entry:
+            timeline.append({
+                'phase': detail.get('phase'),
+                'event': detail.get('event'),
+                'funding_progress': player_entry.get('funding'),
+                'available_cash': player_entry.get('available_cash'),
+                'status': player_entry.get('status'),
+                'cash_flow': player_entry.get('cash_flow', 0)
+            })
+    return timeline
+
+def generate_insights(proj, metrics, intrinsic_components, risk_block, bot_share):
+    insights = []
+    hype = proj.get('hype', 50)
+    intrinsic_norm = min(100, metrics['intrinsic'] / 90 * 100)
+    
+    if hype - intrinsic_norm > 30:
+        insights.append({
+            'level': 'warning',
+            'text': 'Dự án đang được định giá dựa trên hype nhiều hơn thực lực — hãy ưu tiên cải thiện biên lợi nhuận/sản phẩm trước khi đẩy thêm marketing.'
+        })
+    if risk_block.get('security', 50) < 40:
+        insights.append({
+            'level': 'danger',
+            'text': 'Mức an ninh dữ liệu thấp (<40) đang trừ trực tiếp vào điểm nội tại và làm giảm niềm tin của nhóm Whale/Value Hunter.'
+        })
+    if risk_block.get('reg_risk', 0) > 50:
+        insights.append({
+            'level': 'danger',
+            'text': 'Rủi ro pháp lý/tuân thủ tích lũy cao — nhóm nhà đầu tư kỹ tính gần như loại dự án khỏi danh sách đầu tư.'
+        })
+    if metrics.get('funding_progress', 0) >= 1 and metrics.get('intrinsic', 0) < 40:
+        insights.append({
+            'level': 'warning',
+            'text': 'Gọi vốn thành công nhưng mô hình kinh doanh nền tảng còn yếu — rủi ro "thành công giả" ở vòng gọi vốn tiếp theo.'
+        })
+    if bot_share.get('FOMO', 0) > 60:
+        insights.append({
+            'level': 'warning',
+            'text': f'Hơn {bot_share["FOMO"]:.0f}% vốn đến từ nhóm FOMO — nguồn vốn không bền vì nhóm này rút theo cảm xúc thị trường, không theo nền tảng.'
+        })
+    if not insights:
+        insights.append({
+            'level': 'good',
+            'text': 'Các chỉ số đang ở mức cân bằng — không phát hiện rủi ro nổi bật nào trong mô hình hiện tại.'
+        })
+    return insights
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
