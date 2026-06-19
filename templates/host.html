@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -530,17 +531,6 @@
       .rules-sidebar-overlay.show {
         display: block;
       }
-      
-      #hostAnalysisResult .data-empty {
-          color: #94a3b8;
-          text-align: center;
-          padding: 20px;
-          font-style: italic;
-      }
-      #hostAnalysisResult h4 {
-          margin: 12px 0 8px;
-          color: #2e1a47;
-      }
     </style>
   </head>
   <body>
@@ -695,19 +685,6 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- Phân tích chi tiết từng player (chỉ hiện khi game kết thúc) -->
-        <div class="section-panel" id="hostAnalysisSection" style="display: none;">
-            <h3>📊 Phân tích chi tiết từng dự án</h3>
-            <div class="flex" style="gap: 12px; margin: 12px 0;">
-                <label style="font-weight: 600; color:#2e1a47;">Chọn Player:</label>
-                <select id="hostPlayerSelect" class="rounded-xl px-3 py-2 border border-purple-300"></select>
-                <button onclick="loadPlayerAnalysis()" id="viewAnalysisBtn" class="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-4 py-2 rounded-full font-bold">Xem phân tích</button>
-            </div>
-            <div id="hostAnalysisResult" class="panel" style="background: rgba(245, 240, 255, 0.5); display: none;">
-                <div id="analysisContent"></div>
-            </div>
         </div>
 
         <!-- Game control buttons -->
@@ -1060,12 +1037,8 @@
         const isGameActive = roomData.status === "playing" && !roomData.ended;
 
         if (roomData.ended) {
-            gameStatusSpan.innerHTML = "🏁 ENDED";
-            gameStatusSpan.className = "error";
-            // Hiển thị phân tích nếu chưa có
-            if (document.getElementById('hostAnalysisSection').style.display === 'none') {
-                loadPlayersForAnalysis();
-            }
+          gameStatusSpan.innerHTML = "🏁 ENDED";
+          gameStatusSpan.className = "error";
         } else if (roomData.status === "playing") {
           gameStatusSpan.innerHTML = "🔥 IN PROGRESS";
           gameStatusSpan.className = "success";
@@ -1513,130 +1486,6 @@
 
       // Khởi tạo khi trang load xong
       document.addEventListener("DOMContentLoaded", initRulesSidebar);
-
-      
-      function loadPlayersForAnalysis() {
-          if (!currentRoomData || !currentRoomData.players) return;
-          const select = document.getElementById('hostPlayerSelect');
-          select.innerHTML = '';
-          currentRoomData.players.forEach((p, idx) => {
-              if (p.status !== 'not_joined') {
-                  const opt = document.createElement('option');
-                  opt.value = idx;
-                  opt.textContent = p.name || `Player ${idx+1}`;
-                  select.appendChild(opt);
-              }
-          });
-          // Nếu có ít nhất 1 player, hiển thị khu vực phân tích
-          if (select.options.length > 0) {
-              document.getElementById('hostAnalysisSection').style.display = 'block';
-          }
-      }
-
-        // Lấy phân tích của player được chọn
-      async function loadPlayerAnalysis() {
-          const select = document.getElementById('hostPlayerSelect');
-          const playerIdx = select.value;
-          if (playerIdx === undefined || playerIdx === '') {
-              alert('Vui lòng chọn một player');
-              return;
-          }
-          try {
-              const response = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/analysis/${playerIdx}`);
-              if (!response.ok) throw new Error('Không thể lấy phân tích');
-              const data = await response.json();
-              if (data.success && data.report) {
-                  renderHostAnalysis(data.report);
-                  document.getElementById('hostAnalysisResult').style.display = 'block';
-              } else {
-                  alert('Không có dữ liệu phân tích cho player này');
-              }
-          } catch (error) {
-              alert(`Lỗi: ${error.message}`);
-          }
-      }
-
-
-      function renderHostAnalysis(report) {
-          const container = document.getElementById('analysisContent');
-          if (!container) return;
-      
-          // Tạo HTML hiển thị các thông tin chính
-          let html = `
-              <div style="margin-bottom: 16px;">
-                  <h4 style="color:#2e1a47;">💡 Nhận định tự động</h4>
-                  <ul style="list-style: none; padding: 0;">
-          `;
-          if (report.insights && report.insights.length > 0) {
-              report.insights.forEach(ins => {
-                  const color = ins.level === 'good' ? '#22c55e' : (ins.level === 'warning' ? '#eab308' : '#ef4444');
-                  html += `<li style="padding: 8px 12px; border-left: 4px solid ${color}; background: rgba(255,255,255,0.7); margin-bottom: 6px; border-radius: 8px;">${ins.text}</li>`;
-              });
-          } else {
-              html += `<li class="data-empty">Chưa có nhận định</li>`;
-          }
-          html += `</ul></div>`;
-      
-          // Các chỉ số cơ bản
-          html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 12px; margin-top: 12px;">`;
-          html += `<div><strong>Điểm nội tại:</strong> ${report.final_metrics?.intrinsic?.toFixed(1) || 'N/A'}</div>`;
-          html += `<div><strong>Định giá hợp lý:</strong> ${report.final_metrics?.valuation_sanity?.toFixed(1) || 'N/A'}</div>`;
-          html += `<div><strong>ROI chuẩn hóa:</strong> ${report.final_metrics?.roi_norm?.toFixed(1) || 'N/A'}</div>`;
-          html += `<div><strong>Runway (tháng):</strong> ${report.final_metrics?.runway || 'N/A'}</div>`;
-          html += `<div><strong>Tiến độ gọi vốn:</strong> ${((report.funding_progress || 0) * 100).toFixed(1)}%</div>`;
-          html += `<div><strong>Tổng vốn đầu tư:</strong> ${(report.total_invested || 0).toLocaleString()} USD</div>`;
-          html += `</div>`;
-      
-          // Chi tiết về rủi ro
-          if (report.risk_trust) {
-              html += `<div style="margin-top: 12px; background: rgba(255,255,255,0.7); padding: 12px; border-radius: 12px;">`;
-              html += `<h4 style="color:#2e1a47;">🔐 Rủi ro & Niềm tin</h4>`;
-              html += `<div>Bảo mật: ${report.risk_trust.security}/100</div>`;
-              html += `<div>Rủi ro pháp lý: ${report.risk_trust.reg_risk}/100</div>`;
-              html += `<div>Minh bạch: ${report.risk_trust.transparency}/100</div>`;
-              html += `<div>Niềm tin trung bình: ${report.risk_trust.avg_trust?.toFixed(1) || 'N/A'}</div>`;
-              html += `</div>`;
-          }
-      
-          // Vốn theo loại bot
-          if (report.bot_breakdown && report.bot_breakdown.capital_share_percent) {
-              html += `<div style="margin-top: 12px; background: rgba(255,255,255,0.7); padding: 12px; border-radius: 12px;">`;
-              html += `<h4 style="color:#2e1a47;">🤖 Cơ cấu vốn theo loại nhà đầu tư</h4>`;
-              const shares = report.bot_breakdown.capital_share_percent;
-              html += `<ul style="list-style: none; padding: 0;">`;
-              for (const [type, pct] of Object.entries(shares)) {
-                  html += `<li>${type}: ${pct.toFixed(1)}%</li>`;
-              }
-              html += `</ul></div>`;
-          }
-      
-          // Hành trình (decision_journey)
-          if (report.decision_journey && report.decision_journey.length > 0) {
-              html += `<div style="margin-top: 12px; background: rgba(255,255,255,0.7); padding: 12px; border-radius: 12px; overflow-x:auto;">`;
-              html += `<h4 style="color:#2e1a47;">🛤️ Hành trình</h4>`;
-              html += `<table style="width:100%; border-collapse: collapse; font-size:13px;">
-                  <thead><tr style="background:#f3e8ff;">
-                      <th style="padding:6px 10px; text-align:left;">Phase</th>
-                      <th style="padding:6px 10px; text-align:left;">Sự kiện</th>
-                      <th style="padding:6px 10px; text-align:left;">Tiến độ</th>
-                      <th style="padding:6px 10px; text-align:left;">Tiền mặt</th>
-                      <th style="padding:6px 10px; text-align:left;">Trạng thái</th>
-                  </tr></thead><tbody>`;
-              report.decision_journey.forEach(item => {
-                  html += `<tr style="border-bottom:1px solid #ede9fe;">
-                      <td style="padding:6px 10px;">${item.phase || '-'}</td>
-                      <td style="padding:6px 10px;">${item.event || '-'}</td>
-                      <td style="padding:6px 10px;">${(item.funding_progress * 100).toFixed(1)}%</td>
-                      <td style="padding:6px 10px;">${(item.available_cash || 0).toFixed(0)}</td>
-                      <td style="padding:6px 10px;">${item.status || '-'}</td>
-                  </tr>`;
-              });
-              html += `</tbody></table></div>`;
-          }
-      
-          container.innerHTML = html;
-      }
-
     </script>
     <!-- Modal Leaderboard chi tiết -->
     <div id="leaderboardModal" class="modal-overlay" style="display: none">
