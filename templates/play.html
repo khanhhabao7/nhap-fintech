@@ -792,8 +792,8 @@
             <div id="finalRanking" class="bg-white/70 rounded-xl p-4 max-h-96 overflow-y-auto"></div>
         </div>
 
-                <!-- Phân tích chi tiết -->
-        <div class="mt-8 border-t border-pink-200 pt-6">
+        <!-- Phân tích chi tiết - Ẩn cho đến khi game kết thúc -->
+        <div class="mt-8 border-t border-pink-200 pt-6 hidden" id="analysisWrapper">
             <h3 class="text-xl font-bold text-purple-800 text-center mb-4">📊 PHÂN TÍCH CHI TIẾT DỰ ÁN</h3>
             <div id="analysisContainer" class="hidden">
                 <!-- Insights -->
@@ -866,6 +866,7 @@
             </div>
             <button id="showAnalysisBtn" class="mt-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-6 rounded-full transition">Xem phân tích chi tiết</button>
         </div>
+
 
         <!-- INFO MODAL -->
         <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
