@@ -6,49 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Startup Game - Player Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #fce4ec 0%, #e1d5e7 50%, #c5d9f0 100%);
             font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
 
-        /* ===== CẢI TIẾN GIAO DIỆN TAB ===== */
-        .tab-btn {
-            padding: 6px 18px;
-            border-radius: 999px;
-            background: #f3e8ff;
-            color: #4a2b7a;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        .tab-btn:hover {
-            background: #e9d5ff;
-            transform: translateY(-1px);
-        }
-        .tab-btn.active {
-            background: #8b5cf6;
-            color: white;
-            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
-        }
-        .tab-pane {
-            display: none;
-            padding: 20px;
-            background: rgba(255,255,255,0.92);
-            border-radius: 1.5rem;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-            margin-top: 12px;
-            border: 1px solid rgba(255,255,255,0.6);
-        }
-        .tab-pane.active {
-            display: block;
-        }
-        
-        
         /* Game Rules Sidebar Styles */
         .rules-button {
             position: fixed;
@@ -415,21 +378,6 @@
             width: 100%;
             text-align: center;
         }
-
-
-        #insightsList li {
-            padding: 8px 12px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.7);
-            border-left: 3px solid;
-            margin-bottom: 6px;
-        }
-        #insightsList li.text-green-700 { border-left-color: #22c55e; }
-        #insightsList li.text-yellow-700 { border-left-color: #eab308; }
-        #insightsList li.text-red-700 { border-left-color: #ef4444; }
-        
-        #journeyTableBody tr:hover { background: rgba(139,92,246,0.05); }
-        #journeyTableBody td { padding: 10px 12px; }
     </style>
 </head>
 
@@ -821,82 +769,6 @@
             <div id="finalRanking" class="bg-white/70 rounded-xl p-4 max-h-96 overflow-y-auto"></div>
         </div>
 
-        <!-- Phân tích chi tiết - Ẩn cho đến khi game kết thúc -->
-        <div class="mt-8 border-t border-pink-200 pt-6 hidden" id="analysisWrapper">
-            <h3 class="text-xl font-bold text-purple-800 text-center mb-4">📊 PHÂN TÍCH CHI TIẾT DỰ ÁN</h3>
-            <div id="analysisContainer" class="hidden">
-                <!-- Insights -->
-                <div id="insightsContainer" class="mb-6">
-                    <h4 class="font-bold text-purple-700">💡 Nhận định tự động</h4>
-                    <ul id="insightsList" class="list-none space-y-2 mt-2"></ul>
-                </div>
-                <!-- Tabs -->
-                <div class="flex flex-wrap gap-2 border-b border-purple-200 mb-4">
-                    <button class="tab-btn active" data-tab="tab1">Tổng quan tài chính</button>
-                    <button class="tab-btn" data-tab="tab2">Định giá & ROI</button>
-                    <button class="tab-btn" data-tab="tab3">Rủi ro & Niềm tin</button>
-                    <button class="tab-btn" data-tab="tab4">Nhà đầu tư</button>
-                    <button class="tab-btn" data-tab="tab5">Hành trình</button>
-                </div>
-                <div id="tabContent">
-                    <!-- Tab 1 -->
-                    <div id="tab1" class="tab-pane active">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <h5 class="font-semibold text-purple-700">Các thành phần sức khỏe nội tại</h5>
-                                <div id="intrinsicRadarContainer" style="height: 300px;"><canvas id="intrinsicRadar"></canvas></div>
-                            </div>
-                            <div>
-                                <h5 class="font-semibold text-purple-700">Điểm thành phần</h5>
-                                <div id="intrinsicScores" class="text-sm space-y-1"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Tab 2 -->
-                    <div id="tab2" class="tab-pane hidden">
-                        <div id="valuationDisplay" class="text-sm space-y-2"></div>
-                    </div>
-                    <!-- Tab 3 -->
-                    <div id="tab3" class="tab-pane hidden">
-                        <div id="riskDisplay" class="text-sm space-y-2"></div>
-                    </div>
-                    <!-- Tab 4 -->
-                    <div id="tab4" class="tab-pane hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <h5 class="font-semibold text-purple-700">Cơ cấu vốn theo loại nhà đầu tư</h5>
-                                <div style="height: 200px;"><canvas id="investorPie"></canvas></div>
-                            </div>
-                            <div>
-                                <h5 class="font-semibold text-purple-700">Sự kiện gần đây</h5>
-                                <ul id="investorEvents" class="text-xs list-disc pl-4 space-y-1"></ul>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Tab 5 -->
-                    <div id="tab5" class="tab-pane hidden">
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full text-sm">
-                                <thead class="bg-purple-100">
-                                    <tr>
-                                        <th class="px-3 py-2 text-left">Phase</th>
-                                        <th class="px-3 py-2 text-left">Sự kiện</th>
-                                        <th class="px-3 py-2 text-left">Tiến độ gọi vốn</th>
-                                        <th class="px-3 py-2 text-left">Tiền mặt</th>
-                                        <th class="px-3 py-2 text-left">Dòng tiền</th>
-                                        <th class="px-3 py-2 text-left">Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="journeyTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <button id="showAnalysisBtn" class="mt-4 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-bold py-2 px-6 rounded-full transition">Xem phân tích chi tiết</button>
-        </div>
-
-
         <!-- INFO MODAL -->
         <div id="infoModal" class="fixed inset-0 flex items-center justify-center z-50 hidden transition-all">
             <div class="absolute inset-0 bg-black/50 modal-overlay" id="modalOverlay"></div>
@@ -1281,18 +1153,6 @@
                             renderFinalRanking();
                             document.getElementById('gamePanel').classList.add('hidden');
                             if (pollingInterval) clearInterval(pollingInterval);
-                        
-                            // 👇 THÊM PHẦN NÀY: hiển thị phân tích
-                            const analysisWrapper = document.getElementById('analysisWrapper');
-                            if (analysisWrapper) {
-                                analysisWrapper.classList.remove('hidden');
-                            }
-                            // Tự động fetch phân tích (có thể gọi ngay hoặc để người dùng bấm nút)
-                            // Nếu muốn tự động hiển thị luôn, bỏ comment dòng dưới:
-                            // fetchAnalysis(roomIdFromUrl, playerIndexFromUrl);
-                        }
-
-                            
                         } else if (data.choosing_deck === true && !deckSubmitted) {
                             // Nếu chưa submit deck và game đang ở giai đoạn chọn deck, hiển thị deck builder
                             if (document.getElementById('deckPanel').classList.contains('hidden') && document.getElementById('gamePanel').classList.contains('hidden')) {
@@ -1630,212 +1490,6 @@
 
             // Khởi tạo khi trang load xong
             document.addEventListener('DOMContentLoaded', initRulesSidebar);
-
-
-                        // ========== ANALYSIS FUNCTIONS ==========
-            let analysisReport = null;
-            
-            async function fetchAnalysis(roomId, playerIndex) {
-                try {
-                    const response = await fetch(`/api/rooms/${roomId}/analysis/${playerIndex}`);
-                    if (!response.ok) throw new Error('Cannot fetch analysis');
-                    const data = await response.json();
-                    if (data.success) {
-                        analysisReport = data.report;
-                        renderAnalysis(analysisReport);
-                        document.getElementById('analysisContainer').classList.remove('hidden');
-                        document.getElementById('showAnalysisBtn').classList.add('hidden');
-                    } else {
-                        alert('Không thể tải báo cáo phân tích');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    alert('Lỗi khi tải phân tích: ' + err.message);
-                }
-            }
-            
-            function renderAnalysis(report) {
-                renderInsights(report.insights);
-                renderIntrinsicRadar(report.intrinsic_breakdown);
-                renderIntrinsicScores(report.intrinsic_breakdown);
-                renderValuation(report.valuation);
-                renderRisk(report.risk_trust);
-                renderInvestorPie(report.bot_breakdown.capital_share_percent);
-                renderInvestorEvents(report.bot_breakdown.recent_investor_events);
-                renderJourney(report.decision_journey);
-                activateTab('tab1');
-            }
-            
-            function renderInsights(insights) {
-                const container = document.getElementById('insightsList');
-                container.innerHTML = insights.map(i => {
-                    const emoji = i.level === 'good' ? '✅' : (i.level === 'warning' ? '⚠️' : '🚨');
-                    const color = i.level === 'good' ? 'text-green-700' : (i.level === 'warning' ? 'text-yellow-700' : 'text-red-700');
-                    return `<li class="${color}"><span class="font-bold">${emoji}</span> ${i.text}</li>`;
-                }).join('');
-            }
-            
-            function renderIntrinsicRadar(breakdown) {
-                const ctx = document.getElementById('intrinsicRadar').getContext('2d');
-                const labels = ['Biên lợi nhuận', 'Tốc độ đốt tiền', 'Tăng trưởng', 'Doanh thu', 'Hiệu suất vốn', 'Cấu trúc vốn'];
-                const scores = [
-                    breakdown.gross_margin.score,
-                    breakdown.burn_rate.score,
-                    breakdown.growth.score,
-                    breakdown.revenue.score,
-                    breakdown.efficiency.score,
-                    breakdown.leverage.score
-                ];
-                new Chart(ctx, {
-                    type: 'radar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Điểm của bạn',
-                            data: scores,
-                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                            borderColor: '#8b5cf6',
-                            pointBackgroundColor: '#8b5cf6',
-                            pointBorderColor: '#fff',
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            r: {
-                                min: 0,
-                                max: 100,
-                                ticks: { stepSize: 20 }
-                            }
-                        },
-                        plugins: {
-                            legend: { display: false }
-                        }
-                    }
-                });
-            }
-            
-            function renderIntrinsicScores(breakdown) {
-                const container = document.getElementById('intrinsicScores');
-                const items = [
-                    { label: 'Biên lợi nhuận gộp', value: breakdown.gross_margin.value, score: breakdown.gross_margin.score, max: 30, labelText: breakdown.gross_margin.label },
-                    { label: 'Tốc độ đốt tiền', value: breakdown.burn_rate.value, score: breakdown.burn_rate.score, max: 20, labelText: breakdown.burn_rate.label },
-                    { label: 'Tăng trưởng', value: breakdown.growth.value, score: breakdown.growth.score, max: 20, labelText: breakdown.growth.label },
-                    { label: 'Doanh thu năm', value: breakdown.revenue.value, score: breakdown.revenue.score, max: 10, labelText: breakdown.revenue.label },
-                    { label: 'Hiệu suất vốn (ROE)', value: breakdown.efficiency.value, score: breakdown.efficiency.score, max: 10, labelText: breakdown.efficiency.label },
-                    { label: 'Cấu trúc vốn (nợ/vốn)', value: breakdown.leverage.value, score: breakdown.leverage.score, max: 10, labelText: breakdown.leverage.label },
-                ];
-                container.innerHTML = items.map(item => `
-                    <div class="flex justify-between items-center border-b border-purple-100 py-1">
-                        <span>${item.label}</span>
-                        <span class="font-mono">${item.score.toFixed(1)}/${item.max} <span class="text-gray-500 text-xs">(${item.labelText})</span></span>
-                    </div>
-                `).join('');
-                if (breakdown.security_penalty > 0 || breakdown.reg_risk_penalty > 0) {
-                    container.innerHTML += `
-                        <div class="text-red-500 text-xs mt-2">⚠️ Trừ điểm: Security -${breakdown.security_penalty.toFixed(1)}, RegRisk -${breakdown.reg_risk_penalty.toFixed(1)}</div>
-                    `;
-                }
-            }
-            
-            function renderValuation(valuation) {
-                const container = document.getElementById('valuationDisplay');
-                container.innerHTML = `
-                    <div class="grid grid-cols-2 gap-4">
-                        <div><span class="font-bold">Định giá ước tính:</span> ${(valuation.estimated_valuation || 0).toLocaleString()} USD</div>
-                        <div><span class="font-bold">P/S Multiple:</span> ${valuation.ps_multiple.toFixed(2)}x</div>
-                        <div><span class="font-bold">Điểm định giá hợp lý:</span> ${valuation.valuation_sanity.toFixed(1)}/100</div>
-                        <div><span class="font-bold">ROI chuẩn hóa:</span> ${valuation.roi_norm.toFixed(1)}</div>
-                        <div><span class="font-bold">ROI thực tế:</span> ${valuation.raw_roi_percent.toFixed(1)}%</div>
-                    </div>
-                    <div class="mt-2 text-sm text-gray-600">
-                        ${valuation.ps_multiple > 5 ? '⚠️ P/S cao, định giá dựa nhiều vào kỳ vọng' : valuation.ps_multiple < 1 ? '⚠️ P/S thấp, định giá có thể chưa phản ánh tiềm năng' : '✅ P/S trong vùng hợp lý'}
-                    </div>
-                `;
-            }
-            
-            function renderRisk(risk) {
-                const container = document.getElementById('riskDisplay');
-                container.innerHTML = `
-                    <div class="space-y-2">
-                        <div><span class="font-bold">Bảo mật (Security):</span> ${risk.security}/100 ${risk.security < 40 ? '🔴 Thấp' : risk.security < 70 ? '🟡 Trung bình' : '🟢 Tốt'}</div>
-                        <div><span class="font-bold">Rủi ro pháp lý (RegRisk):</span> ${risk.reg_risk}/100 ${risk.reg_risk > 50 ? '🔴 Cao' : risk.reg_risk > 20 ? '🟡 Trung bình' : '🟢 Thấp'}</div>
-                        <div><span class="font-bold">Minh bạch (Transparency):</span> ${risk.transparency}/100 ${risk.transparency < 40 ? '🔴 Thấp' : risk.transparency < 70 ? '🟡 Trung bình' : '🟢 Tốt'}</div>
-                        <div><span class="font-bold">Niềm tin trung bình (Trust):</span> ${risk.avg_trust.toFixed(1)}/100</div>
-                    </div>
-                `;
-            }
-            
-            function renderInvestorPie(share) {
-                const ctx = document.getElementById('investorPie').getContext('2d');
-                const labels = Object.keys(share);
-                const data = Object.values(share);
-                const colors = ['#f43f5e', '#f59e0b', '#8b5cf6', '#10b981'];
-                new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colors.slice(0, data.length),
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        plugins: {
-                            legend: { position: 'bottom' }
-                        }
-                    }
-                });
-            }
-            
-            function renderInvestorEvents(events) {
-                const container = document.getElementById('investorEvents');
-                if (!events || events.length === 0) {
-                    container.innerHTML = '<li class="text-gray-500">Không có sự kiện gần đây</li>';
-                    return;
-                }
-                container.innerHTML = events.map(e => `<li>${e}</li>`).join('');
-            }
-            
-            function renderJourney(journey) {
-                const tbody = document.getElementById('journeyTableBody');
-                if (!journey || journey.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500">Chưa có dữ liệu hành trình</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = journey.map(item => `
-                    <tr class="border-b border-purple-100">
-                        <td class="px-3 py-2">${item.phase || '-'}</td>
-                        <td class="px-3 py-2">${item.event || '-'}</td>
-                        <td class="px-3 py-2">${(item.funding_progress * 100).toFixed(1)}%</td>
-                        <td class="px-3 py-2">${item.available_cash ? item.available_cash.toFixed(0) : '-'}</td>
-                        <td class="px-3 py-2 ${item.cash_flow >= 0 ? 'text-green-600' : 'text-red-600'}">${item.cash_flow ? item.cash_flow.toFixed(0) : '0'}</td>
-                        <td class="px-3 py-2">${item.status || '-'}</td>
-                    </tr>
-                `).join('');
-            }
-            
-            function activateTab(tabId) {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
-                document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-                document.getElementById(tabId).classList.remove('hidden');
-                document.getElementById(tabId).classList.add('active');
-            }
-            
-            // Sự kiện click cho các tab
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    activateTab(this.dataset.tab);
-                });
-            });
-            
-            // Nút "Xem phân tích chi tiết"
-            document.getElementById('showAnalysisBtn')?.addEventListener('click', function() {
-                const roomId = document.getElementById('roomIdDisplay')?.textContent || roomIdFromUrl;
-                const playerIndex = playerIndexFromUrl;
-                fetchAnalysis(roomId, playerIndex);
-            });
 
         </script>
 </body>
