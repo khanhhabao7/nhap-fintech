@@ -15,6 +15,7 @@ import random
 import math
 import uuid
 import os
+from collections import Counter
 
 app = Flask(__name__, template_folder='templates')
 app.secret_key = 'startup-game-secret'
@@ -651,6 +652,173 @@ for i in range(1, 201):
         "hype_sens": hype_sens, "trans_sens": trans_sens, "memory_decay_rate": decay,
         "weights": weights
     })
+
+# ==================== PHÂN TÍCH KẾT QUẢ (ANALYSIS) ====================
+def _label(value, thresholds, names):
+    for t, name in zip(thresholds, names):
+        if value < t:
+            return name
+    return names[-1]
+
+def _gm_component(proj):
+    total_fees = proj.get("fee_ecom",0) + proj.get("fee_retail",0) + proj.get("fee_direct",0)
+    price_real = proj["price"] * (1 - total_fees/100.0)
+    cogs_unit = (proj["material"] + proj["packaging"] + proj.get("labor",0)) * (1 + proj.get("defect_rate",0)/100.0)
+    gm = (price_real - cogs_unit)/price_real if price_real > 0 else 0
+    if gm > 0.2:
+        score = 20 + 10 * (1 - math.exp(-5 * (gm - 0.2) / 0.6))
+    else:
+        score = max(0, 20 * (gm / 0.2))
+    return {"value": gm, "score": min(30, max(0, score)), "max": 30, "label": _label(gm, [0.0,0.2,0.5], ["Yếu","Khá","Tốt","Rất tốt"])}
+
+def _burn_component(proj, metrics):
+    burn_rate = metrics.get("monthly_burn", 0) / proj["target_funding"] if proj["target_funding"] > 0 else 0
+    if burn_rate < 0.3:
+        score = 15 + 5 * (1 - math.exp(-4 * (0.3 - burn_rate) / 0.25))
+    else:
+        score = max(0, 15 * (1 - (burn_rate - 0.3) / 0.7))
+    return {"value": burn_rate, "score": min(20, max(0, score)), "max": 20, "label": _label(burn_rate, [0.7,0.3,0.1], ["Nguy hiểm","Cảnh báo","An toàn","Rất an toàn"])}
+
+def _growth_component(proj):
+    growth = (proj["units_m6"] / proj["units_m1"]) - 1 if proj["units_m1"] > 0 else 0
+    if growth > 0:
+        score = 10 + 10 * (1 - math.exp(-3 * growth / 0.5))
+    else:
+        score = max(0, 10 * (1 + growth / 0.5))
+    return {"value": growth, "score": min(20, max(0, score)), "max": 20, "label": _label(growth, [0, 0.2, 0.5], ["Suy giảm","Tăng trưởng nhẹ","Tăng trưởng mạnh","Rất mạnh"])}
+
+def _revenue_component(proj):
+    price_real = proj["price"] * (1 - (proj.get("fee_ecom",0)+proj.get("fee_retail",0)+proj.get("fee_direct",0))/100.0)
+    revenue_year = ((proj["units_m1"] + proj["units_m6"]) / 2) * 12 * price_real
+    score = min(10, max(0, math.log10(max(1, revenue_year / 100000)) / 2 * 10))
+    return {"value": revenue_year, "score": score, "max": 10, "label": _label(revenue_year, [100000, 500000, 1000000], ["Nhỏ","Trung bình","Lớn","Rất lớn"])}
+
+def _efficiency_component(proj):
+    total_fees = proj.get("fee_ecom",0) + proj.get("fee_retail",0) + proj.get("fee_direct",0)
+    price_real = proj["price"] * (1 - total_fees/100.0)
+    cogs_unit = (proj["material"] + proj["packaging"] + proj.get("labor",0)) * (1 + proj.get("defect_rate",0)/100.0)
+    monthly_burn = proj["fixed_cost"] + proj["marketing_cost"] + (proj["loan"] * proj["interest_rate"] / 100 / 12)
+    annual_profit = (price_real - cogs_unit) * proj["units_m6"] * 12 - (monthly_burn * 12)
+    total_capital = proj["owner_equity"] + proj["loan"] + proj.get("total_invested", 0)
+    roe = annual_profit / total_capital if total_capital > 0 and annual_profit > 0 else 0
+    score = min(10, roe * 10)
+    return {"value": roe, "score": min(10, max(0, score)), "max": 10, "label": _label(roe, [0, 0.3, 0.7], ["Kém","Trung bình","Tốt","Rất tốt"])}
+
+def _leverage_component(proj):
+    debt_ratio = proj["loan"] / proj["owner_equity"] if proj["owner_equity"] > 0 else 0
+    if debt_ratio < 0.5:
+        score = 5 + debt_ratio * 10
+    elif debt_ratio <= 1.5:
+        score = 10 - (debt_ratio - 0.5) * 5
+    else:
+        score = max(0, 5 - (debt_ratio - 1.5) * 3)
+    return {"value": debt_ratio, "score": min(10, max(0, score)), "max": 10, "label": _label(debt_ratio, [1.5, 0.5, 0.2], ["Nợ cao","Cân bằng","An toàn","Rất an toàn"])}
+
+def _avg_trust(proj):
+    scores = proj.get("trust_scores", {})
+    return sum(scores.values()) / len(scores) if scores else 50
+
+def _perception_quadrant(proj, metrics):
+    hype = proj.get("hype", 50)
+    intrinsic_norm = min(100, metrics.get("intrinsic", 0) / 90 * 100)
+    if hype >= 60 and intrinsic_norm < 50:
+        quadrant = "Hype Bubble"
+        description = "Dự án đang sống nhờ hype, tiềm ẩn rủi ro sụp đổ khi thị trường đảo chiều."
+    elif hype < 50 and intrinsic_norm >= 60:
+        quadrant = "Hidden Gem"
+        description = "Mô hình tốt nhưng thiếu khả năng tiếp thị, cần đẩy mạnh truyền thông."
+    elif hype >= 60 and intrinsic_norm >= 60:
+        quadrant = "Balanced Growth"
+        description = "Cân bằng giữa sức hút và thực lực, đây là trạng thái lý tưởng."
+    else:
+        quadrant = "Struggling"
+        description = "Cả nội lực và sức hút đều yếu, cần tái cấu trúc mô hình."
+    return {"quadrant": quadrant, "description": description, "hype": hype, "intrinsic_normalized": intrinsic_norm}
+
+def _bot_breakdown(room, idx):
+    bot_alloc = room.get('bot_alloc', [])
+    by_id = {b['id']: b for b in BOTS}
+    capital_by_type = {"FOMO": 0, "Value Hunter": 0, "Whale": 0, "Random": 0}
+    for entry in bot_alloc:
+        bot = by_id.get(entry['bot_id'])
+        if not bot:
+            continue
+        invested = entry['perProject'][idx] if idx < len(entry['perProject']) else 0
+        capital_by_type[bot['type']] += invested
+    total = sum(capital_by_type.values()) or 1
+    capital_share = {k: round(v/total*100, 1) for k, v in capital_by_type.items()}
+    # Lấy 5 sự kiện gần nhất
+    recent_events = [log for log in room.get('logs', []) if f"dự án {idx+1}" in log.lower() and ("rút" in log or "đầu tư" in log)][-5:]
+    return {"capital_by_type": capital_by_type, "capital_share_percent": capital_share, "recent_events": recent_events}
+
+def _decision_journey(room, idx):
+    timeline = []
+    for phase_detail in room.get('phase_details', []):
+        entry = next((p for p in phase_detail.get('players', []) if p.get('name') == f'Player {idx+1}'), None)
+        if entry:
+            timeline.append({
+                "phase": phase_detail.get('phase'),
+                "event": phase_detail.get('event'),
+                "funding_progress": entry.get('funding'),
+                "available_cash": entry.get('available_cash'),
+                "status": entry.get('status')
+            })
+    return timeline
+
+def _generate_insights(proj, metrics, intrinsic_breakdown, risk_block, bot_breakdown):
+    insights = []
+    hype = proj.get("hype", 50)
+    intrinsic_norm = min(100, metrics.get("intrinsic", 0) / 90 * 100)
+    if hype - intrinsic_norm > 30:
+        insights.append({"level": "warning", "text": "Dự án đang được định giá dựa trên hype nhiều hơn thực lực — ưu tiên cải thiện biên lợi nhuận/sản phẩm trước khi đẩy thêm marketing."})
+    if risk_block.get("security", 50) < 40:
+        insights.append({"level": "danger", "text": "Mức an ninh dữ liệu thấp (<40) đang trừ trực tiếp vào điểm nội tại và làm giảm niềm tin của nhóm Whale/Value Hunter."})
+    if risk_block.get("reg_risk", 0) > 50:
+        insights.append({"level": "danger", "text": "Rủi ro pháp lý/tuân thủ tích lũy cao — nhóm nhà đầu tư kỹ tính gần như loại dự án khỏi danh sách đầu tư."})
+    if metrics.get("funding_progress", 0) >= 1 and metrics.get("intrinsic", 0) < 40:
+        insights.append({"level": "warning", "text": "Gọi vốn thành công nhưng mô hình kinh doanh nền tảng còn yếu — rủi ro 'thành công giả' ở vòng gọi vốn tiếp theo."})
+    if bot_breakdown.get("capital_share_percent", {}).get("FOMO", 0) > 60:
+        insights.append({"level": "warning", "text": "Hơn 60% vốn đến từ nhóm FOMO — nguồn vốn không bền vì nhóm này rút theo cảm xúc thị trường, không theo nền tảng."})
+    if not insights:
+        insights.append({"level": "good", "text": "Các chỉ số đang ở mức cân bằng — không phát hiện rủi ro nổi bật nào trong mô hình hiện tại."})
+    return insights
+
+def build_analysis_report(room, player_index):
+    proj = room['players'][player_index]
+    if not proj:
+        return None
+    metrics = calculate_metrics(proj)
+    intrinsic_breakdown = {
+        "gross_margin": _gm_component(proj),
+        "burn_rate": _burn_component(proj, metrics),
+        "growth": _growth_component(proj),
+        "revenue": _revenue_component(proj),
+        "efficiency": _efficiency_component(proj),
+        "leverage": _leverage_component(proj),
+        "security_penalty": max(0, (50 - proj.get('security', 50)) / 5),
+        "reg_risk_penalty": proj.get('reg_risk', 0) / 10,
+    }
+    risk_block = {
+        "security": proj.get("security", 50),
+        "reg_risk": proj.get("reg_risk", 0),
+        "transparency": proj.get("transparency", 50),
+        "avg_trust": _avg_trust(proj)
+    }
+    perception = _perception_quadrant(proj, metrics)
+    bot_breakdown = _bot_breakdown(room, player_index)
+    journey = _decision_journey(room, player_index)
+    insights = _generate_insights(proj, metrics, intrinsic_breakdown, risk_block, bot_breakdown)
+    return {
+        "player_name": f"Player {player_index+1}",
+        "final_metrics": metrics,
+        "intrinsic_breakdown": intrinsic_breakdown,
+        "risk_trust": risk_block,
+        "market_perception": perception,
+        "bot_breakdown": bot_breakdown,
+        "decision_journey": journey,
+        "insights": insights
+    }
+    
 
 def get_bots_for_phase(phase, total_bots=200):
     ratio = min(1.0, phase * 0.2)
@@ -2194,12 +2362,17 @@ def api_reset_phase(room_id):
 def api_end_game(room_id):
     if room_id not in rooms:
         return jsonify({'error': 'Room not found'}), 404
-    
     room = rooms[room_id]
     room['game_ended'] = True
     room['status'] = 'ended'
     room['logs'].append("🏁 Game đã kết thúc bởi host!")
-    
+    # Lưu báo cáo cho tất cả player
+    room['final_reports'] = []
+    for i, p in enumerate(room.get('players', [])):
+        if p:
+            report = build_analysis_report(room, i)
+            if report:
+                room['final_reports'].append(report)
     return jsonify({'success': True})
 
 @app.route('/api/rooms/<room_id>/reset', methods=['POST'])
@@ -2239,6 +2412,31 @@ def handle_exception(e):
     print("=== UNHANDLED EXCEPTION ===")
     print(error_trace)
     return jsonify({'error': f'Internal Server Error: {str(e)}'}), 500
+
+@app.route('/api/rooms/<room_id>/analysis/<int:player_index>', methods=['GET'])
+def api_get_analysis(room_id, player_index):
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    room = rooms[room_id]
+    if player_index < 0 or player_index >= len(room.get('players', [])) or not room['players'][player_index]:
+        return jsonify({'error': 'Player not found'}), 404
+    report = build_analysis_report(room, player_index)
+    if not report:
+        return jsonify({'error': 'Cannot build report'}), 500
+    return jsonify({'success': True, 'report': report})
+
+@app.route('/api/rooms/<room_id>/analysis/all', methods=['GET'])
+def api_get_all_analysis(room_id):
+    if room_id not in rooms:
+        return jsonify({'error': 'Room not found'}), 404
+    room = rooms[room_id]
+    reports = []
+    for i, p in enumerate(room.get('players', [])):
+        if p:
+            report = build_analysis_report(room, i)
+            if report:
+                reports.append(report)
+    return jsonify({'success': True, 'reports': reports})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
