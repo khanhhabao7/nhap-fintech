@@ -721,18 +721,33 @@ def _avg_trust(proj):
 def _perception_quadrant(proj, metrics):
     hype = proj.get("hype", 50)
     intrinsic_norm = min(100, metrics.get("intrinsic", 0) / 90 * 100)
-    if hype >= 60 and intrinsic_norm < 50:
+    high_h, low_h = 60, 40
+    high_i, low_i = 55, 35
+
+    if hype >= high_h and intrinsic_norm < low_i:
         quadrant = "Hype Bubble"
         description = "Dự án đang sống nhờ hype, tiềm ẩn rủi ro sụp đổ khi thị trường đảo chiều."
-    elif hype < 50 and intrinsic_norm >= 60:
+    elif hype < low_h and intrinsic_norm >= high_i:
         quadrant = "Hidden Gem"
         description = "Mô hình tốt nhưng thiếu khả năng tiếp thị, cần đẩy mạnh truyền thông."
-    elif hype >= 60 and intrinsic_norm >= 60:
+    elif hype >= high_h and intrinsic_norm >= high_i:
         quadrant = "Balanced Growth"
         description = "Cân bằng giữa sức hút và thực lực, đây là trạng thái lý tưởng."
-    else:
+    elif hype < low_h and intrinsic_norm < low_i:
         quadrant = "Struggling"
         description = "Cả nội lực và sức hút đều yếu, cần tái cấu trúc mô hình."
+    elif intrinsic_norm >= high_i and hype < high_h:
+        quadrant = "Steady Builder"
+        description = "Nội lực ổn, hype chưa bùng nổ nhưng đang đi đúng hướng — tiếp tục đầu tư truyền thông sẽ bứt phá."
+    elif hype >= high_h and intrinsic_norm < high_i:
+        quadrant = "Overhyped Risk"
+        description = "Sức hút vượt thực lực — cần củng cố mô hình kinh doanh trước khi hype hạ nhiệt."
+    elif intrinsic_norm < low_i and hype >= low_h:
+        quadrant = "Fragile Momentum"
+        description = "Còn được thị trường chú ý nhưng nền tảng yếu, dễ mất đà nếu không cải thiện nhanh."
+    else:
+        quadrant = "On Track"
+        description = "Cả hype và nội lực ở mức trung bình, dự án đang phát triển ổn định, chưa có dấu hiệu rủi ro hay đột phá rõ rệt."
     return {"quadrant": quadrant, "description": description, "hype": hype, "intrinsic_normalized": intrinsic_norm}
 
 def _bot_breakdown(room, idx):
@@ -754,7 +769,7 @@ def _bot_breakdown(room, idx):
         for action in phase_detail.get('bot_actions', []):
             if action.get('player_index') == idx:
                 amount = action.get('amount', 0)
-                if amount != 0:
+                if amount >= 1:  # bỏ qua khoản lặt vặt làm tròn về 0 khi hiển thị
                     bot_type = action.get('bot_type', 'Unknown')
                     action_type = action.get('action', 'unknown')
                     phase = phase_detail.get('phase', '?')
@@ -789,18 +804,39 @@ def _generate_insights(proj, metrics, intrinsic_breakdown, risk_block, bot_break
     insights = []
     hype = proj.get("hype", 50)
     intrinsic_norm = min(100, metrics.get("intrinsic", 0) / 90 * 100)
+    runway = metrics.get("runway", 999)
+
+    if proj.get("status") == "bankrupt":
+        insights.append({"level": "danger", "text": "Dự án đã PHÁ SẢN trong quá trình chơi — hết tiền mặt để duy trì hoạt động trước khi gọi vốn xong. Cần kiểm soát burn rate và dòng tiền chặt hơn ngay từ phase đầu."})
+    if runway is not None and runway <= 0:
+        insights.append({"level": "danger", "text": f"Runway đang ở mức {runway:.0f} tháng — dự án không còn đủ tiền mặt để vận hành, rủi ro phá sản ngay lập tức nếu không có vốn mới."})
+    elif runway is not None and 0 < runway <= 2:
+        insights.append({"level": "warning", "text": f"Runway chỉ còn khoảng {runway:.0f} tháng — cần gọi vốn hoặc cắt giảm chi phí gấp để tránh hết tiền mặt."})
     if hype - intrinsic_norm > 30:
         insights.append({"level": "warning", "text": "Dự án đang được định giá dựa trên hype nhiều hơn thực lực — ưu tiên cải thiện biên lợi nhuận/sản phẩm trước khi đẩy thêm marketing."})
+    if intrinsic_norm - hype > 30:
+        insights.append({"level": "warning", "text": "Nội lực tốt hơn hẳn mức độ nhận diện trên thị trường — dự án đang bị 'undervalue', nên đầu tư thêm cho marketing/visibility để bắt kịp giá trị thật."})
+    if hype < 30 and intrinsic_norm < 30:
+        insights.append({"level": "danger", "text": "Cả hype và nội lực đều rất thấp (<30) — mô hình kinh doanh cần được tái cấu trúc toàn diện, không chỉ vá lỗi nhỏ."})
     if risk_block.get("security", 50) < 40:
         insights.append({"level": "danger", "text": "Mức an ninh dữ liệu thấp (<40) đang trừ trực tiếp vào điểm nội tại và làm giảm niềm tin của nhóm Whale/Value Hunter."})
     if risk_block.get("reg_risk", 0) > 50:
         insights.append({"level": "danger", "text": "Rủi ro pháp lý/tuân thủ tích lũy cao — nhóm nhà đầu tư kỹ tính gần như loại dự án khỏi danh sách đầu tư."})
+    if risk_block.get("avg_trust", 50) < 35:
+        insights.append({"level": "warning", "text": "Niềm tin trung bình của nhà đầu tư đang thấp (<35) — cần cải thiện minh bạch (transparency) và giữ đúng cam kết để lấy lại niềm tin."})
+    debt_ratio = proj["loan"] / proj["owner_equity"] if proj.get("owner_equity", 0) > 0 else (1.51 if proj.get("loan", 0) > 0 else 0)
+    if debt_ratio > 1.5:
+        insights.append({"level": "warning", "text": "Tỷ lệ nợ/vốn chủ sở hữu đang vượt 1.5x — đòn bẩy tài chính cao, rủi ro thanh khoản nếu doanh thu không tăng kịp."})
     if metrics.get("funding_progress", 0) >= 1 and metrics.get("intrinsic", 0) < 40:
         insights.append({"level": "warning", "text": "Gọi vốn thành công nhưng mô hình kinh doanh nền tảng còn yếu — rủi ro 'thành công giả' ở vòng gọi vốn tiếp theo."})
+    if metrics.get("funding_progress", 0) < 0.3 and proj.get("current_phase", 0) >= proj.get("max_phase", 5) - 1:
+        insights.append({"level": "warning", "text": "Gần hết thời gian gọi vốn nhưng tiến độ funding vẫn dưới 30% — cần điều chỉnh chiến lược thu hút nhà đầu tư ngay."})
     if bot_breakdown.get("capital_share_percent", {}).get("FOMO", 0) > 60:
         insights.append({"level": "warning", "text": "Hơn 60% vốn đến từ nhóm FOMO — nguồn vốn không bền vì nhóm này rút theo cảm xúc thị trường, không theo nền tảng."})
+    if hype >= 60 and intrinsic_norm >= 55 and metrics.get("funding_progress", 0) >= 0.8:
+        insights.append({"level": "good", "text": "Dự án đang ở trạng thái lý tưởng: hype cao đi kèm nội lực tốt và funding gần hoàn tất — duy trì đà này để về đích."})
     if not insights:
-        insights.append({"level": "good", "text": "Các chỉ số đang ở mức cân bằng — không phát hiện rủi ro nổi bật nào trong mô hình hiện tại."})
+        insights.append({"level": "good", "text": "Các chỉ số đang ở mức ổn định, chưa phát hiện rủi ro nổi bật, nhưng cũng chưa có điểm bứt phá rõ rệt — nên cải thiện thêm hype hoặc biên lợi nhuận để tạo lợi thế."})
     return insights
 
 def build_analysis_report(room, player_index):
@@ -1008,6 +1044,25 @@ def aggregate_bot_actions(bot_actions):
         for (bot_type, action, player_index), amount in sorted(grouped.items())
     ]
 
+def _wipe_bot_allocations_for_project(room, idx, logs=None):
+    """Khi 1 dự án bankrupt, toàn bộ vốn các bot đã rót vào dự án đó coi như MẤT
+    (không phải rút về idle, vì available_cash đã về 0/âm). Hàm này xóa sạch
+    perProject[idx] của TẤT CẢ bot để tránh dữ liệu 'vốn ma' còn sót lại,
+    gây sai lệch biểu đồ Nhà đầu tư và các sự kiện rút vốn = 0 ở các phase sau."""
+    bot_alloc = room.get('bot_alloc') or []
+    wiped_total = 0
+    for entry in bot_alloc:
+        per_project = entry.get('perProject', [])
+        if idx < len(per_project):
+            amt = per_project[idx]
+            if amt:
+                wiped_total += amt
+                per_project[idx] = 0
+                # tiền đã mất theo dự án phá sản, KHÔNG cộng lại vào idle của bot
+    if wiped_total and logs is not None:
+        logs.append(f"⚠️ Toàn bộ {wiped_total:,.0f} vốn bot đã đầu tư vào dự án {idx+1} bị mất do phá sản.")
+    return wiped_total
+
 def process_phase(room, phase, players, logs, bot_actions=None):
     if bot_actions is None:
         bot_actions = []
@@ -1082,6 +1137,7 @@ def process_phase(room, phase, players, logs, bot_actions=None):
                 players[idx]['status'] = 'bankrupt'
                 players[idx]['funding_progress'] = 0
                 players[idx]['total_invested'] = 0
+                _wipe_bot_allocations_for_project(room, idx, logs)
                 logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền mặt để rút)")
                 continue
                 
@@ -1112,6 +1168,7 @@ def process_phase(room, phase, players, logs, bot_actions=None):
                     players[idx]['status'] = 'bankrupt'
                     players[idx]['funding_progress'] = 0
                     players[idx]['total_invested'] = 0
+                    _wipe_bot_allocations_for_project(room, idx, logs)
                     logs.append(f"Dự án {idx+1} PHÁ SẢN (không đủ tiền mặt để rút đủ {actual:.0f})!")
 
     for bot in active_bots:
@@ -2031,6 +2088,7 @@ def run_phase():
             proj['status'] = 'bankrupt'
             proj['funding_progress'] = 0
             proj['total_invested'] = 0
+            _wipe_bot_allocations_for_project(room, idx, logs)
             logs.append(f"❌ Dự án {idx+1} PHÁ SẢN do âm tiền mặt (${proj['available_cash']:.2f})!")
             continue   # bỏ qua phần kích hoạt reaction và các bước sau cho dự án này
         
