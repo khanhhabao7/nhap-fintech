@@ -1528,6 +1528,197 @@
             // Khởi tạo khi trang load xong
             document.addEventListener('DOMContentLoaded', initRulesSidebar);
 
+        // ==================== PHÂN TÍCH KẾT QUẢ (ANALYSIS) ====================
+        let currentAnalysisReport = null;
+        let chartInstances = {};
+
+        function closeAnalysisModal() {
+            document.getElementById('analysisModal').style.display = 'none';
+            // Hủy các biểu đồ để tránh memory leak
+            Object.values(chartInstances).forEach(chart => { if (chart) chart.destroy(); });
+            chartInstances = {};
+        }
+
+        async function showMyAnalysis() {
+            try {
+                const res = await fetch(`${API_BASE}/rooms/${roomIdFromUrl}/analysis/${playerIndexFromUrl}`);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                currentAnalysisReport = data.report;
+                document.getElementById('analysisTitle').innerText = `📊 Phân tích dự án của bạn`;
+                document.getElementById('analysisModal').style.display = 'flex';
+                renderAnalysisTabs(currentAnalysisReport);
+            } catch (err) {
+                alert('Không thể tải phân tích: ' + err.message);
+            }
+        }
+
+        function renderAnalysisTabs(report) {
+            // Tab 1: Tổng quan (Insights)
+            const overviewEl = document.getElementById('tab-overview');
+            let insightsHtml = report.insights.map(ins => {
+                const cls = ins.level === 'good' ? 'insight-good' : (ins.level === 'warning' ? 'insight-warning' : 'insight-danger');
+                const icon = ins.level === 'good' ? '✅' : (ins.level === 'warning' ? '⚠️' : '🚨');
+                return `<div class="insight-item ${cls}"><strong>${icon}</strong> ${ins.text}</div>`;
+            }).join('');
+            const metrics = report.final_metrics;
+            overviewEl.innerHTML = `
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-purple-50 p-4 rounded-xl text-center"><div class="text-sm text-purple-600">Funding</div><div class="text-2xl font-bold text-purple-800">${(metrics.funding_progress*100).toFixed(1)}%</div></div>
+                    <div class="bg-pink-50 p-4 rounded-xl text-center"><div class="text-sm text-pink-600">Intrinsic</div><div class="text-2xl font-bold text-pink-800">${metrics.intrinsic.toFixed(1)}</div></div>
+                    <div class="bg-blue-50 p-4 rounded-xl text-center"><div class="text-sm text-blue-600">Valuation</div><div class="text-2xl font-bold text-blue-800">${metrics.valuation_sanity.toFixed(1)}</div></div>
+                    <div class="bg-green-50 p-4 rounded-xl text-center"><div class="text-sm text-green-600">Runway</div><div class="text-2xl font-bold text-green-800">${metrics.runway} tháng</div></div>
+                </div>
+                <h4 class="font-bold text-purple-800 mb-2">📌 Những điểm chính</h4>
+                ${insightsHtml}
+            `;
+
+            // Tab 2: Tài chính (Radar chart)
+            const financeEl = document.getElementById('tab-finance');
+            const intrinsic = report.intrinsic_breakdown;
+            financeEl.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div><canvas id="radarChart" height="250"></canvas></div>
+                    <div>
+                        <h4 class="font-bold text-purple-800 mb-2">Chi tiết thành phần</h4>
+                        <table class="w-full text-sm">
+                            <tr><th class="text-left">Chỉ số</th><th class="text-right">Điểm</th><th class="text-right">Đánh giá</th></tr>
+                            ${['gross_margin','burn_rate','growth','revenue','efficiency','leverage'].map(key => `
+                                <tr><td>${key.replace('_',' ').toUpperCase()}</td>
+                                <td class="text-right font-bold">${intrinsic[key].score.toFixed(1)}/${intrinsic[key].max}</td>
+                                <td class="text-right">${intrinsic[key].label}</td></tr>
+                            `).join('')}
+                            <tr class="text-red-600"><td>Security penalty</td><td class="text-right">-${intrinsic.security_penalty.toFixed(1)}</td><td></td></tr>
+                            <tr class="text-red-600"><td>Reg risk penalty</td><td class="text-right">-${intrinsic.reg_risk_penalty.toFixed(1)}</td><td></td></tr>
+                        </table>
+                        <div class="mt-4 p-3 bg-gray-50 rounded-xl">
+                            <div class="font-bold">Định giá & ROI</div>
+                            <div>P/S multiple: ${(report.final_metrics?.estimated_valuation / Math.max(1, report.final_metrics?.revenue_year || 1)).toFixed(2) || 'N/A'}</div>
+                            <div>Valuation sanity: ${report.final_metrics?.valuation_sanity?.toFixed(1) || 'N/A'}</div>
+                            <div>ROI norm: ${report.final_metrics?.roi_norm?.toFixed(1) || 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Vẽ radar
+            setTimeout(() => {
+                const ctx = document.getElementById('radarChart')?.getContext('2d');
+                if (ctx) {
+                    chartInstances.radar = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Gross Margin','Burn Rate','Growth','Revenue','Efficiency','Leverage'],
+                            datasets: [{
+                                label: 'Điểm của bạn',
+                                data: ['gross_margin','burn_rate','growth','revenue','efficiency','leverage'].map(k => intrinsic[k].score),
+                                backgroundColor: 'rgba(139,92,246,0.2)',
+                                borderColor: '#8b5cf6',
+                                pointBackgroundColor: '#8b5cf6'
+                            }]
+                        },
+                        options: { scales: { r: { max: 30, min: 0, ticks: { stepSize: 10 } } } }
+                    });
+                }
+            }, 100);
+
+            // Tab 3: Rủi ro & Niềm tin
+            const riskEl = document.getElementById('tab-risk');
+            const risk = report.risk_trust;
+            const perception = report.market_perception;
+            riskEl.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-purple-800">Chỉ số rủi ro</h4>
+                        <div class="metric-bar"><span class="w-28">Security</span><div class="bar-track"><div class="bar-fill bg-blue-500" style="width:${risk.security}%"></div></div><span>${risk.security}</span></div>
+                        <div class="metric-bar"><span class="w-28">Reg Risk</span><div class="bar-track"><div class="bar-fill bg-red-500" style="width:${Math.min(100, risk.reg_risk)}%"></div></div><span>${risk.reg_risk}</span></div>
+                        <div class="metric-bar"><span class="w-28">Transparency</span><div class="bar-track"><div class="bar-fill bg-green-500" style="width:${risk.transparency}%"></div></div><span>${risk.transparency}</span></div>
+                        <div class="metric-bar"><span class="w-28">Trust trung bình</span><div class="bar-track"><div class="bar-fill bg-purple-500" style="width:${risk.avg_trust}%"></div></div><span>${risk.avg_trust.toFixed(1)}</span></div>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">Cảm nhận thị trường</h4>
+                        <div class="p-4 rounded-xl bg-gray-50 text-center">
+                            <div class="quadrant-badge quadrant-${perception.quadrant.replace(' ','')}">${perception.quadrant}</div>
+                            <p class="mt-2 text-gray-700">${perception.description}</p>
+                            <div class="mt-2 text-sm">Hype: ${perception.hype} | Intrinsic: ${perception.intrinsic_normalized.toFixed(1)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Tab 4: Nhà đầu tư
+            const investorEl = document.getElementById('tab-investor');
+            const bot = report.bot_breakdown;
+            const shares = bot.capital_share_percent;
+            investorEl.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-bold text-purple-800">Cơ cấu vốn theo loại bot</h4>
+                        <canvas id="pieChart" height="200"></canvas>
+                        <ul class="mt-2 text-sm">
+                            ${Object.entries(shares).map(([k,v]) => `<li><span class="font-bold">${k}:</span> ${v}%</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-purple-800">Sự kiện rút/vào vốn gần đây</h4>
+                        <ul class="max-h-60 overflow-y-auto text-sm space-y-1">
+                            ${bot.recent_events.length ? bot.recent_events.map(e => `<li class="bg-gray-50 p-2 rounded">${e}</li>`).join('') : '<li class="text-gray-500">Không có sự kiện nào</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                const ctx = document.getElementById('pieChart')?.getContext('2d');
+                if (ctx) {
+                    chartInstances.pie = new Chart(ctx, {
+                        type: 'pie',
+                        data: {
+                            labels: Object.keys(shares),
+                            datasets: [{ data: Object.values(shares), backgroundColor: ['#f59e0b','#3b82f6','#8b5cf6','#10b981'] }]
+                        },
+                        options: { plugins: { legend: { position: 'bottom' } } }
+                    });
+                }
+            }, 100);
+
+            // Tab 5: Hành trình
+            const journeyEl = document.getElementById('tab-journey');
+            const journey = report.decision_journey;
+            journeyEl.innerHTML = `
+                <h4 class="font-bold text-purple-800 mb-2">Dòng thời gian các phase</h4>
+                <table class="w-full text-sm border-collapse">
+                    <thead><tr class="bg-purple-100"><th class="p-2 text-left">Phase</th><th class="p-2 text-left">Sự kiện</th><th class="p-2 text-right">Funding</th><th class="p-2 text-right">Cash</th><th class="p-2 text-left">Status</th></tr></thead>
+                    <tbody>
+                        ${journey.map(j => `
+                            <tr class="border-b border-gray-100">
+                                <td class="p-2">${j.phase || '?'}</td>
+                                <td class="p-2">${j.event || '-'}</td>
+                                <td class="p-2 text-right">${(j.funding_progress*100).toFixed(1)}%</td>
+                                <td class="p-2 text-right">${j.available_cash?.toLocaleString() || 0}</td>
+                                <td class="p-2">${j.status || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            // Chuyển tab
+            document.querySelectorAll('.analysis-tab').forEach(tab => {
+                tab.onclick = function() {
+                    document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    document.getElementById(this.dataset.tab).classList.add('active');
+                };
+            });
+        }
+
+        // Ghi đè hàm renderFinalRanking để thêm nút phân tích (nếu cần) - không bắt buộc, vì player chỉ xem của mình
+        // Nhưng bạn có thể giữ nguyên
+
+        // Kết thúc phần thêm mới
+    </script>
+</body>
+
         </script>
 
     <!-- Modal phân tích -->
@@ -1555,5 +1746,3 @@
 </body>
 </html>
 
-</html>
- 
