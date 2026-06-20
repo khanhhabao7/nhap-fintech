@@ -747,9 +747,29 @@ def _bot_breakdown(room, idx):
         capital_by_type[bot['type']] += invested
     total = sum(capital_by_type.values()) or 1
     capital_share = {k: round(v/total*100, 1) for k, v in capital_by_type.items()}
-    # Lấy 5 sự kiện gần nhất
-    recent_events = [log for log in room.get('logs', []) if f"dự án {idx+1}" in log.lower() and ("rút" in log or "đầu tư" in log)][-5:]
-    return {"capital_by_type": capital_by_type, "capital_share_percent": capital_share, "recent_events": recent_events}
+    
+    # ---- Lấy sự kiện rút/vào vốn từ phase_details ----
+    events = []
+    for phase_detail in room.get('phase_details', []):
+        for action in phase_detail.get('bot_actions', []):
+            if action.get('player_index') == idx:
+                amount = action.get('amount', 0)
+                if amount != 0:
+                    bot_type = action.get('bot_type', 'Unknown')
+                    action_type = action.get('action', 'unknown')
+                    phase = phase_detail.get('phase', '?')
+                    if action_type == 'invest':
+                        events.append(f"Phase {phase}: Bot {bot_type} đầu tư {amount:,.0f}")
+                    elif action_type == 'withdraw':
+                        events.append(f"Phase {phase}: Bot {bot_type} rút {amount:,.0f}")
+    recent_events = events[-5:] if events else []
+    # ------------------------------------------------
+    
+    return {
+        "capital_by_type": capital_by_type,
+        "capital_share_percent": capital_share,
+        "recent_events": recent_events
+    }
 
 def _decision_journey(room, idx):
     timeline = []
