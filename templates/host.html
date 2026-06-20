@@ -1309,7 +1309,6 @@
                 statusText = "💀 Bankrupt";
             }
             const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-            const isEnded = roomData.ended;
             const analysisBtn = isEnded ? `<button onclick="showAnalysisForPlayer(${player.id})" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-xs font-bold">📊 Analysis</button>` : '';
             overallHtml += `
                     <div class="rank-card ${cardClass}">
