@@ -531,6 +531,38 @@
         display: block;
       }
     </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    /* Modal phân tích */
+    .analysis-modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+        z-index: 2000; display: none; align-items: center; justify-content: center;
+    }
+    .analysis-modal {
+        background: white; border-radius: 24px; max-width: 95vw; width: 1000px;
+        max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .analysis-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; flex-wrap: wrap; }
+    .analysis-tab { padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; background: #f3f4f6; color: #4b5563; transition: all 0.2s; }
+    .analysis-tab.active { background: #8b5cf6; color: white; }
+    .analysis-tab:hover:not(.active) { background: #e5e7eb; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .insight-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid; }
+    .insight-good { background: #f0fdf4; border-left-color: #22c55e; }
+    .insight-warning { background: #fffbeb; border-left-color: #f59e0b; }
+    .insight-danger { background: #fef2f2; border-left-color: #dc2626; }
+    .metric-bar { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
+    .metric-bar .bar-track { flex: 1; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+    .metric-bar .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+    .quadrant-badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; }
+    .quadrant-Hype { background: #fef08a; color: #854d0e; }
+    .quadrant-Hidden { background: #dbeafe; color: #1e40af; }
+    .quadrant-Balanced { background: #dcfce7; color: #166534; }
+    .quadrant-Struggling { background: #fecaca; color: #991b1b; }
+</style>
+    
+  
   </head>
   <body>
     <div class="container">
@@ -775,6 +807,190 @@
       // Quản lý danh sách các phòng đã tạo (lưu trong session)
       let hostRooms = [];
 
+      // Analysis functions
+      let currentAnalysisReport = null;
+      let chartInstances = {};
+      
+      function closeAnalysisModal() {
+          document.getElementById('analysisModal').style.display = 'none';
+          // Destroy charts để tránh memory leak
+          Object.values(chartInstances).forEach(chart => { if (chart) chart.destroy(); });
+          chartInstances = {};
+      }
+      
+      async function showAnalysisForPlayer(playerIndex) {
+          try {
+              const res = await fetch(`${API_BASE}/rooms/${currentRoomId}/analysis/${playerIndex}`);
+              const data = await res.json();
+              if (!data.success) throw new Error(data.error);
+              currentAnalysisReport = data.report;
+              document.getElementById('analysisTitle').innerText = `📊 Phân tích ${currentAnalysisReport.player_name || `Player ${playerIndex+1}`}`;
+              document.getElementById('analysisModal').style.display = 'flex';
+              renderAnalysisTabs(currentAnalysisReport);
+          } catch (err) {
+              alert('Không thể tải phân tích: ' + err.message);
+          }
+      }
+      
+      function renderAnalysisTabs(report) {
+          // Tab 1: Tổng quan (Insights)
+          const overviewEl = document.getElementById('tab-overview');
+          let insightsHtml = report.insights.map(ins => {
+              const cls = ins.level === 'good' ? 'insight-good' : (ins.level === 'warning' ? 'insight-warning' : 'insight-danger');
+              const icon = ins.level === 'good' ? '✅' : (ins.level === 'warning' ? '⚠️' : '🚨');
+              return `<div class="insight-item ${cls}"><strong>${icon}</strong> ${ins.text}</div>`;
+          }).join('');
+          // Thêm thẻ điểm nhanh
+          const metrics = report.final_metrics;
+          overviewEl.innerHTML = `
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div class="bg-purple-50 p-4 rounded-xl text-center"><div class="text-sm text-purple-600">Funding</div><div class="text-2xl font-bold text-purple-800">${(metrics.funding_progress*100).toFixed(1)}%</div></div>
+                  <div class="bg-pink-50 p-4 rounded-xl text-center"><div class="text-sm text-pink-600">Intrinsic</div><div class="text-2xl font-bold text-pink-800">${metrics.intrinsic.toFixed(1)}</div></div>
+                  <div class="bg-blue-50 p-4 rounded-xl text-center"><div class="text-sm text-blue-600">Valuation</div><div class="text-2xl font-bold text-blue-800">${metrics.valuation_sanity.toFixed(1)}</div></div>
+                  <div class="bg-green-50 p-4 rounded-xl text-center"><div class="text-sm text-green-600">Runway</div><div class="text-2xl font-bold text-green-800">${metrics.runway} tháng</div></div>
+              </div>
+              <h4 class="font-bold text-purple-800 mb-2">📌 Những điểm chính</h4>
+              ${insightsHtml}
+          `;
+      
+          // Tab 2: Tài chính (Radar chart)
+          const financeEl = document.getElementById('tab-finance');
+          const intrinsic = report.intrinsic_breakdown;
+          financeEl.innerHTML = `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div><canvas id="radarChart" height="250"></canvas></div>
+                  <div>
+                      <h4 class="font-bold text-purple-800 mb-2">Chi tiết thành phần</h4>
+                      <table class="w-full text-sm">
+                          <tr><th class="text-left">Chỉ số</th><th class="text-right">Điểm</th><th class="text-right">Đánh giá</th></tr>
+                          ${['gross_margin','burn_rate','growth','revenue','efficiency','leverage'].map(key => `
+                              <tr><td>${key.replace('_',' ').toUpperCase()}</td>
+                              <td class="text-right font-bold">${intrinsic[key].score.toFixed(1)}/${intrinsic[key].max}</td>
+                              <td class="text-right">${intrinsic[key].label}</td></tr>
+                          `).join('')}
+                          <tr class="text-red-600"><td>Security penalty</td><td class="text-right">-${intrinsic.security_penalty.toFixed(1)}</td><td></td></tr>
+                          <tr class="text-red-600"><td>Reg risk penalty</td><td class="text-right">-${intrinsic.reg_risk_penalty.toFixed(1)}</td><td></td></tr>
+                      </table>
+                      <div class="mt-4 p-3 bg-gray-50 rounded-xl">
+                          <div class="font-bold">Định giá & ROI</div>
+                          <div>P/S multiple: ${report.valuation?.ps_multiple?.toFixed(2) || 'N/A'}</div>
+                          <div>Valuation sanity: ${report.valuation?.valuation_sanity?.toFixed(1) || 'N/A'}</div>
+                          <div>ROI norm: ${report.valuation?.roi_norm?.toFixed(1) || 'N/A'}</div>
+                      </div>
+                  </div>
+              </div>
+          `;
+          // Vẽ radar
+          setTimeout(() => {
+              const ctx = document.getElementById('radarChart')?.getContext('2d');
+              if (ctx) {
+                  chartInstances.radar = new Chart(ctx, {
+                      type: 'radar',
+                      data: {
+                          labels: ['Gross Margin','Burn Rate','Growth','Revenue','Efficiency','Leverage'],
+                          datasets: [{
+                              label: 'Điểm của bạn',
+                              data: ['gross_margin','burn_rate','growth','revenue','efficiency','leverage'].map(k => intrinsic[k].score),
+                              backgroundColor: 'rgba(139,92,246,0.2)',
+                              borderColor: '#8b5cf6',
+                              pointBackgroundColor: '#8b5cf6'
+                          }]
+                      },
+                      options: { scales: { r: { max: 30, min: 0, ticks: { stepSize: 10 } } } }
+                  });
+              }
+          }, 100);
+      
+          // Tab 3: Rủi ro & Niềm tin
+          const riskEl = document.getElementById('tab-risk');
+          const risk = report.risk_trust;
+          const perception = report.market_perception;
+          riskEl.innerHTML = `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                      <h4 class="font-bold text-purple-800">Chỉ số rủi ro</h4>
+                      <div class="metric-bar"><span class="w-28">Security</span><div class="bar-track"><div class="bar-fill bg-blue-500" style="width:${risk.security}%"></div></div><span>${risk.security}</span></div>
+                      <div class="metric-bar"><span class="w-28">Reg Risk</span><div class="bar-track"><div class="bar-fill bg-red-500" style="width:${Math.min(100, risk.reg_risk)}%"></div></div><span>${risk.reg_risk}</span></div>
+                      <div class="metric-bar"><span class="w-28">Transparency</span><div class="bar-track"><div class="bar-fill bg-green-500" style="width:${risk.transparency}%"></div></div><span>${risk.transparency}</span></div>
+                      <div class="metric-bar"><span class="w-28">Trust trung bình</span><div class="bar-track"><div class="bar-fill bg-purple-500" style="width:${risk.avg_trust}%"></div></div><span>${risk.avg_trust.toFixed(1)}</span></div>
+                  </div>
+                  <div>
+                      <h4 class="font-bold text-purple-800">Cảm nhận thị trường</h4>
+                      <div class="p-4 rounded-xl bg-gray-50 text-center">
+                          <div class="quadrant-badge quadrant-${perception.quadrant.replace(' ','')}">${perception.quadrant}</div>
+                          <p class="mt-2 text-gray-700">${perception.description}</p>
+                          <div class="mt-2 text-sm">Hype: ${perception.hype} | Intrinsic: ${perception.intrinsic_normalized.toFixed(1)}</div>
+                      </div>
+                  </div>
+              </div>
+          `;
+      
+          // Tab 4: Nhà đầu tư
+          const investorEl = document.getElementById('tab-investor');
+          const bot = report.bot_breakdown;
+          const shares = bot.capital_share_percent;
+          investorEl.innerHTML = `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                      <h4 class="font-bold text-purple-800">Cơ cấu vốn theo loại bot</h4>
+                      <canvas id="pieChart" height="200"></canvas>
+                      <ul class="mt-2 text-sm">
+                          ${Object.entries(shares).map(([k,v]) => `<li><span class="font-bold">${k}:</span> ${v}%</li>`).join('')}
+                      </ul>
+                  </div>
+                  <div>
+                      <h4 class="font-bold text-purple-800">Sự kiện rút/vào vốn gần đây</h4>
+                      <ul class="max-h-60 overflow-y-auto text-sm space-y-1">
+                          ${bot.recent_events.length ? bot.recent_events.map(e => `<li class="bg-gray-50 p-2 rounded">${e}</li>`).join('') : '<li class="text-gray-500">Không có sự kiện nào</li>'}
+                      </ul>
+                  </div>
+              </div>
+          `;
+          setTimeout(() => {
+              const ctx = document.getElementById('pieChart')?.getContext('2d');
+              if (ctx) {
+                  chartInstances.pie = new Chart(ctx, {
+                      type: 'pie',
+                      data: {
+                          labels: Object.keys(shares),
+                          datasets: [{ data: Object.values(shares), backgroundColor: ['#f59e0b','#3b82f6','#8b5cf6','#10b981'] }]
+                      },
+                      options: { plugins: { legend: { position: 'bottom' } } }
+                  });
+              }
+          }, 100);
+      
+          // Tab 5: Hành trình
+          const journeyEl = document.getElementById('tab-journey');
+          const journey = report.decision_journey;
+          journeyEl.innerHTML = `
+              <h4 class="font-bold text-purple-800 mb-2">Dòng thời gian các phase</h4>
+              <table class="w-full text-sm border-collapse">
+                  <thead><tr class="bg-purple-100"><th class="p-2 text-left">Phase</th><th class="p-2 text-left">Sự kiện</th><th class="p-2 text-right">Funding</th><th class="p-2 text-right">Cash</th><th class="p-2 text-left">Status</th></tr></thead>
+                  <tbody>
+                      ${journey.map(j => `
+                          <tr class="border-b border-gray-100">
+                              <td class="p-2">${j.phase || '?'}</td>
+                              <td class="p-2">${j.event || '-'}</td>
+                              <td class="p-2 text-right">${(j.funding_progress*100).toFixed(1)}%</td>
+                              <td class="p-2 text-right">${j.available_cash?.toLocaleString() || 0}</td>
+                              <td class="p-2">${j.status || '-'}</td>
+                          </tr>
+                      `).join('')}
+                  </tbody>
+              </table>
+          `;
+      
+          // Tab switching
+          document.querySelectorAll('.analysis-tab').forEach(tab => {
+              tab.onclick = function() {
+                  document.querySelectorAll('.analysis-tab').forEach(t => t.classList.remove('active'));
+                  this.classList.add('active');
+                  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                  document.getElementById(this.dataset.tab).classList.add('active');
+              };
+          });
+      }
       // Khởi tạo danh sách phòng từ sessionStorage
       function loadRoomsFromStorage() {
         const saved = sessionStorage.getItem("hostRoomsList");
@@ -1093,6 +1309,8 @@
                 statusText = "💀 Bankrupt";
             }
             const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
+            const isEnded = roomData.ended;
+            const analysisBtn = isEnded ? `<button onclick="showAnalysisForPlayer(${player.id})" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-xs font-bold">📊 Analysis</button>` : '';
             overallHtml += `
                     <div class="rank-card ${cardClass}">
                         <h3>${idx + 1}. ${player.name}
@@ -1675,5 +1893,27 @@
         </ul>
       </div>
     </div>
+<!-- Modal Analysis -->
+<div id="analysisModal" class="analysis-modal-overlay" onclick="if(event.target===this) closeAnalysisModal()">
+    <div class="analysis-modal">
+        <div class="flex justify-between items-center mb-4">
+            <h2 id="analysisTitle" class="text-2xl font-bold text-purple-800">📊 Phân tích dự án</h2>
+            <button onclick="closeAnalysisModal()" class="text-3xl text-gray-400 hover:text-gray-600">&times;</button>
+        </div>
+        <div class="analysis-tabs" id="analysisTabs">
+            <div class="analysis-tab active" data-tab="tab-overview">Tổng quan</div>
+            <div class="analysis-tab" data-tab="tab-finance">Tài chính</div>
+            <div class="analysis-tab" data-tab="tab-risk">Rủi ro & Niềm tin</div>
+            <div class="analysis-tab" data-tab="tab-investor">Nhà đầu tư</div>
+            <div class="analysis-tab" data-tab="tab-journey">Hành trình</div>
+        </div>
+        <div id="tab-overview" class="tab-content active"></div>
+        <div id="tab-finance" class="tab-content"></div>
+        <div id="tab-risk" class="tab-content"></div>
+        <div id="tab-investor" class="tab-content"></div>
+        <div id="tab-journey" class="tab-content"></div>
+    </div>
+</div>
+  
   </body>
 </html>
