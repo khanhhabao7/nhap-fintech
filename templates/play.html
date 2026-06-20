@@ -379,6 +379,37 @@
             text-align: center;
         }
     </style>
+    <!-- Thêm Chart.js và style cho modal phân tích -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        .analysis-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+            z-index: 2000; display: none; align-items: center; justify-content: center;
+        }
+        .analysis-modal {
+            background: white; border-radius: 24px; max-width: 95vw; width: 1000px;
+            max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .analysis-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; flex-wrap: wrap; }
+        .analysis-tab { padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; background: #f3f4f6; color: #4b5563; transition: all 0.2s; }
+        .analysis-tab.active { background: #8b5cf6; color: white; }
+        .analysis-tab:hover:not(.active) { background: #e5e7eb; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .insight-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid; }
+        .insight-good { background: #f0fdf4; border-left-color: #22c55e; }
+        .insight-warning { background: #fffbeb; border-left-color: #f59e0b; }
+        .insight-danger { background: #fef2f2; border-left-color: #dc2626; }
+        .metric-bar { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
+        .metric-bar .bar-track { flex: 1; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+        .metric-bar .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+        .quadrant-badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; }
+        .quadrant-Hype { background: #fef08a; color: #854d0e; }
+        .quadrant-Hidden { background: #dbeafe; color: #1e40af; }
+        .quadrant-Balanced { background: #dcfce7; color: #166534; }
+        .quadrant-Struggling { background: #fecaca; color: #991b1b; }
+    </style>
+
 </head>
 
 <body class="p-5 font-sans antialiased min-h-screen my-auto">
@@ -762,6 +793,12 @@
                         <div class="font-bold text-xl text-blue-600"><span id="finalScale">-</span></div>
                     </div>
                 </div>
+            </div>
+            <!-- Nút xem phân tích của bạn -->
+            <div class="text-center mb-6">
+                <button onclick="showMyAnalysis()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-full font-bold text-lg shadow-lg transition-all">
+                    📊 Xem phân tích của bạn
+                </button>
             </div>
             <h3 class="font-bold text-xl mb-4 text-purple-800 text-center flex items-center justify-center gap-2">
                 <span>🏆</span> COMPETITOR RANKING <span>🏆</span>
@@ -1492,7 +1529,31 @@
             document.addEventListener('DOMContentLoaded', initRulesSidebar);
 
         </script>
+
+    <!-- Modal phân tích -->
+    <div id="analysisModal" class="analysis-modal-overlay" onclick="if(event.target===this) closeAnalysisModal()">
+        <div class="analysis-modal">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="analysisTitle" class="text-2xl font-bold text-purple-800">📊 Phân tích dự án</h2>
+                <button onclick="closeAnalysisModal()" class="text-3xl text-gray-400 hover:text-gray-600">&times;</button>
+            </div>
+            <div class="analysis-tabs" id="analysisTabs">
+                <div class="analysis-tab active" data-tab="tab-overview">Tổng quan</div>
+                <div class="analysis-tab" data-tab="tab-finance">Tài chính</div>
+                <div class="analysis-tab" data-tab="tab-risk">Rủi ro & Niềm tin</div>
+                <div class="analysis-tab" data-tab="tab-investor">Nhà đầu tư</div>
+                <div class="analysis-tab" data-tab="tab-journey">Hành trình</div>
+            </div>
+            <div id="tab-overview" class="tab-content active"></div>
+            <div id="tab-finance" class="tab-content"></div>
+            <div id="tab-risk" class="tab-content"></div>
+            <div id="tab-investor" class="tab-content"></div>
+            <div id="tab-journey" class="tab-content"></div>
+        </div>
+    </div>
+
 </body>
+</html>
 
 </html>
  
