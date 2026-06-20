@@ -825,7 +825,7 @@
       
       async function showAnalysisForPlayer(playerIndex) {
           try {
-              const res = await fetch(`${API_BASE}/rooms/${currentRoomId}/analysis/${playerIndex}`);
+              const res = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/analysis/${playerIndex}`);
               const data = await res.json();
               if (!data.success) throw new Error(data.error);
               currentAnalysisReport = data.report;
