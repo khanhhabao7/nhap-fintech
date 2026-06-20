@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
   <head>
@@ -534,12 +533,8 @@
     </style>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-
-
-
 <style>
-      
-      /* ===== ANALYSIS MODAL STYLES (giống play) ===== */
+    /* Modal phân tích */
       .analysis-modal-overlay {
           position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
           z-index: 2000; display: none; align-items: center; justify-content: center;
@@ -823,14 +818,14 @@
       
       function closeAnalysisModal() {
           document.getElementById('analysisModal').style.display = 'none';
-          // Hủy các biểu đồ để tránh memory leak
+          // Destroy charts để tránh memory leak
           Object.values(chartInstances).forEach(chart => { if (chart) chart.destroy(); });
           chartInstances = {};
       }
       
       async function showAnalysisForPlayer(playerIndex) {
           try {
-              const res = await fetch(`${API_BASE}/rooms/${currentRoomId}/analysis/${playerIndex}`);
+              const res = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/analysis/${playerIndex}`);
               const data = await res.json();
               if (!data.success) throw new Error(data.error);
               currentAnalysisReport = data.report;
@@ -883,9 +878,9 @@
                       </table>
                       <div class="mt-4 p-3 bg-gray-50 rounded-xl">
                           <div class="font-bold">Định giá & ROI</div>
-                          <div>P/S multiple: ${report.final_metrics?.estimated_valuation ? (report.final_metrics.estimated_valuation / Math.max(1, report.final_metrics.revenue_year || 1)).toFixed(2) : 'N/A'}</div>
-                          <div>Valuation sanity: ${report.final_metrics?.valuation_sanity?.toFixed(1) || 'N/A'}</div>
-                          <div>ROI norm: ${report.final_metrics?.roi_norm?.toFixed(1) || 'N/A'}</div>
+                          <div>P/S multiple: ${report.valuation?.ps_multiple?.toFixed(2) || 'N/A'}</div>
+                          <div>Valuation sanity: ${report.valuation?.valuation_sanity?.toFixed(1) || 'N/A'}</div>
+                          <div>ROI norm: ${report.valuation?.roi_norm?.toFixed(1) || 'N/A'}</div>
                       </div>
                   </div>
               </div>
