@@ -1,3 +1,5 @@
+
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -531,40 +533,43 @@
         display: block;
       }
     </style>
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
     /* Modal phân tích */
-      .analysis-modal-overlay {
-          position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-          z-index: 2000; display: none; align-items: center; justify-content: center;
-      }
-      .analysis-modal {
-          background: white; border-radius: 24px; max-width: 95vw; width: 1000px;
-          max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-      }
-      .analysis-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; flex-wrap: wrap; }
-      .analysis-tab { padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; background: #f3f4f6; color: #4b5563; transition: all 0.2s; }
-      .analysis-tab.active { background: #8b5cf6; color: white; }
-      .analysis-tab:hover:not(.active) { background: #e5e7eb; }
-      .tab-content { display: none; }
-      .tab-content.active { display: block; }
-      .insight-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid; }
-      .insight-good { background: #f0fdf4; border-left-color: #22c55e; }
-      .insight-warning { background: #fffbeb; border-left-color: #f59e0b; }
-      .insight-danger { background: #fef2f2; border-left-color: #dc2626; }
-      .metric-bar { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
-      .metric-bar .bar-track { flex: 1; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
-      .metric-bar .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
-      .quadrant-badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; }
-      .quadrant-HypeBubble { background: #fef08a; color: #854d0e; }
-      .quadrant-HiddenGem { background: #dbeafe; color: #1e40af; }
-      .quadrant-BalancedGrowth { background: #dcfce7; color: #166534; }
-      .quadrant-Struggling { background: #fecaca; color: #991b1b; }
-      .quadrant-SteadyBuilder { background: #e0f2fe; color: #075985; }
-      .quadrant-OverhypedRisk { background: #fde68a; color: #92400e; }
-      .quadrant-FragileMomentum { background: #fed7aa; color: #9a3412; }
-      .quadrant-OnTrack { background: #e5e7eb; color: #374151; }
+    .analysis-modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+        z-index: 2000; display: none; align-items: center; justify-content: center;
+    }
+    .analysis-modal {
+        background: white; border-radius: 24px; max-width: 95vw; width: 1000px;
+        max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .analysis-tabs { display: flex; gap: 8px; border-bottom: 2px solid #e5e7eb; margin-bottom: 20px; flex-wrap: wrap; }
+    .analysis-tab { padding: 8px 16px; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: 600; background: #f3f4f6; color: #4b5563; transition: all 0.2s; }
+    .analysis-tab.active { background: #8b5cf6; color: white; }
+    .analysis-tab:hover:not(.active) { background: #e5e7eb; }
+    .analysis-player-switcher { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #f3e8ff; }
+    .player-switch-chip { padding: 6px 14px; border-radius: 999px; font-weight: 600; font-size: 13px; background: #f3f4f6; color: #4b5563; border: 2px solid transparent; cursor: pointer; transition: all 0.2s; }
+    .player-switch-chip:hover:not(.active) { background: #ede9fe; color: #6d28d9; }
+    .player-switch-chip.active { background: #8b5cf6; color: white; border-color: #6d28d9; box-shadow: 0 2px 8px rgba(139,92,246,0.4); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .insight-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; border-left: 4px solid; }
+    .insight-good { background: #f0fdf4; border-left-color: #22c55e; }
+    .insight-warning { background: #fffbeb; border-left-color: #f59e0b; }
+    .insight-danger { background: #fef2f2; border-left-color: #dc2626; }
+    .metric-bar { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
+    .metric-bar .bar-track { flex: 1; height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
+    .metric-bar .bar-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+    .quadrant-badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; }
+    .quadrant-HypeBubble { background: #fef08a; color: #854d0e; }
+    .quadrant-HiddenGem { background: #dbeafe; color: #1e40af; }
+    .quadrant-BalancedGrowth { background: #dcfce7; color: #166534; }
+    .quadrant-Struggling { background: #fecaca; color: #991b1b; }
+    .quadrant-SteadyBuilder { background: #e0f2fe; color: #075985; }
+    .quadrant-OverhypedRisk { background: #fde68a; color: #92400e; }
+    .quadrant-FragileMomentum { background: #fed7aa; color: #9a3412; }
+    .quadrant-OnTrack { background: #e5e7eb; color: #374151; }
 </style>
     
   
@@ -736,6 +741,9 @@
           <button onclick="runPhase()" id="runPhaseBtn" disabled>
             ▶ RUN PHASE <span id="phaseNumberLabel">?</span>
           </button>
+          <button onclick="openAnalysisHub()" id="openAnalysisBtn" disabled class="bg-purple-600 hover:bg-purple-700 text-white">
+            📊 PHÂN TÍCH
+          </button>
           <button onclick="endGame()" id="endGameBtn" disabled>
             ⛔ END GAME
           </button>
@@ -815,16 +823,45 @@
       // Analysis functions
       let currentAnalysisReport = null;
       let chartInstances = {};
-      
+      let analysisPlayersList = [];
+      let currentAnalysisPlayerId = null;
+
       function closeAnalysisModal() {
           document.getElementById('analysisModal').style.display = 'none';
           // Destroy charts để tránh memory leak
           Object.values(chartInstances).forEach(chart => { if (chart) chart.destroy(); });
           chartInstances = {};
       }
-      
-      async function showAnalysisForPlayer(playerIndex) {
+
+      function openAnalysisHub() {
+          if (!currentRoomData || !currentRoomData.players) {
+              alert('Chưa có dữ liệu người chơi.');
+              return;
+          }
+          analysisPlayersList = currentRoomData.players.filter(p => p.status !== 'not_joined');
+          if (!analysisPlayersList.length) {
+              alert('Chưa có người chơi nào để phân tích.');
+              return;
+          }
+          document.getElementById('analysisModal').style.display = 'flex';
+          renderAnalysisPlayerSwitcher();
+          loadAnalysisForPlayer(analysisPlayersList[0].id);
+      }
+
+      function renderAnalysisPlayerSwitcher() {
+          const el = document.getElementById('analysisPlayerSwitcher');
+          if (!el) return;
+          el.innerHTML = analysisPlayersList.map(p => {
+              const name = p.name || `Player ${p.id + 1}`;
+              const isActive = p.id === currentAnalysisPlayerId;
+              return `<button class="player-switch-chip ${isActive ? 'active' : ''}" data-pid="${p.id}" onclick="loadAnalysisForPlayer(${p.id})">${name}</button>`;
+          }).join('');
+      }
+
+      async function loadAnalysisForPlayer(playerIndex) {
           try {
+              currentAnalysisPlayerId = playerIndex;
+              renderAnalysisPlayerSwitcher();
               const res = await fetch(`${API_BASE_URL}/rooms/${currentRoomId}/analysis/${playerIndex}`);
               const data = await res.json();
               if (!data.success) throw new Error(data.error);
@@ -836,6 +873,8 @@
               alert('Không thể tải phân tích: ' + err.message);
           }
       }
+      // Giữ tên cũ để tương thích nếu nơi khác còn gọi
+      const showAnalysisForPlayer = loadAnalysisForPlayer;
       
       function renderAnalysisTabs(report) {
           // Tab 1: Tổng quan (Insights)
@@ -1286,6 +1325,10 @@
         }
         document.getElementById("endGameBtn").disabled = roomData.ended;
         document.getElementById("resetGameBtn").disabled = false;
+        const openAnalysisBtnEl = document.getElementById("openAnalysisBtn");
+        if (openAnalysisBtnEl) {
+          openAnalysisBtnEl.disabled = !roomData.ended || !(roomData.players && roomData.players.some(p => p.status !== "not_joined"));
+        }
 
         // Leaderboard - Overall and by Scale
         if (roomData.players && roomData.players.length > 0) {
@@ -1314,7 +1357,6 @@
                 statusText = "💀 Bankrupt";
             }
             const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-            const analysisBtn = roomData.ended ? `<button onclick="showAnalysisForPlayer(${player.id})" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-xs font-bold">📊 Analysis</button>` : '';
             overallHtml += `
                     <div class="rank-card ${cardClass}">
                         <h3>${idx + 1}. ${player.name}
@@ -1326,9 +1368,6 @@
                             <span class="metric-tag hype-tag">📈 Hype ${player.hype ?? 0}</span>
                             <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                             <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
-                        </div>
-                        <div class="text-xs mt-1" style="margin-top:6px;">
-                            ${analysisBtn}
                         </div>
                         <div class="text-xs mt-1">
                             ${
@@ -1397,7 +1436,6 @@
                     statusText = "💀 Bankrupt";
                 }
                 const fundingPercent = ((player.funding || 0) * 100).toFixed(1);
-                const analysisBtnScale = roomData.ended ? `<button onclick="showAnalysisForPlayer(${player.id})" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded-full text-xs font-bold">📊 Analysis</button>` : '';
                 scaleHtml += `
                         <div class="rank-card ${cardClass}" style="margin-bottom: 8px;">
                             <h3 style="color:#2e1a47;">${idx + 1}. ${player.name || `Player ${player.id + 1}`}
@@ -1410,7 +1448,6 @@
                                 <span class="metric-tag transparency-tag">🔍 Transparency ${player.transparency ?? 0}</span>
                                 <span class="metric-tag score-tag">🏅 Score ${(player.score || 0).toFixed(2)}</span>
                             </div>
-                            <div class="text-xs mt-1" style="margin-top:6px;">${analysisBtnScale}</div>
                             <div class="text-xs mt-1">
                             ${
                               roomData.status === "choosing_deck"
@@ -1657,6 +1694,8 @@
       window.copyAllJoinLinks = copyAllJoinLinks;
       window.showAnalysisForPlayer = showAnalysisForPlayer;
       window.closeAnalysisModal = closeAnalysisModal;
+      window.openAnalysisHub = openAnalysisHub;
+      window.loadAnalysisForPlayer = loadAnalysisForPlayer;
 
       // Khởi tạo
       loadRoomsFromStorage();
@@ -1911,6 +1950,7 @@
             <h2 id="analysisTitle" class="text-2xl font-bold text-purple-800">📊 Phân tích dự án</h2>
             <button onclick="closeAnalysisModal()" class="text-3xl text-gray-400 hover:text-gray-600">&times;</button>
         </div>
+        <div id="analysisPlayerSwitcher" class="analysis-player-switcher"></div>
         <div class="analysis-tabs" id="analysisTabs">
             <div class="analysis-tab active" data-tab="tab-overview">Tổng quan</div>
             <div class="analysis-tab" data-tab="tab-finance">Tài chính</div>
